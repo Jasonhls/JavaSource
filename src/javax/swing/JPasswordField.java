@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package javax.swing;
 
@@ -39,7 +39,7 @@ import java.util.Arrays;
  * the editing of a single line of text where the view indicates
  * something was typed, but does not show the original characters.
  * You can find further information and examples in
- * <a href="https://docs.oracle.com/javase/tutorial/uiswing/components/textfield.html">How to Use Text Fields</a>,
+ * <a href="http://docs.oracle.com/javase/tutorial/uiswing/components/textfield.html">How to Use Text Fields</a>,
  * a section in <em>The Java Tutorial.</em>
  * <p>
  * <code>JPasswordField</code> is intended
@@ -279,47 +279,6 @@ public class JPasswordField extends JTextField {
     @Deprecated
     public String getText(int offs, int len) throws BadLocationException {
         return super.getText(offs, len);
-    }
-
-    /**
-     * Sets the text of this <code>TextComponent</code>
-     * to the specified text.  If the text is <code>null</code>
-     * or empty, has the effect of simply deleting the old text.
-     * When text has been inserted, the resulting caret location
-     * is determined by the implementation of the caret class.
-     *
-     * <p>
-     * Note that text is not a bound property, so no <code>PropertyChangeEvent
-     * </code> is fired when it changes. To listen for changes to the text,
-     * use <code>DocumentListener</code>.
-     *
-     * @param t the new text to be set
-     * @see #getText
-     * @see DefaultCaret
-     * @beaninfo
-     * description: the text of this component
-     */
-    @Override
-    public void setText(String t) {
-        // overwrite the old data first
-        Document doc = getDocument();
-        int nleft = doc.getLength();
-        Segment text = new Segment();
-        // we would like to get direct data array access, not a copy of it
-        text.setPartialReturn(true);
-        int offs = 0;
-        try {
-            while (nleft > 0) {
-                doc.getText(offs, nleft, text);
-                Arrays.fill(text.array, text.offset,
-                            text.count + text.offset, '\u0000');
-                nleft -= text.count;
-                offs += text.count;
-            }
-        } catch (BadLocationException ignored) {
-            // we tried
-        }
-        super.setText(t);
     }
 
     /**

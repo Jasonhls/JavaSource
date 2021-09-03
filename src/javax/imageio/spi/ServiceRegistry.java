@@ -1,34 +1,31 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.imageio.spi;
 
 import java.io.File;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -704,12 +701,11 @@ class SubRegistry {
 
     Class category;
 
-    // Provider Objects organized by partial ordering
-    final PartiallyOrderedSet poset = new PartiallyOrderedSet();
+    // Provider Objects organized by partial oridering
+    PartiallyOrderedSet poset = new PartiallyOrderedSet();
 
     // Class -> Provider Object of that class
-    final Map<Class<?>,Object> map = new HashMap();
-    final Map<Class<?>,AccessControlContext> accMap = new HashMap<>();
+    Map<Class<?>,Object> map = new HashMap();
 
     public SubRegistry(ServiceRegistry registry, Class category) {
         this.registry = registry;
@@ -724,7 +720,6 @@ class SubRegistry {
             deregisterServiceProvider(oprovider);
         }
         map.put(provider.getClass(), provider);
-        accMap.put(provider.getClass(), AccessController.getContext());
         poset.add(provider);
         if (provider instanceof RegisterableService) {
             RegisterableService rs = (RegisterableService)provider;
@@ -744,7 +739,6 @@ class SubRegistry {
 
         if (provider == oprovider) {
             map.remove(provider.getClass());
-            accMap.remove(provider.getClass());
             poset.remove(provider);
             if (provider instanceof RegisterableService) {
                 RegisterableService rs = (RegisterableService)provider;
@@ -791,17 +785,10 @@ class SubRegistry {
 
             if (provider instanceof RegisterableService) {
                 RegisterableService rs = (RegisterableService)provider;
-                AccessControlContext acc = accMap.get(provider.getClass());
-                if (acc != null || System.getSecurityManager() == null) {
-                    AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
-                    rs.onDeregistration(registry, category);
-                        return null;
-                    }, acc);
-                }
+                rs.onDeregistration(registry, category);
             }
         }
         poset.clear();
-        accMap.clear();
     }
 
     public void finalize() {

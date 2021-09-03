@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.swing.plaf.metal;
@@ -32,13 +32,15 @@ import javax.swing.plaf.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.*;
 import javax.swing.text.DefaultEditorKit;
-import javax.swing.UIDefaults.LazyValue;
 
 import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.lang.reflect.*;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 
 import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import sun.awt.*;
 import sun.security.action.GetPropertyAction;
@@ -458,9 +460,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
                                           "getTextFieldBorder");
 
-        LazyValue dialogBorder = t -> new MetalBorders.DialogBorder();
+        Object dialogBorder = new MetalLazyValue(
+                          "javax.swing.plaf.metal.MetalBorders$DialogBorder");
 
-        LazyValue questionDialogBorder = t -> new MetalBorders.QuestionDialogBorder();
+        Object questionDialogBorder = new MetalLazyValue(
+                  "javax.swing.plaf.metal.MetalBorders$QuestionDialogBorder");
 
         Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", DefaultEditorKit.copyAction,
@@ -1490,8 +1494,12 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolBar.floatingBackground", menuBackground,
             "ToolBar.dockingForeground", primaryControlDarkShadow,
             "ToolBar.floatingForeground", primaryControl,
-            "ToolBar.rolloverBorder", (LazyValue) t -> MetalBorders.getToolBarRolloverBorder(),
-            "ToolBar.nonrolloverBorder", (LazyValue) t -> MetalBorders.getToolBarNonrolloverBorder(),
+            "ToolBar.rolloverBorder", new MetalLazyValue(
+                         "javax.swing.plaf.metal.MetalBorders",
+                         "getToolBarRolloverBorder"),
+            "ToolBar.nonrolloverBorder", new MetalLazyValue(
+                         "javax.swing.plaf.metal.MetalBorders",
+                         "getToolBarNonrolloverBorder"),
             "ToolBar.ancestorInputMap",
                new UIDefaults.LazyInputMap(new Object[] {
                         "UP", "navigateUp",
@@ -1505,14 +1513,17 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                  }),
 
             // RootPane
-            "RootPane.frameBorder", (LazyValue) t -> new MetalBorders.FrameBorder(),
+            "RootPane.frameBorder", new MetalLazyValue(
+                      "javax.swing.plaf.metal.MetalBorders$FrameBorder"),
             "RootPane.plainDialogBorder", dialogBorder,
             "RootPane.informationDialogBorder", dialogBorder,
-            "RootPane.errorDialogBorder", (LazyValue) t -> new MetalBorders.ErrorDialogBorder(),
+            "RootPane.errorDialogBorder", new MetalLazyValue(
+                      "javax.swing.plaf.metal.MetalBorders$ErrorDialogBorder"),
             "RootPane.colorChooserDialogBorder", questionDialogBorder,
             "RootPane.fileChooserDialogBorder", questionDialogBorder,
             "RootPane.questionDialogBorder", questionDialogBorder,
-            "RootPane.warningDialogBorder", (LazyValue) t -> new MetalBorders.WarningDialogBorder(),
+            "RootPane.warningDialogBorder", new MetalLazyValue(
+                    "javax.swing.plaf.metal.MetalBorders$WarningDialogBorder"),
             // These bindings are only enabled when there is a default
             // button set on the rootpane.
             "RootPane.defaultButtonWindowKeyBindings", new Object[] {
@@ -2160,6 +2171,61 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      */
     public LayoutStyle getLayoutStyle() {
         return MetalLayoutStyle.INSTANCE;
+    }
+
+
+    /**
+     * MetalLazyValue is a slimmed down version of <code>ProxyLaxyValue</code>.
+     * The code is duplicate so that it can get at the package private
+     * classes in metal.
+     */
+    private static class MetalLazyValue implements UIDefaults.LazyValue {
+        /**
+         * Name of the class to create.
+         */
+        private String className;
+        private String methodName;
+
+        MetalLazyValue(String name) {
+            this.className = name;
+        }
+
+        MetalLazyValue(String name, String methodName) {
+            this(name);
+            this.methodName = methodName;
+        }
+
+        public Object createValue(UIDefaults table) {
+            try {
+                final Class c = Class.forName(className);
+
+                if (methodName == null) {
+                    return c.newInstance();
+                }
+                Method method = AccessController.doPrivileged(
+                    new PrivilegedAction<Method>() {
+                    public Method run() {
+                        Method[] methods = c.getDeclaredMethods();
+                        for (int counter = methods.length - 1; counter >= 0;
+                             counter--) {
+                            if (methods[counter].getName().equals(methodName)){
+                                methods[counter].setAccessible(true);
+                                return methods[counter];
+                            }
+                        }
+                        return null;
+                    }
+                });
+                if (method != null) {
+                    return method.invoke(null, (Object[])null);
+                }
+            } catch (ClassNotFoundException cnfe) {
+            } catch (InstantiationException ie) {
+            } catch (IllegalAccessException iae) {
+            } catch (InvocationTargetException ite) {
+            }
+            return null;
+        }
     }
 
 

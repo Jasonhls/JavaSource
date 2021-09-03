@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2016, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.swing.plaf.basic;
@@ -54,7 +54,7 @@ import sun.swing.UIAction;
  * <p>
  * For adding specific actions,
  * overide <code>installKeyboardActions</code> to add actions in response to
- * KeyStroke bindings. See the article <a href="https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html">How to Use Key Bindings</a>
+ * KeyStroke bindings. See the article <a href="http://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html">How to Use Key Bindings</a>
  *
  * @author Arnaud Weber
  * @author Tom Santos
@@ -1939,21 +1939,21 @@ public class BasicComboBoxUI extends ComboBoxUI {
         public void actionPerformed(ActionEvent evt) {
             Object item = comboBox.getEditor().getItem();
             if (item != null) {
-                if (!comboBox.isPopupVisible() && !item.equals(comboBox.getSelectedItem())) {
-                    comboBox.setSelectedItem(comboBox.getEditor().getItem());
-                }
-                ActionMap am = comboBox.getActionMap();
-                if (am != null) {
-                    Action action = am.get("enterPressed");
-                    if (action != null) {
-                        action.actionPerformed(new ActionEvent(comboBox, evt.getID(),
-                                evt.getActionCommand(),
-                                evt.getModifiers()));
-                    }
+             if(!comboBox.isPopupVisible() && !item.equals(comboBox.getSelectedItem())) {
+              comboBox.setSelectedItem(comboBox.getEditor().getItem());
+             }
+             ActionMap am = comboBox.getActionMap();
+             if (am != null) {
+                Action action = am.get("enterPressed");
+                if (action != null) {
+                    action.actionPerformed(new ActionEvent(comboBox, evt.getID(),
+                                           evt.getActionCommand(),
+                                           evt.getModifiers()));
                 }
             }
-        }
+       }
    }
+  }
 
     class DefaultKeySelectionManager implements JComboBox.KeySelectionManager, UIResource {
         private String prefix = "";

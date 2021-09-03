@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2002, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.swing.plaf.synth;
@@ -49,8 +49,6 @@ public class SynthProgressBarUI extends BasicProgressBarUI
     private boolean paintOutsideClip;
     private boolean tileWhenIndeterminate; //whether to tile indeterminate painting
     private int tileWidth; //the width of each tile
-    private Dimension minBarSize; // minimal visible bar size
-    private int glowWidth; // Glow around the bar foreground
 
     /**
      * Creates a new UI object for the given component.
@@ -116,8 +114,6 @@ public class SynthProgressBarUI extends BasicProgressBarUI
                 tileWidth *= 0.784;
             }
         }
-        minBarSize = (Dimension)style.get(context, "ProgressBar.minBarSize");
-        glowWidth = style.getInt(context, "ProgressBar.glowWidth", 0);
         context.dispose();
     }
 
@@ -142,7 +138,8 @@ public class SynthProgressBarUI extends BasicProgressBarUI
     }
 
     private SynthContext getContext(JComponent c, int state) {
-        return SynthContext.getContext(c, style, state);
+        return SynthContext.getContext(SynthContext.class, c,
+                            SynthLookAndFeel.getRegion(c), style, state);
     }
 
     private int getComponentState(JComponent c) {
@@ -262,7 +259,7 @@ public class SynthProgressBarUI extends BasicProgressBarUI
 
                     if (!SynthLookAndFeel.isLeftToRight(pBar)) {
                         x = pBar.getWidth() - pBarInsets.right - width
-                                - progressPadding - glowWidth;
+                                - progressPadding;
                     }
                 } else {  // JProgressBar.VERTICAL
                     x = pBarInsets.left + progressPadding;
@@ -275,9 +272,9 @@ public class SynthProgressBarUI extends BasicProgressBarUI
                     y = pBar.getHeight() - pBarInsets.bottom - height
                             - progressPadding;
 
-                    if (SynthLookAndFeel.isLeftToRight(pBar)) {
-                        y -= glowWidth;
-                    }
+                    // When the progress bar is vertical we always paint
+                    // from bottom to top, not matter what the component
+                    // orientation is.
                 }
             }
         } else {
@@ -311,11 +308,8 @@ public class SynthProgressBarUI extends BasicProgressBarUI
             }
             g.setClip(clip);
         } else {
-            if (minBarSize == null || (width >= minBarSize.width
-                    && height >= minBarSize.height)) {
-                context.getPainter().paintProgressBarForeground(context, g,
-                        x, y, width, height, pBar.getOrientation());
-            }
+            context.getPainter().paintProgressBarForeground(context, g,
+                    x, y, width, height, pBar.getOrientation());
         }
 
         if (pBar.isStringPainted()) {

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2003, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.sql.rowset.serial;
@@ -66,7 +66,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * value of this <code>SerialBlob</code> object.
      * @serial
      */
-    private byte[] buf;
+    private byte buf[];
 
     /**
      * The internal representation of the <code>Blob</code> object on which this
@@ -102,13 +102,12 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * @throws SerialException if an error occurs during serialization
      * @throws SQLException if a SQL errors occurs
      */
-    public SerialBlob(byte[] b)
-            throws SerialException, SQLException {
+    public SerialBlob(byte[] b) throws SerialException, SQLException {
 
         len = b.length;
         buf = new byte[(int)len];
         for(int i = 0; i < len; i++) {
-            buf[i] = b[i];
+           buf[i] = b[i];
         }
         origLen = len;
     }
@@ -133,17 +132,19 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      *     to this constructor is a <code>null</code>.
      * @see java.sql.Blob
      */
-    public SerialBlob (Blob blob)
-            throws SerialException, SQLException {
+    public SerialBlob (Blob blob) throws SerialException, SQLException {
 
         if (blob == null) {
-            throw new SQLException(
-                    "Cannot instantiate a SerialBlob object with a null Blob object");
+            throw new SQLException("Cannot instantiate a SerialBlob " +
+                 "object with a null Blob object");
         }
 
         len = blob.length();
         buf = blob.getBytes(1, (int)len );
         this.blob = blob;
+
+         //if ( len < 10240000)
+         // len = 10240000;
         origLen = len;
     }
 
@@ -244,8 +245,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      *         value from the database
      */
     public long position(byte[] pattern, long start)
-            throws SerialException, SQLException {
-
+                throws SerialException, SQLException {
         isValid();
         if (start < 1 || start > len) {
             return -1;
@@ -290,7 +290,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      *         value from the database
      */
     public long position(Blob pattern, long start)
-            throws SerialException, SQLException {
+       throws SerialException, SQLException {
         isValid();
         return position(pattern.getBytes(1, (int)(pattern.length())), start);
     }
@@ -316,8 +316,8 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * @see #getBytes
      */
     public int setBytes(long pos, byte[] bytes)
-            throws SerialException, SQLException {
-        return setBytes(pos, bytes, 0, bytes.length);
+        throws SerialException, SQLException {
+        return (setBytes(pos, bytes, 0, bytes.length));
     }
 
     /**
@@ -352,7 +352,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * @see #getBytes
      */
     public int setBytes(long pos, byte[] bytes, int offset, int length)
-            throws SerialException, SQLException {
+        throws SerialException, SQLException {
 
         isValid();
         if (offset < 0 || offset > bytes.length) {
@@ -369,7 +369,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
 
         if ((length + offset) > bytes.length) {
             throw new SerialException("Invalid OffSet. Cannot have combined offset " +
-                    "and length that is greater that the Blob buffer");
+                "and length that is greater that the Blob buffer");
         }
 
         int i = 0;
@@ -402,8 +402,7 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * @see #getBinaryStream
      */
     public java.io.OutputStream setBinaryStream(long pos)
-            throws SerialException, SQLException {
-
+        throws SerialException, SQLException {
         isValid();
         if (this.blob != null) {
             return this.blob.setBinaryStream(pos);
@@ -426,16 +425,17 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      * if {@code free} had previously been called on this object
      */
     public void truncate(long length) throws SerialException {
+
         isValid();
         if (length > len) {
-            throw new SerialException(
-                    "Length more than what can be truncated");
+           throw new SerialException
+              ("Length more than what can be truncated");
         } else if((int)length == 0) {
-            buf = new byte[0];
-            len = length;
+             buf = new byte[0];
+             len = length;
         } else {
-            len = length;
-            buf = this.getBytes(1, (int)len);
+             len = length;
+             buf = this.getBytes(1, (int)len);
         }
     }
 
@@ -466,8 +466,8 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
             throw new SerialException("Invalid position in BLOB object set");
         }
         if (length < 1 || length > len - pos + 1) {
-            throw new SerialException(
-                    "length is < 1 or pos + length > total number of bytes");
+            throw new SerialException("length is < 1 or pos + length >"
+                    + "total number of bytes");
         }
         return new ByteArrayInputStream(buf, (int) pos - 1, (int) length);
     }
@@ -536,13 +536,14 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
     public Object clone() {
         try {
             SerialBlob sb = (SerialBlob) super.clone();
-            sb.buf = (buf != null) ? Arrays.copyOf(buf, (int)len) : null;
+            sb.buf =  (buf != null) ? Arrays.copyOf(buf, (int)len) : null;
             sb.blob = null;
             return sb;
         } catch (CloneNotSupportedException ex) {
             // this shouldn't happen, since we are Cloneable
             throw new InternalError();
         }
+
     }
 
     /**
@@ -553,15 +554,15 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
             throws IOException, ClassNotFoundException {
 
         ObjectInputStream.GetField fields = s.readFields();
-        byte[] tmp = (byte[])fields.get("buf", null);
-        if (tmp == null)
-            throw new InvalidObjectException("buf is null and should not be!");
-        buf = tmp.clone();
-        len = fields.get("len", 0L);
-        if (buf.length != len)
-            throw new InvalidObjectException("buf is not the expected size");
-        origLen = fields.get("origLen", 0L);
-        blob = (Blob) fields.get("blob", null);
+       byte[] tmp = (byte[])fields.get("buf", null);
+       if (tmp == null)
+           throw new InvalidObjectException("buf is null and should not be!");
+       buf = tmp.clone();
+       len = fields.get("len", 0L);
+       if (buf.length != len)
+           throw new InvalidObjectException("buf is not the expected size");
+       origLen = fields.get("origLen", 0L);
+       blob = (Blob) fields.get("blob", null);
     }
 
     /**
@@ -589,8 +590,8 @@ public class SerialBlob implements Blob, Serializable, Cloneable {
      */
     private void isValid() throws SerialException {
         if (buf == null) {
-            throw new SerialException("Error: You cannot call a method on a " +
-                    "SerialBlob instance once free() has been called.");
+            throw new SerialException("Error: You cannot call a method on a "
+                    + "SerialBlob instance once free() has been called.");
         }
     }
 

@@ -1,39 +1,41 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package javax.swing.text;
 
-import com.sun.beans.util.Cache;
+import java.lang.reflect.Method;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.beans.Transient;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.Map;
 
 import java.util.concurrent.*;
 
@@ -82,7 +84,7 @@ import sun.swing.SwingAccessor;
  * support).
  * You can find information on how to use the functionality
  * this class provides in
- * <a href="https://docs.oracle.com/javase/tutorial/uiswing/components/generaltext.html">General Rules for Using Text Components</a>,
+ * <a href="http://docs.oracle.com/javase/tutorial/uiswing/components/generaltext.html">General Rules for Using Text Components</a>,
  * a section in <em>The Java Tutorial.</em>
  *
  * <dl>
@@ -1190,6 +1192,47 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
     }
 
     /**
+     * Returns true if <code>klass</code> is NOT a JTextComponent and it or
+     * one of its superclasses (stoping at JTextComponent) overrides
+     * <code>processInputMethodEvent</code>. It is assumed this will be
+     * invoked from within a <code>doPrivileged</code>, and it is also
+     * assumed <code>klass</code> extends <code>JTextComponent</code>.
+     */
+    private static Boolean isProcessInputMethodEventOverridden(Class<?> klass) {
+        if (klass == JTextComponent.class) {
+            return Boolean.FALSE;
+        }
+        Boolean retValue = overrideMap.get(klass.getName());
+
+        if (retValue != null) {
+            return retValue;
+        }
+        Boolean sOverriden = isProcessInputMethodEventOverridden(
+                                       klass.getSuperclass());
+
+        if (sOverriden.booleanValue()) {
+            // If our superclass has overriden it, then by definition klass
+            // overrides it.
+            overrideMap.put(klass.getName(), sOverriden);
+            return sOverriden;
+        }
+        // klass's superclass didn't override it, check for an override in
+        // klass.
+        try {
+            Class[] classes = new Class[1];
+            classes[0] = InputMethodEvent.class;
+
+            Method m = klass.getDeclaredMethod("processInputMethodEvent",
+                                               classes);
+            retValue = Boolean.TRUE;
+        } catch (NoSuchMethodException nsme) {
+            retValue = Boolean.FALSE;
+        }
+        overrideMap.put(klass.getName(), retValue);
+        return retValue;
+    }
+
+    /**
      * Fetches the current color used to render the
      * caret.
      *
@@ -2164,7 +2207,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * <p>
      * This method is thread-safe, although most Swing methods are not. Please
      * see <A
-     * HREF="https://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">
+     * HREF="http://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">
      * Concurrency in Swing</A> for more information.
      *
      * <p>
@@ -2422,7 +2465,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * <p>
      * This method is thread-safe, although most Swing methods are not. Please
      * see <A
-     * HREF="https://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">
+     * HREF="http://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">
      * Concurrency in Swing</A> for more information.
      *
      * <p>
@@ -3870,33 +3913,7 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      * Maps from class name to Boolean indicating if
      * <code>processInputMethodEvent</code> has been overriden.
      */
-    private static Cache<Class<?>,Boolean> METHOD_OVERRIDDEN
-            = new Cache<Class<?>,Boolean>(Cache.Kind.WEAK, Cache.Kind.STRONG) {
-        /**
-         * Returns {@code true} if the specified {@code type} extends {@link JTextComponent}
-         * and the {@link JTextComponent#processInputMethodEvent} method is overridden.
-         */
-        @Override
-        public Boolean create(final Class<?> type) {
-            if (JTextComponent.class == type) {
-                return Boolean.FALSE;
-            }
-            if (get(type.getSuperclass())) {
-                return Boolean.TRUE;
-            }
-            return AccessController.doPrivileged(
-                    new PrivilegedAction<Boolean>() {
-                        public Boolean run() {
-                            try {
-                                type.getDeclaredMethod("processInputMethodEvent", InputMethodEvent.class);
-                                return Boolean.TRUE;
-                            } catch (NoSuchMethodException exception) {
-                                return Boolean.FALSE;
-                            }
-                        }
-                    });
-        }
-    };
+    private static Map<String, Boolean> overrideMap;
 
     /**
      * Returns a string representation of this <code>JTextComponent</code>.
@@ -4921,13 +4938,36 @@ public abstract class JTextComponent extends JComponent implements Scrollable, A
      */
     private boolean shouldSynthensizeKeyEvents() {
         if (!checkedInputOverride) {
-            // Checks whether the client code overrides processInputMethodEvent.
-            // If it is overridden, need not to generate KeyTyped events for committed text.
-            // If it's not, behave as an passive input method client.
-            needToSendKeyTypedEvent = !METHOD_OVERRIDDEN.get(getClass());
             checkedInputOverride = true;
+            needToSendKeyTypedEvent =
+                             !isProcessInputMethodEventOverridden();
         }
         return needToSendKeyTypedEvent;
+    }
+
+    //
+    // Checks whether the client code overrides processInputMethodEvent.  If it is overridden,
+    // need not to generate KeyTyped events for committed text. If it's not, behave as an
+    // passive input method client.
+    //
+    private boolean isProcessInputMethodEventOverridden() {
+        if (overrideMap == null) {
+            overrideMap = Collections.synchronizedMap(new HashMap<String, Boolean>());
+        }
+        Boolean retValue = overrideMap.get(getClass().getName());
+
+        if (retValue != null) {
+            return retValue.booleanValue();
+        }
+        Boolean ret = AccessController.doPrivileged(new
+                       PrivilegedAction<Boolean>() {
+            public Boolean run() {
+                return isProcessInputMethodEventOverridden(
+                                JTextComponent.this.getClass());
+            }
+        });
+
+        return ret.booleanValue();
     }
 
     //

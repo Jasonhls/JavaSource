@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -93,9 +93,6 @@ class TimerQueue implements Runnable
     void startIfNeeded() {
         if (! running) {
             runningLock.lock();
-            if (running) {
-                return;
-            }
             try {
                 final ThreadGroup threadGroup =
                     AppContext.getAppContext().getThreadGroup();
@@ -171,17 +168,15 @@ class TimerQueue implements Runnable
         try {
             while (running) {
                 try {
-                    DelayedTimer runningTimer = queue.take();
-                    Timer timer = runningTimer.getTimer();
+                    Timer timer = queue.take().getTimer();
                     timer.getLock().lock();
                     try {
                         DelayedTimer delayedTimer = timer.delayedTimer;
-                        if (delayedTimer == runningTimer) {
+                        if (delayedTimer != null) {
                             /*
-                             * Timer is not removed (delayedTimer != null)
-                             * or not removed and added (runningTimer == delayedTimer)
-                             * after we get it from the queue and before the
-                             * lock on the timer is acquired
+                             * Timer is not removed after we get it from
+                             * the queue and before the lock on the timer is
+                             * acquired
                              */
                             timer.post(); // have timer post an event
                             timer.delayedTimer = null;

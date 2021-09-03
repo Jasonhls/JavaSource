@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -677,11 +677,6 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
 
           f.setBounds(currentBounds);
 
-          if (!floaterCollision) {
-              Rectangle r = currentBounds;
-              currentManager.notifyRepaintPerformed(parent, r.x, r.y, r.width, r.height);
-          }
-
           if(floaterCollision) {
               // since we couldn't blit we just redraw as fast as possible
               // the isDragging mucking is to avoid activating emergency
@@ -711,8 +706,6 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
           // Fix the damage
           for (int i = 0; i < dirtyRects.length; i++) {
               parent.paintImmediately(dirtyRects[i]);
-              Rectangle r = dirtyRects[i];
-              currentManager.notifyRepaintPerformed(parent, r.x, r.y, r.width, r.height);
           }
 
           // new areas of blit were exposed
@@ -723,10 +716,9 @@ public class DefaultDesktopManager implements DesktopManager, java.io.Serializab
                   dirtyRects[i].x += newX - previousBounds.x;
                   dirtyRects[i].y += newY - previousBounds.y;
                   ((JInternalFrame)f).isDragging = false;
+
                   parent.paintImmediately(dirtyRects[i]);
                   ((JInternalFrame)f).isDragging = true;
-                  Rectangle r = dirtyRects[i];
-                  currentManager.notifyRepaintPerformed(parent, r.x, r.y, r.width, r.height);
               }
 
           }

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.swing.plaf.basic;
@@ -80,14 +80,6 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
      * This method is here so that a subclass could do Label specific
      * layout and to shorten the method name a little.
      *
-     * @param label an instance of {@code JLabel}
-     * @param fontMetrics a font metrics
-     * @param text a text
-     * @param icon an icon
-     * @param viewR a bounding rectangle to lay out label
-     * @param iconR a bounding rectangle to lay out icon
-     * @param textR a bounding rectangle to lay out text
-     * @return a possibly clipped version of the compound labels string
      * @see SwingUtilities#layoutCompoundLabel
      */
     protected String layoutCL(
@@ -117,11 +109,6 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
     /**
      * Paint clippedText at textX, textY with the labels foreground color.
      *
-     * @param l an instance of {@code JLabel}
-     * @param g an instance of {@code Graphics}
-     * @param s a text
-     * @param textX an X coordinate
-     * @param textY an Y coordinate
      * @see #paint
      * @see #paintDisabledText
      */
@@ -138,11 +125,6 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
      * Paint clippedText at textX, textY with background.lighter() and then
      * shifted down and to the right by one pixel with background.darker().
      *
-     * @param l an instance of {@code JLabel}
-     * @param g an instance of {@code Graphics}
-     * @param s a text
-     * @param textX an X coordinate
-     * @param textY an Y coordinate
      * @see #paint
      * @see #paintEnabledText
      */
@@ -347,46 +329,26 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
 
 
     public void uninstallUI(JComponent c) {
-        uninstallDefaults((JLabel) c);
-        uninstallComponents((JLabel) c);
-        uninstallListeners((JLabel) c);
-        uninstallKeyboardActions((JLabel) c);
+        uninstallDefaults((JLabel)c);
+        uninstallComponents((JLabel)c);
+        uninstallListeners((JLabel)c);
+        uninstallKeyboardActions((JLabel)c);
     }
 
-    /**
-     * Installs default properties.
-     *
-     * @param c an instance of {@code JLabel}
-     */
-    protected void installDefaults(JLabel c){
-        LookAndFeel.installColorsAndFont(c, "Label.background", "Label.foreground", "Label.font");
-        LookAndFeel.installProperty(c, "opaque", Boolean.FALSE);
-    }
+     protected void installDefaults(JLabel c){
+         LookAndFeel.installColorsAndFont(c, "Label.background", "Label.foreground", "Label.font");
+         LookAndFeel.installProperty(c, "opaque", Boolean.FALSE);
+      }
 
-    /**
-     * Registers listeners.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void installListeners(JLabel c){
         c.addPropertyChangeListener(this);
     }
 
-    /**
-     * Registers components.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void installComponents(JLabel c){
         BasicHTML.updateRenderer(c, c.getText());
         c.setInheritsPopupMenu(true);
     }
 
-    /**
-     * Registers keyboard actions.
-     *
-     * @param l an instance of {@code JLabel}
-     */
     protected void installKeyboardActions(JLabel l) {
         int dka = l.getDisplayedMnemonic();
         Component lf = l.getLabelFor();
@@ -412,37 +374,17 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
         }
     }
 
-    /**
-     * Uninstalls default properties.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void uninstallDefaults(JLabel c){
     }
 
-    /**
-     * Unregisters listeners.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void uninstallListeners(JLabel c){
         c.removePropertyChangeListener(this);
     }
 
-    /**
-     * Unregisters components.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void uninstallComponents(JLabel c){
         BasicHTML.updateRenderer(c, "");
     }
 
-    /**
-     * Unregisters keyboard actions.
-     *
-     * @param c an instance of {@code JLabel}
-     */
     protected void uninstallKeyboardActions(JLabel c) {
         SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_FOCUSED, null);
         SwingUtilities.replaceUIInputMap(c, JComponent.WHEN_IN_FOCUSED_WINDOW,
@@ -450,12 +392,6 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
         SwingUtilities.replaceUIActionMap(c, null);
     }
 
-    /**
-     * Returns an instance of {@code BasicLabelUI}.
-     *
-     * @param c a component
-     * @return an instance of {@code BasicLabelUI}
-     */
     public static ComponentUI createUI(JComponent c) {
         if (System.getSecurityManager() != null) {
             AppContext appContext = AppContext.getAppContext();
@@ -504,7 +440,7 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
                 doPress(label);
             }
             else if (key == RELEASE) {
-                doRelease(label, e.getActionCommand() != null);
+                doRelease(label);
             }
         }
 
@@ -517,77 +453,33 @@ public class BasicLabelUI extends LabelUI implements  PropertyChangeListener
                     SwingUtilities.replaceUIInputMap(label, JComponent.WHEN_FOCUSED, inputMap);
                 }
                 int dka = label.getDisplayedMnemonic();
-                putOnRelease(inputMap, dka, BasicLookAndFeel
-                        .getFocusAcceleratorKeyMask());
+                inputMap.put(KeyStroke.getKeyStroke(dka, BasicLookAndFeel.getFocusAcceleratorKeyMask(), true), RELEASE);
                 // Need this when the sticky keys are enabled
-                putOnRelease(inputMap, dka, 0);
+                inputMap.put(KeyStroke.getKeyStroke(dka, 0, true), RELEASE);
                 // Need this if ALT is released before the accelerator
-                putOnRelease(inputMap, KeyEvent.VK_ALT, 0);
+                inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ALT, 0, true), RELEASE);
                 label.requestFocus();
             }
         }
 
-        private void doRelease(JLabel label, boolean isCommand) {
+        private void doRelease(JLabel label) {
             Component labelFor = label.getLabelFor();
             if (labelFor != null && labelFor.isEnabled()) {
-                if (label.hasFocus()) {
-                    InputMap inputMap = SwingUtilities.getUIInputMap(label,
-                            JComponent.WHEN_FOCUSED);
-                    if (inputMap != null) {
-                        // inputMap should never be null.
-                        int dka = label.getDisplayedMnemonic();
-                        removeOnRelease(inputMap, dka, BasicLookAndFeel
-                                .getFocusAcceleratorKeyMask());
-                        removeOnRelease(inputMap, dka, 0);
-                        removeOnRelease(inputMap, KeyEvent.VK_ALT, 0);
-                    }
-                    inputMap = SwingUtilities.getUIInputMap(label,
-                            JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    if (inputMap == null) {
-                        inputMap = new InputMapUIResource();
-                        SwingUtilities.replaceUIInputMap(label,
-                                JComponent.WHEN_IN_FOCUSED_WINDOW, inputMap);
-                    }
+                InputMap inputMap = SwingUtilities.getUIInputMap(label, JComponent.WHEN_FOCUSED);
+                if (inputMap != null) {
+                    // inputMap should never be null.
                     int dka = label.getDisplayedMnemonic();
-                    if (isCommand) {
-                        putOnRelease(inputMap, KeyEvent.VK_ALT, 0);
-                    } else {
-                        putOnRelease(inputMap, dka, BasicLookAndFeel
-                                .getFocusAcceleratorKeyMask());
-                        // Need this when the sticky keys are enabled
-                        putOnRelease(inputMap, dka, 0);
-                    }
-                    if (labelFor instanceof Container &&
-                            ((Container) labelFor).isFocusCycleRoot()) {
-                        labelFor.requestFocus();
-                    } else {
-                        SwingUtilities2.compositeRequestFocus(labelFor);
-                    }
+                    inputMap.remove(KeyStroke.getKeyStroke(dka, BasicLookAndFeel.getFocusAcceleratorKeyMask(), true));
+                    inputMap.remove(KeyStroke.getKeyStroke(dka, 0, true));
+                    inputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_ALT, 0, true));
+                }
+                if (labelFor instanceof Container &&
+                        ((Container) labelFor).isFocusCycleRoot()) {
+                    labelFor.requestFocus();
                 } else {
-                    InputMap inputMap = SwingUtilities.getUIInputMap(label,
-                            JComponent.WHEN_IN_FOCUSED_WINDOW);
-                    int dka = label.getDisplayedMnemonic();
-                    if (inputMap != null) {
-                        if (isCommand) {
-                            removeOnRelease(inputMap, dka, BasicLookAndFeel
-                                    .getFocusAcceleratorKeyMask());
-                            removeOnRelease(inputMap, dka, 0);
-                        } else {
-                            removeOnRelease(inputMap, KeyEvent.VK_ALT, 0);
-                        }
-                    }
+                    SwingUtilities2.compositeRequestFocus(labelFor);
                 }
             }
         }
-
-        private void putOnRelease(InputMap inputMap, int keyCode, int modifiers) {
-            inputMap.put(KeyStroke.getKeyStroke(keyCode, modifiers, true),
-                    RELEASE);
-        }
-
-        private void removeOnRelease(InputMap inputMap, int keyCode, int modifiers) {
-            inputMap.remove(KeyStroke.getKeyStroke(keyCode, modifiers, true));
-        }
-
     }
 }

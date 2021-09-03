@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1998, 2016, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.swing.plaf.basic;
@@ -36,8 +36,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.Serializable;
 
-import sun.awt.AWTAccessor;
-import sun.awt.AWTAccessor.MouseEventAccessor;
 
 /**
  * This is a basic implementation of the <code>ComboPopup</code> interface.
@@ -182,8 +180,6 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
      */
     protected ItemListener             itemListener;
 
-    private MouseWheelListener         scrollerMouseWheelListener;
-
     /**
      * This protected field is implementation specific. Do not access directly
      * or override.
@@ -290,7 +286,6 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         uninstallComboBoxModelListeners(comboBox.getModel());
         uninstallKeyboardActions();
         uninstallListListeners();
-        uninstallScrollerListeners();
         // We do this, otherwise the listener the ui installs on
         // the model (the combobox model in this case) will keep a
         // reference to the list, causing the list (and us) to never get gced.
@@ -347,26 +342,17 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
     // PopupMenuListeners.
 
     protected void firePopupMenuWillBecomeVisible() {
-        if (scrollerMouseWheelListener != null) {
-            comboBox.addMouseWheelListener(scrollerMouseWheelListener);
-        }
         super.firePopupMenuWillBecomeVisible();
         // comboBox.firePopupMenuWillBecomeVisible() is called from BasicComboPopup.show() method
         // to let the user change the popup menu from the PopupMenuListener.popupMenuWillBecomeVisible()
     }
 
     protected void firePopupMenuWillBecomeInvisible() {
-        if (scrollerMouseWheelListener != null) {
-            comboBox.removeMouseWheelListener(scrollerMouseWheelListener);
-        }
         super.firePopupMenuWillBecomeInvisible();
         comboBox.firePopupMenuWillBecomeInvisible();
     }
 
     protected void firePopupMenuCanceled() {
-        if (scrollerMouseWheelListener != null) {
-            comboBox.removeMouseWheelListener(scrollerMouseWheelListener);
-        }
         super.firePopupMenuCanceled();
         comboBox.firePopupMenuCanceled();
     }
@@ -501,18 +487,13 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                     // Fix for 4234053. Filter out the Control Key from the list.
                     // ie., don't allow CTRL key deselection.
                     Toolkit toolkit = Toolkit.getDefaultToolkit();
-                    MouseEvent newEvent = new MouseEvent(
-                                       (Component)e.getSource(), e.getID(), e.getWhen(),
+                    e = new MouseEvent((Component)e.getSource(), e.getID(), e.getWhen(),
                                        e.getModifiers() ^ toolkit.getMenuShortcutKeyMask(),
                                        e.getX(), e.getY(),
                                        e.getXOnScreen(), e.getYOnScreen(),
                                        e.getClickCount(),
                                        e.isPopupTrigger(),
                                        MouseEvent.NOBUTTON);
-                    MouseEventAccessor meAccessor = AWTAccessor.getMouseEventAccessor();
-                    meAccessor.setCausedByTouchEvent(newEvent,
-                        meAccessor.isCausedByTouchEvent(e));
-                    e = newEvent;
                 }
                 super.processMouseEvent(e);
             }
@@ -591,7 +572,6 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         scroller.setFocusable( false );
         scroller.getVerticalScrollBar().setFocusable( false );
         scroller.setBorder( null );
-        installScrollerListeners();
     }
 
     /**
@@ -606,20 +586,6 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
         add( scroller );
         setDoubleBuffered( true );
         setFocusable( false );
-    }
-
-    private void installScrollerListeners() {
-        scrollerMouseWheelListener = getHandler();
-        if (scrollerMouseWheelListener != null) {
-            scroller.addMouseWheelListener(scrollerMouseWheelListener);
-        }
-    }
-
-    private void uninstallScrollerListeners() {
-        if (scrollerMouseWheelListener != null) {
-            scroller.removeMouseWheelListener(scrollerMouseWheelListener);
-            scrollerMouseWheelListener = null;
-        }
     }
 
     /**
@@ -830,8 +796,8 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
 
 
     private class Handler implements ItemListener, MouseListener,
-                          MouseMotionListener, MouseWheelListener,
-                          PropertyChangeListener, Serializable {
+                          MouseMotionListener, PropertyChangeListener,
+                          Serializable {
         //
         // MouseListener
         // NOTE: this is added to both the JList and JComboBox
@@ -1013,16 +979,7 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 JComboBox comboBox = (JComboBox)e.getSource();
                 setListSelection(comboBox.getSelectedIndex());
-            } else {
-                setListSelection(-1);
             }
-        }
-
-        //
-        // MouseWheelListener
-        //
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            e.consume();
         }
     }
 
@@ -1202,9 +1159,6 @@ public class BasicComboPopup extends JPopupMenu implements ComboPopup {
                                               e.getClickCount(),
                                               e.isPopupTrigger(),
                                               MouseEvent.NOBUTTON );
-        MouseEventAccessor meAccessor = AWTAccessor.getMouseEventAccessor();
-        meAccessor.setCausedByTouchEvent(newEvent,
-            meAccessor.isCausedByTouchEvent(e));
         return newEvent;
     }
 

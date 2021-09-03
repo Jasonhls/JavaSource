@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package javax.management.remote.rmi;
@@ -41,6 +41,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.io.Serializable;
+import java.io.WriteAbortedException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -69,7 +70,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -712,7 +712,9 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
             if (logger.debugOn())
                 logger.debug("createMBean(String,ObjectName,Object[],String[])",
                         "className=" + className + ", name="
-                        + name + ", signature=" + strings(signature));
+                        + name + ", params="
+                        + objects(params) + ", signature="
+                        + strings(signature));
 
             final MarshalledObject<Object[]> sParams =
                     new MarshalledObject<Object[]>(params);
@@ -751,7 +753,8 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
             if (logger.debugOn()) logger.debug(
                     "createMBean(String,ObjectName,ObjectName,Object[],String[])",
                     "className=" + className + ", name=" + name + ", loaderName="
-                    + loaderName + ", signature=" + strings(signature));
+                    + loaderName + ", params=" + objects(params)
+                    + ", signature=" + strings(signature));
 
             final MarshalledObject<Object[]> sParams =
                     new MarshalledObject<Object[]>(params);
@@ -951,8 +954,8 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
                 IOException {
 
             if (logger.debugOn()) logger.debug("setAttribute",
-                    "name=" + name + ", attribute name="
-                    + attribute.getName());
+                    "name=" + name + ", attribute="
+                    + attribute);
 
             final MarshalledObject<Attribute> sAttribute =
                     new MarshalledObject<Attribute>(attribute);
@@ -974,11 +977,9 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
                 ReflectionException,
                 IOException {
 
-            if (logger.debugOn()) {
-                logger.debug("setAttributes",
-                    "name=" + name + ", attribute names="
-                    + getAttributesNames(attributes));
-            }
+            if (logger.debugOn()) logger.debug("setAttributes",
+                    "name=" + name + ", attributes="
+                    + attributes);
 
             final MarshalledObject<AttributeList> sAttributes =
                     new MarshalledObject<AttributeList>(attributes);
@@ -1011,6 +1012,7 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
             if (logger.debugOn()) logger.debug("invoke",
                     "name=" + name
                     + ", operationName=" + operationName
+                    + ", params=" + objects(params)
                     + ", signature=" + strings(signature));
 
             final MarshalledObject<Object[]> sParams =
@@ -1333,94 +1335,66 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
                 int maxNotifications,
                 long timeout)
                 throws IOException, ClassNotFoundException {
+            IOException org;
 
-            boolean retried = false;
             while (true) { // used for a successful re-connection
-                           // or a transient network problem
                 try {
                     return connection.fetchNotifications(clientSequenceNumber,
                             maxNotifications,
-                            timeout); // return normally
+                            timeout);
                 } catch (IOException ioe) {
-                    // Examine the chain of exceptions to determine whether this
-                    // is a deserialization issue. If so - we propagate the
-                    // appropriate exception to the caller, who will then
-                    // proceed with fetching notifications one by one
-                    rethrowDeserializationException(ioe);
+                    org = ioe;
 
+                    // inform of IOException
                     try {
                         communicatorAdmin.gotIOException(ioe);
-                        // reconnection OK, back to "while" to do again
+
+                        // The connection should be re-established.
+                        continue;
                     } catch (IOException ee) {
-                        boolean toClose = false;
-
-                        synchronized (this) {
-                            if (terminated) {
-                                // the connection is closed.
-                                throw ioe;
-                            } else if (retried) {
-                                toClose = true;
-                            }
-                        }
-
-                        if (toClose) {
-                            // JDK-8049303
-                            // We received an IOException - but the communicatorAdmin
-                            // did not close the connection - possibly because
-                            // the original exception was raised by a transient network
-                            // problem?
-                            // We already know that this exception is not due to a deserialization
-                            // issue as we already took care of that before involving the
-                            // communicatorAdmin. Moreover - we already made one retry attempt
-                            // at fetching the same batch of notifications - and the
-                            // problem persisted.
-                            // Since trying again doesn't seem to solve the issue, we will now
-                            // close the connection. Doing otherwise might cause the
-                            // NotifFetcher thread to die silently.
-                            final Notification failedNotif =
-                                    new JMXConnectionNotification(
-                                    JMXConnectionNotification.FAILED,
-                                    this,
-                                    connectionId,
-                                    clientNotifSeqNo++,
-                                    "Failed to communicate with the server: " + ioe.toString(),
-                                    ioe);
-
-                            sendNotification(failedNotif);
-
-                            try {
-                                close(true);
-                            } catch (Exception e) {
-                                // OK.
-                                // We are closing
-                            }
-                            throw ioe; // the connection is closed here.
-                        } else {
-                            // JDK-8049303 possible transient network problem,
-                            // let's try one more time
-                            retried = true;
-                        }
-                    }
-                }
+                        // No more fetch, the Exception will be re-thrown.
+                        break;
+                    } // never reached
+                } // never reached
             }
-        }
 
-        private void rethrowDeserializationException(IOException ioe)
-                throws ClassNotFoundException, IOException {
             // specially treating for an UnmarshalException
-            if (ioe instanceof UnmarshalException) {
-                throw ioe; // the fix of 6937053 made ClientNotifForwarder.fetchNotifs
-                           // fetch one by one with UnmarshalException
-            } else if (ioe instanceof MarshalException) {
+            if (org instanceof UnmarshalException) {
+                UnmarshalException ume = (UnmarshalException)org;
+
+                if (ume.detail instanceof ClassNotFoundException)
+                    throw (ClassNotFoundException) ume.detail;
+
+                /* In Sun's RMI implementation, if a method return
+                   contains an unserializable object, then we get
+                   UnmarshalException wrapping WriteAbortedException
+                   wrapping NotSerializableException.  In that case we
+                   extract the NotSerializableException so that our
+                   caller can realize it should try to skip past the
+                   notification that presumably caused it.  It's not
+                   certain that every other RMI implementation will
+                   generate this exact exception sequence.  If not, we
+                   will not detect that the problem is due to an
+                   unserializable object, and we will stop trying to
+                   receive notifications from the server.  It's not
+                   clear we can do much better.  */
+                if (ume.detail instanceof WriteAbortedException) {
+                    WriteAbortedException wae =
+                            (WriteAbortedException) ume.detail;
+                    if (wae.detail instanceof IOException)
+                        throw (IOException) wae.detail;
+                }
+            } else if (org instanceof MarshalException) {
                 // IIOP will throw MarshalException wrapping a NotSerializableException
                 // when a server fails to serialize a response.
-                MarshalException me = (MarshalException)ioe;
+                MarshalException me = (MarshalException)org;
                 if (me.detail instanceof NotSerializableException) {
                     throw (NotSerializableException)me.detail;
                 }
             }
 
-            // Not serialization problem, return.
+            // Not serialization problem, simply re-throw the orginal exception
+            throw org;
         }
 
         protected Integer addListenerForMBeanRemovedNotif()
@@ -2633,13 +2607,5 @@ public class RMIConnector implements JMXConnector, Serializable, JMXAddressable 
 
     private static String strings(final String[] strs) {
         return objects(strs);
-    }
-
-    static String getAttributesNames(AttributeList attributes) {
-        return attributes != null ?
-                attributes.asList().stream()
-                        .map(Attribute::getName)
-                        .collect(Collectors.joining(", ", "[", "]"))
-                : "[]";
     }
 }
