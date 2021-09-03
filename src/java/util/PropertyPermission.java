@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -37,13 +37,12 @@ import java.io.ObjectStreamField;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
-
 import sun.security.util.SecurityConstants;
 
 /**
  * This class is for property permissions.
  *
- * <p>
+ * <P>
  * The name is the name of the property ("java.home",
  * "os.name", etc). The naming
  * convention follows the  hierarchical property naming convention.
@@ -51,22 +50,22 @@ import sun.security.util.SecurityConstants;
  * may appear at the end of the name, following a ".", or by itself, to
  * signify a wildcard match. For example: "java.*" and "*" signify a wildcard
  * match, while "*java" and "a*b" do not.
- * <p>
+ * <P>
  * The actions to be granted are passed to the constructor in a string containing
  * a list of one or more comma-separated keywords. The possible keywords are
  * "read" and "write". Their meaning is defined as follows:
  *
  * <DL>
- * <DT> read
- * <DD> read permission. Allows <code>System.getProperty</code> to
- * be called.
- * <DT> write
- * <DD> write permission. Allows <code>System.setProperty</code> to
- * be called.
+ *    <DT> read
+ *    <DD> read permission. Allows <code>System.getProperty</code> to
+ *         be called.
+ *    <DT> write
+ *    <DD> write permission. Allows <code>System.setProperty</code> to
+ *         be called.
  * </DL>
- * <p>
+ * <P>
  * The actions string is converted to lowercase before processing.
- * <p>
+ * <P>
  * Care should be taken before granting code permission to access
  * certain system properties.  For example, granting permission to
  * access the "java.home" system property gives potentially malevolent
@@ -76,14 +75,17 @@ import sun.security.util.SecurityConstants;
  * malevolent code sensitive information about the user environment
  * (the user's account name and home directory).
  *
- * @author Roland Schemers
- * @serial exclude
  * @see java.security.BasicPermission
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
+ *
+ *
+ * @author Roland Schemers
  * @since 1.2
+ *
+ * @serial exclude
  */
 
 public final class PropertyPermission extends BasicPermission {
@@ -91,23 +93,24 @@ public final class PropertyPermission extends BasicPermission {
     /**
      * Read action.
      */
-    private final static int READ = 0x1;
+    private final static int READ    = 0x1;
 
     /**
      * Write action.
      */
-    private final static int WRITE = 0x2;
+    private final static int WRITE   = 0x2;
     /**
      * All actions (read,write);
      */
-    private final static int ALL = READ | WRITE;
+    private final static int ALL     = READ|WRITE;
     /**
      * No actions.
      */
-    private final static int NONE = 0x0;
+    private final static int NONE    = 0x0;
 
     /**
      * The actions mask.
+     *
      */
     private transient int mask;
 
@@ -117,13 +120,14 @@ public final class PropertyPermission extends BasicPermission {
      * @serial
      */
     private String actions; // Left null as long as possible, then
-    // created and re-used in the getAction function.
+                            // created and re-used in the getAction function.
 
     /**
      * initialize a PropertyPermission object. Common to all constructors.
      * Also called during de-serialization.
      *
      * @param mask the actions mask to use.
+     *
      */
     private void init(int mask) {
         if ((mask & ALL) != mask)
@@ -145,21 +149,22 @@ public final class PropertyPermission extends BasicPermission {
      * desired actions granted on the property. Possible actions are
      * "read" and "write".
      *
-     * @param name    the name of the PropertyPermission.
+     * @param name the name of the PropertyPermission.
      * @param actions the actions string.
-     * @throws NullPointerException     if <code>name</code> is <code>null</code>.
+     *
+     * @throws NullPointerException if <code>name</code> is <code>null</code>.
      * @throws IllegalArgumentException if <code>name</code> is empty or if
-     *                                  <code>actions</code> is invalid.
+     * <code>actions</code> is invalid.
      */
     public PropertyPermission(String name, String actions) {
-        super(name, actions);
+        super(name,actions);
         init(getMask(actions));
     }
 
     /**
      * Checks if this PropertyPermission object "implies" the specified
      * permission.
-     * <p>
+     * <P>
      * More specifically, this method returns true if:
      * <ul>
      * <li> <i>p</i> is an instanceof PropertyPermission,
@@ -168,8 +173,8 @@ public final class PropertyPermission extends BasicPermission {
      * <li> <i>p</i>'s name is implied by this object's
      *      name. For example, "java.*" implies "java.home".
      * </ul>
-     *
      * @param p the permission to check against.
+     *
      * @return true if the specified permission is implied by this object,
      * false if not.
      */
@@ -188,8 +193,7 @@ public final class PropertyPermission extends BasicPermission {
     /**
      * Checks two PropertyPermission objects for equality. Checks that <i>obj</i> is
      * a PropertyPermission, and has the same name and actions as this object.
-     * <p>
-     *
+     * <P>
      * @param obj the object we are testing for equality with this object.
      * @return true if obj is a PropertyPermission, and has the same name and
      * actions as this PropertyPermission object.
@@ -198,13 +202,13 @@ public final class PropertyPermission extends BasicPermission {
         if (obj == this)
             return true;
 
-        if (!(obj instanceof PropertyPermission))
+        if (! (obj instanceof PropertyPermission))
             return false;
 
         PropertyPermission that = (PropertyPermission) obj;
 
         return (this.mask == that.mask) &&
-                (this.getName().equals(that.getName()));
+            (this.getName().equals(that.getName()));
     }
 
     /**
@@ -237,11 +241,10 @@ public final class PropertyPermission extends BasicPermission {
         // performance benefit (these values are used heavily within the JDK).
         if (actions == SecurityConstants.PROPERTY_READ_ACTION) {
             return READ;
-        }
-        if (actions == SecurityConstants.PROPERTY_WRITE_ACTION) {
+        } if (actions == SecurityConstants.PROPERTY_WRITE_ACTION) {
             return WRITE;
         } else if (actions == SecurityConstants.PROPERTY_RW_ACTION) {
-            return READ | WRITE;
+            return READ|WRITE;
         }
 
         char[] a = actions.toCharArray();
@@ -254,28 +257,30 @@ public final class PropertyPermission extends BasicPermission {
             char c;
 
             // skip whitespace
-            while ((i != -1) && ((c = a[i]) == ' ' ||
-                    c == '\r' ||
-                    c == '\n' ||
-                    c == '\f' ||
-                    c == '\t'))
+            while ((i!=-1) && ((c = a[i]) == ' ' ||
+                               c == '\r' ||
+                               c == '\n' ||
+                               c == '\f' ||
+                               c == '\t'))
                 i--;
 
             // check for the known strings
             int matchlen;
 
-            if (i >= 3 && (a[i - 3] == 'r' || a[i - 3] == 'R') &&
-                    (a[i - 2] == 'e' || a[i - 2] == 'E') &&
-                    (a[i - 1] == 'a' || a[i - 1] == 'A') &&
-                    (a[i] == 'd' || a[i] == 'D')) {
+            if (i >= 3 && (a[i-3] == 'r' || a[i-3] == 'R') &&
+                          (a[i-2] == 'e' || a[i-2] == 'E') &&
+                          (a[i-1] == 'a' || a[i-1] == 'A') &&
+                          (a[i] == 'd' || a[i] == 'D'))
+            {
                 matchlen = 4;
                 mask |= READ;
 
-            } else if (i >= 4 && (a[i - 4] == 'w' || a[i - 4] == 'W') &&
-                    (a[i - 3] == 'r' || a[i - 3] == 'R') &&
-                    (a[i - 2] == 'i' || a[i - 2] == 'I') &&
-                    (a[i - 1] == 't' || a[i - 1] == 'T') &&
-                    (a[i] == 'e' || a[i] == 'E')) {
+            } else if (i >= 4 && (a[i-4] == 'w' || a[i-4] == 'W') &&
+                                 (a[i-3] == 'r' || a[i-3] == 'R') &&
+                                 (a[i-2] == 'i' || a[i-2] == 'I') &&
+                                 (a[i-1] == 't' || a[i-1] == 'T') &&
+                                 (a[i] == 'e' || a[i] == 'E'))
+            {
                 matchlen = 5;
                 mask |= WRITE;
 
@@ -289,19 +294,16 @@ public final class PropertyPermission extends BasicPermission {
             // like "ackbarfaccept".  Also, skip to the comma.
             boolean seencomma = false;
             while (i >= matchlen && !seencomma) {
-                switch (a[i - matchlen]) {
-                    case ',':
-                        seencomma = true;
-                        break;
-                    case ' ':
-                    case '\r':
-                    case '\n':
-                    case '\f':
-                    case '\t':
-                        break;
-                    default:
-                        throw new IllegalArgumentException(
-                                "invalid permission: " + actions);
+                switch(a[i-matchlen]) {
+                case ',':
+                    seencomma = true;
+                    break;
+                case ' ': case '\r': case '\n':
+                case '\f': case '\t':
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                            "invalid permission: " + actions);
                 }
                 i--;
             }
@@ -385,7 +387,8 @@ public final class PropertyPermission extends BasicPermission {
      * takes care of the name.
      */
     private synchronized void writeObject(java.io.ObjectOutputStream s)
-            throws IOException {
+        throws IOException
+    {
         // Write out the actions. The superclass takes care of the name
         // call getActions to make sure actions field is initialized
         if (actions == null)
@@ -398,7 +401,8 @@ public final class PropertyPermission extends BasicPermission {
      * a stream.
      */
     private synchronized void readObject(java.io.ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
+         throws IOException, ClassNotFoundException
+    {
         // Read in the action, then initialize the rest
         s.defaultReadObject();
         init(getMask(actions));
@@ -409,14 +413,18 @@ public final class PropertyPermission extends BasicPermission {
  * A PropertyPermissionCollection stores a set of PropertyPermission
  * permissions.
  *
- * @author Roland Schemers
- * @serial include
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
+ *
+ *
+ * @author Roland Schemers
+ *
+ * @serial include
  */
 final class PropertyPermissionCollection extends PermissionCollection
-        implements Serializable {
+    implements Serializable
+{
 
     /**
      * Key is property name; value is PropertyPermission.
@@ -445,18 +453,20 @@ final class PropertyPermissionCollection extends PermissionCollection
      * the name.
      *
      * @param permission the Permission object to add.
-     * @throws IllegalArgumentException - if the permission is not a
-     *                                  PropertyPermission
-     * @throws SecurityException        - if this PropertyPermissionCollection
-     *                                  object has been marked readonly
+     *
+     * @exception IllegalArgumentException - if the permission is not a
+     *                                       PropertyPermission
+     *
+     * @exception SecurityException - if this PropertyPermissionCollection
+     *                                object has been marked readonly
      */
     public void add(Permission permission) {
-        if (!(permission instanceof PropertyPermission))
-            throw new IllegalArgumentException("invalid permission: " +
-                    permission);
+        if (! (permission instanceof PropertyPermission))
+            throw new IllegalArgumentException("invalid permission: "+
+                                               permission);
         if (isReadOnly())
             throw new SecurityException(
-                    "attempt to add a Permission to a readonly PermissionCollection");
+                "attempt to add a Permission to a readonly PermissionCollection");
 
         PropertyPermission pp = (PropertyPermission) permission;
         String propName = pp.getName();
@@ -488,12 +498,13 @@ final class PropertyPermissionCollection extends PermissionCollection
      * expressed in "permission".
      *
      * @param permission the Permission object to compare
+     *
      * @return true if "permission" is a proper subset of a permission in
      * the set, false if not.
      */
     public boolean implies(Permission permission) {
-        if (!(permission instanceof PropertyPermission))
-            return false;
+        if (! (permission instanceof PropertyPermission))
+                return false;
 
         PropertyPermission pp = (PropertyPermission) permission;
         PropertyPermission x;
@@ -534,11 +545,11 @@ final class PropertyPermissionCollection extends PermissionCollection
         // work our way up the tree...
         int last, offset;
 
-        offset = name.length() - 1;
+        offset = name.length()-1;
 
         while ((last = name.lastIndexOf(".", offset)) != -1) {
 
-            name = name.substring(0, last + 1) + "*";
+            name = name.substring(0, last+1) + "*";
             //System.out.println("check "+name);
             synchronized (this) {
                 x = perms.get(name);
@@ -549,7 +560,7 @@ final class PropertyPermissionCollection extends PermissionCollection
                 if ((effective & desired) == desired)
                     return true;
             }
-            offset = last - 1;
+            offset = last -1;
         }
 
         // we don't have to check for "*" as it was already checked
@@ -571,7 +582,7 @@ final class PropertyPermissionCollection extends PermissionCollection
              * Casting to rawtype since Enumeration<PropertyPermission>
              * cannot be directly cast to Enumeration<Permission>
              */
-            return (Enumeration) Collections.enumeration(perms.values());
+            return (Enumeration)Collections.enumeration(perms.values());
         }
     }
 
@@ -587,13 +598,13 @@ final class PropertyPermissionCollection extends PermissionCollection
     // private Hashtable permissions;
     /**
      * @serialField permissions java.util.Hashtable
-     * A table of the PropertyPermissions.
+     *     A table of the PropertyPermissions.
      * @serialField all_allowed boolean
-     * boolean saying if "*" is in the collection.
+     *     boolean saying if "*" is in the collection.
      */
     private static final ObjectStreamField[] serialPersistentFields = {
-            new ObjectStreamField("permissions", Hashtable.class),
-            new ObjectStreamField("all_allowed", Boolean.TYPE),
+        new ObjectStreamField("permissions", Hashtable.class),
+        new ObjectStreamField("all_allowed", Boolean.TYPE),
     };
 
     /**
@@ -609,7 +620,7 @@ final class PropertyPermissionCollection extends PermissionCollection
 
         // Copy perms into a Hashtable
         Hashtable<String, Permission> permissions =
-                new Hashtable<>(perms.size() * 2);
+            new Hashtable<>(perms.size()*2);
         synchronized (this) {
             permissions.putAll(perms);
         }
@@ -626,7 +637,8 @@ final class PropertyPermissionCollection extends PermissionCollection
      * perms field. Reads in all_allowed.
      */
     private void readObject(ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
+        throws IOException, ClassNotFoundException
+    {
         // Don't call defaultReadObject()
 
         // Read in serialized fields
@@ -638,8 +650,8 @@ final class PropertyPermissionCollection extends PermissionCollection
         // Get permissions
         @SuppressWarnings("unchecked")
         Hashtable<String, PropertyPermission> permissions =
-                (Hashtable<String, PropertyPermission>) gfields.get("permissions", null);
-        perms = new HashMap<>(permissions.size() * 2);
+            (Hashtable<String, PropertyPermission>)gfields.get("permissions", null);
+        perms = new HashMap<>(permissions.size()*2);
         perms.putAll(permissions);
     }
 }

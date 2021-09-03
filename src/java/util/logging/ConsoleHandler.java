@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -63,7 +63,6 @@ package java.util.logging;
  * <li>   com.foo.MyHandler.formatter=java.util.logging.SimpleFormatter </li>
  * </ul>
  * <p>
- *
  * @since 1.4
  */
 public class ConsoleHandler extends StreamHandler {
@@ -74,11 +73,11 @@ public class ConsoleHandler extends StreamHandler {
         LogManager manager = LogManager.getLogManager();
         String cname = getClass().getName();
 
-        setLevel(manager.getLevelProperty(cname + ".level", Level.INFO));
-        setFilter(manager.getFilterProperty(cname + ".filter", null));
-        setFormatter(manager.getFormatterProperty(cname + ".formatter", new SimpleFormatter()));
+        setLevel(manager.getLevelProperty(cname +".level", Level.INFO));
+        setFilter(manager.getFilterProperty(cname +".filter", null));
+        setFormatter(manager.getFormatterProperty(cname +".formatter", new SimpleFormatter()));
         try {
-            setEncoding(manager.getStringProperty(cname + ".encoding", null));
+            setEncoding(manager.getStringProperty(cname +".encoding", null));
         } catch (Exception ex) {
             try {
                 setEncoding(null);
@@ -94,6 +93,7 @@ public class ConsoleHandler extends StreamHandler {
      * <p>
      * The <tt>ConsoleHandler</tt> is configured based on
      * <tt>LogManager</tt> properties (or their default values).
+     *
      */
     public ConsoleHandler() {
         sealed = false;
@@ -108,9 +108,8 @@ public class ConsoleHandler extends StreamHandler {
      * The logging request was made initially to a <tt>Logger</tt> object,
      * which initialized the <tt>LogRecord</tt> and forwarded it here.
      * <p>
-     *
-     * @param record description of the log event. A null record is
-     *               silently ignored and is not published
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     @Override
     public void publish(LogRecord record) {

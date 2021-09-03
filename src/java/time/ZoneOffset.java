@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2016, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2007-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -89,7 +89,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * A time-zone offset from Greenwich/UTC, such as {@code +02:00}.
  * <p>
- * A time-zone offset is the amount of time that a time-zone differs from Greenwich/UTC.
+ * A time-zone offset is the period of time that a time-zone differs from Greenwich/UTC.
  * This is usually a fixed number of hours and minutes.
  * <p>
  * Different parts of the world have different time-zone offsets.
@@ -334,7 +334,7 @@ public final class ZoneOffset
      * on extracting the {@link ChronoField#OFFSET_SECONDS OFFSET_SECONDS} field.
      * <p>
      * This method matches the signature of the functional interface {@link TemporalQuery}
-     * allowing it to be used as a query via method reference, {@code ZoneOffset::from}.
+     * allowing it to be used in queries via method reference, {@code ZoneOffset::from}.
      *
      * @param temporal  the temporal object to convert, not null
      * @return the zone-offset, not null
@@ -375,15 +375,15 @@ public final class ZoneOffset
         } else if ((minutes > 0 && seconds < 0) || (minutes < 0 && seconds > 0)) {
             throw new DateTimeException("Zone offset minutes and seconds must have the same sign");
         }
-        if (minutes < -59 || minutes > 59) {
-            throw new DateTimeException("Zone offset minutes not in valid range: value " +
-                    minutes + " is not in the range -59 to 59");
+        if (Math.abs(minutes) > 59) {
+            throw new DateTimeException("Zone offset minutes not in valid range: abs(value) " +
+                    Math.abs(minutes) + " is not in the range 0 to 59");
         }
-        if (seconds < -59 || seconds > 59) {
-            throw new DateTimeException("Zone offset seconds not in valid range: value " +
-                    seconds + " is not in the range -59 to 59");
+        if (Math.abs(seconds) > 59) {
+            throw new DateTimeException("Zone offset seconds not in valid range: abs(value) " +
+                    Math.abs(seconds) + " is not in the range 0 to 59");
         }
-        if (Math.abs(hours) == 18 && (minutes | seconds) != 0) {
+        if (Math.abs(hours) == 18 && (Math.abs(minutes) > 0 || Math.abs(seconds) > 0)) {
             throw new DateTimeException("Zone offset not in valid range: -18:00 to +18:00");
         }
     }
@@ -411,7 +411,7 @@ public final class ZoneOffset
      * @throws DateTimeException if the offset is not in the required range
      */
     public static ZoneOffset ofTotalSeconds(int totalSeconds) {
-        if (totalSeconds < -MAX_SECONDS || totalSeconds > MAX_SECONDS) {
+        if (Math.abs(totalSeconds) > MAX_SECONDS) {
             throw new DateTimeException("Zone offset not in valid range: -18:00 to +18:00");
         }
         if (totalSeconds % (15 * SECONDS_PER_MINUTE) == 0) {
@@ -564,7 +564,7 @@ public final class ZoneOffset
     /**
      * Gets the value of the specified field from this offset as an {@code int}.
      * <p>
-     * This queries this offset for the value of the specified field.
+     * This queries this offset for the value for the specified field.
      * The returned value will always be within the valid range of values for the field.
      * If it is not possible to return the value, because the field is not supported
      * or for some other reason, an exception is thrown.
@@ -599,7 +599,7 @@ public final class ZoneOffset
     /**
      * Gets the value of the specified field from this offset as a {@code long}.
      * <p>
-     * This queries this offset for the value of the specified field.
+     * This queries this offset for the value for the specified field.
      * If it is not possible to return the value, because the field is not supported
      * or for some other reason, an exception is thrown.
      * <p>
@@ -696,12 +696,11 @@ public final class ZoneOffset
      * The comparison is "consistent with equals", as defined by {@link Comparable}.
      *
      * @param other  the other date to compare to, not null
-     * @return the comparator value, negative if less, positive if greater
+     * @return the comparator value, negative if less, postive if greater
      * @throws NullPointerException if {@code other} is null
      */
     @Override
     public int compareTo(ZoneOffset other) {
-        // abs(totalSeconds) <= MAX_SECONDS, so no overflow can happen here
         return other.totalSeconds - totalSeconds;
     }
 
@@ -770,7 +769,6 @@ public final class ZoneOffset
     /**
      * Defend against malicious streams.
      *
-     * @param s the stream to read
      * @throws InvalidObjectException always
      */
     private void readObject(ObjectInputStream s) throws InvalidObjectException {

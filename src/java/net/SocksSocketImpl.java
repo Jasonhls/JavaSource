@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.net;
 import java.io.IOException;
@@ -53,17 +53,15 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
 
 
     SocksSocketImpl() {
-        super(false);
+        // Nothing needed
     }
 
     SocksSocketImpl(String server, int port) {
-        super(false);
         this.server = server;
         this.serverPort = (port == -1 ? DEFAULT_PORT : port);
     }
 
     SocksSocketImpl(Proxy proxy) {
-        super(false);
         SocketAddress a = proxy.address();
         if (a instanceof InetSocketAddress) {
             InetSocketAddress ad = (InetSocketAddress) a;
@@ -390,13 +388,14 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
             }
             while (iProxy.hasNext()) {
                 p = iProxy.next();
-                if (p == null || p.type() != Proxy.Type.SOCKS) {
+                if (p == null || p == Proxy.NO_PROXY) {
                     super.connect(epoint, remainingMillis(deadlineMillis));
                     return;
                 }
-
+                if (p.type() != Proxy.Type.SOCKS)
+                    throw new SocketException("Unknown proxy type : " + p.type());
                 if (!(p.address() instanceof InetSocketAddress))
-                    throw new SocketException("Unknown address type for proxy: " + p);
+                    throw new SocketException("Unknow address type for proxy: " + p);
                 // Use getHostString() to avoid reverse lookups
                 server = ((InetSocketAddress) p.address()).getHostString();
                 serverPort = ((InetSocketAddress) p.address()).getPort();
@@ -704,12 +703,13 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
             }
             while (iProxy.hasNext()) {
                 p = iProxy.next();
-                if (p == null || p.type() != Proxy.Type.SOCKS) {
+                if (p == null || p == Proxy.NO_PROXY) {
                     return;
                 }
-
+                if (p.type() != Proxy.Type.SOCKS)
+                    throw new SocketException("Unknown proxy type : " + p.type());
                 if (!(p.address() instanceof InetSocketAddress))
-                    throw new SocketException("Unknown address type for proxy: " + p);
+                    throw new SocketException("Unknow address type for proxy: " + p);
                 // Use getHostString() to avoid reverse lookups
                 server = ((InetSocketAddress) p.address()).getHostString();
                 serverPort = ((InetSocketAddress) p.address()).getPort();
@@ -724,7 +724,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
                     AccessController.doPrivileged(
                         new PrivilegedExceptionAction<Void>() {
                             public Void run() throws Exception {
-                                cmdsock = new Socket(new PlainSocketImpl(false));
+                                cmdsock = new Socket(new PlainSocketImpl());
                                 cmdsock.connect(new InetSocketAddress(server, serverPort));
                                 cmdIn = cmdsock.getInputStream();
                                 cmdOut = cmdsock.getOutputStream();
@@ -755,7 +755,7 @@ class SocksSocketImpl extends PlainSocketImpl implements SocksConsts {
                 AccessController.doPrivileged(
                     new PrivilegedExceptionAction<Void>() {
                         public Void run() throws Exception {
-                            cmdsock = new Socket(new PlainSocketImpl(false));
+                            cmdsock = new Socket(new PlainSocketImpl());
                             cmdsock.connect(new InetSocketAddress(server, serverPort));
                             cmdIn = cmdsock.getInputStream();
                             cmdOut = cmdsock.getOutputStream();

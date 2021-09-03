@@ -1,34 +1,32 @@
 /*
  * Copyright (c) 1997, 2000, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.awt.image;
 
 import java.awt.color.ColorSpace;
 import java.awt.geom.Rectangle2D;
-import java.awt.AlphaComposite;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.RenderingHints;
@@ -195,10 +193,9 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
                                           int   nBands,
                                           int   nElems) {
 
-        byte[][]        lutData = new byte[nBands][nElems];
-        int band;
+        byte[][]        lutData = new byte[scale.length][nElems];
 
-        for (band=0; band<scale.length; band++) {
+        for (int band=0; band<scale.length; band++) {
             float  bandScale   = scale[band];
             float  bandOff     = off[band];
             byte[] bandLutData = lutData[band];
@@ -215,17 +212,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
             }
 
         }
-        int maxToCopy = (nBands == 4 && scale.length == 4) ? 4 : 3;
-        while (band < lutData.length && band < maxToCopy) {
-           System.arraycopy(lutData[band-1], 0, lutData[band], 0, nElems);
-           band++;
-        }
-        if (nBands == 4 && band < nBands) {
-           byte[] bandLutData = lutData[band];
-           for (int i=0; i<nElems; i++) {
-              bandLutData[i] = (byte)i;
-           }
-        }
+
         return new ByteLookupTable(0, lutData);
     }
 
@@ -241,10 +228,9 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
                                             int   nBands,
                                             int   nElems) {
 
-        short[][]        lutData = new short[nBands][nElems];
-        int band = 0;
+        short[][]        lutData = new short[scale.length][nElems];
 
-        for (band=0; band<scale.length; band++) {
+        for (int band=0; band<scale.length; band++) {
             float   bandScale   = scale[band];
             float   bandOff     = off[band];
             short[] bandLutData = lutData[band];
@@ -260,17 +246,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
                 bandLutData[i] = (short)val;
             }
         }
-        int maxToCopy = (nBands == 4 && scale.length == 4) ? 4 : 3;
-        while (band < lutData.length && band < maxToCopy) {
-           System.arraycopy(lutData[band-1], 0, lutData[band], 0, nElems);
-           band++;
-        }
-        if (nBands == 4 && band < nBands) {
-           short[] bandLutData = lutData[band];
-           for (int i=0; i<nElems; i++) {
-              bandLutData[i] = (short)i;
-           }
-        }
+
         return new ShortLookupTable(0, lutData);
     }
 
@@ -323,18 +299,6 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
                 return false;
             }
         }
-        if (dstSM instanceof ComponentSampleModel) {
-           ComponentSampleModel dsm = (ComponentSampleModel)dstSM;
-           if (dsm.getPixelStride() != dst.getNumBands()) {
-               return false;
-           }
-        }
-        if (srcSM instanceof ComponentSampleModel) {
-           ComponentSampleModel csm = (ComponentSampleModel)srcSM;
-           if (csm.getPixelStride() != src.getNumBands()) {
-               return false;
-           }
-        }
 
         return true;
     }
@@ -380,7 +344,6 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
         }
 
         boolean needToConvert = false;
-        boolean needToDraw = false;
 
         // Include alpha
         if (length > numBands && srcCM.hasAlpha()) {
@@ -410,7 +373,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
 
             dstCM = dst.getColorModel();
             if(srcCM.getColorSpace().getType() !=
-                dstCM.getColorSpace().getType()) {
+               dstCM.getColorSpace().getType()) {
                 needToConvert = true;
                 dst = createCompatibleDestImage(src, null);
             }
@@ -423,29 +386,51 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
         // Try to use a native BI rescale operation first
         //
         if (ImagingLib.filter(this, src, dst) == null) {
-            if (src.getRaster().getNumBands() !=
-                dst.getRaster().getNumBands()) {
-                needToDraw = true;
-                dst = createCompatibleDestImage(src, null);
-            }
-
             //
             // Native BI rescale failed - convert to rasters
             //
             WritableRaster srcRaster = src.getRaster();
             WritableRaster dstRaster = dst.getRaster();
 
+            if (srcCM.hasAlpha()) {
+                if (numBands-1 == length || length == 1) {
+                    int minx = srcRaster.getMinX();
+                    int miny = srcRaster.getMinY();
+                    int[] bands = new int[numBands-1];
+                    for (int i=0; i < numBands-1; i++) {
+                        bands[i] = i;
+                    }
+                    srcRaster =
+                        srcRaster.createWritableChild(minx, miny,
+                                                      srcRaster.getWidth(),
+                                                      srcRaster.getHeight(),
+                                                      minx, miny,
+                                                      bands);
+                }
+            }
+            if (dstCM.hasAlpha()) {
+                int dstNumBands = dstRaster.getNumBands();
+                if (dstNumBands-1 == length || length == 1) {
+                    int minx = dstRaster.getMinX();
+                    int miny = dstRaster.getMinY();
+                    int[] bands = new int[numBands-1];
+                    for (int i=0; i < numBands-1; i++) {
+                        bands[i] = i;
+                    }
+                    dstRaster =
+                        dstRaster.createWritableChild(minx, miny,
+                                                      dstRaster.getWidth(),
+                                                      dstRaster.getHeight(),
+                                                      minx, miny,
+                                                      bands);
+                }
+            }
+
             //
             // Call the raster filter method
             //
-            filterRasterImpl(srcRaster, dstRaster, length, false);
+            filter(srcRaster, dstRaster);
 
-        }
-        if (needToDraw) {
-            Graphics2D g = origDst.createGraphics();
-            g.setComposite(AlphaComposite.Src);
-            g.drawImage(dst, 0, 0, width, height, null);
-            g.dispose();
         }
 
         if (needToConvert) {
@@ -476,12 +461,6 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
      *         stated in the class comments.
      */
     public final WritableRaster filter (Raster src, WritableRaster dst)  {
-        return filterRasterImpl(src, dst, length, true);
-    }
-
-    private WritableRaster filterRasterImpl(Raster src, WritableRaster dst,
-                                            int scaleConst, boolean sCheck) {
-
         int numBands = src.getNumBands();
         int width  = src.getWidth();
         int height = src.getHeight();
@@ -507,8 +486,7 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
         }
         // Make sure that the arrays match
         // Make sure that the low/high/constant arrays match
-        //if (length != 1 && length != src.getNumBands()) {
-        if (sCheck && scaleConst != 1 && scaleConst != src.getNumBands()) {
+        if (length != 1 && length != src.getNumBands()) {
             throw new IllegalArgumentException("Number of scaling constants "+
                                                "does not equal the number of"+
                                                " of bands in the src raster");
@@ -580,15 +558,8 @@ public class RescaleOp implements BufferedImageOp, RasterOp {
                     srcPix = src.getPixel(sX, sY, srcPix);
                     tidx = 0;
                     for (int z=0; z<numBands; z++, tidx += step) {
-                        if ((scaleConst == 1 || scaleConst == 3) &&
-                            (z == 3) && (numBands == 4)) {
-                           val = srcPix[z];
-                        } else {
-                            val = (int)(srcPix[z]*scaleFactors[tidx]
-                                              + offsets[tidx]);
-
-                        }
-
+                        val = (int)(srcPix[z]*scaleFactors[tidx]
+                                          + offsets[tidx]);
                         // Clamp
                         if ((val & dstMask[z]) != 0) {
                             if (val < 0) {

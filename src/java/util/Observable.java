@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1994, 2012, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -52,20 +52,18 @@ package java.util;
  * empty. Two observers are considered the same if and only if the
  * <tt>equals</tt> method returns true for them.
  *
- * @author Chris Warth
- * @see java.util.Observable#notifyObservers()
- * @see java.util.Observable#notifyObservers(java.lang.Object)
- * @see java.util.Observer
- * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
- * @since JDK1.0
+ * @author  Chris Warth
+ * @see     java.util.Observable#notifyObservers()
+ * @see     java.util.Observable#notifyObservers(java.lang.Object)
+ * @see     java.util.Observer
+ * @see     java.util.Observer#update(java.util.Observable, java.lang.Object)
+ * @since   JDK1.0
  */
 public class Observable {
     private boolean changed = false;
     private Vector<Observer> obs;
 
-    /**
-     * Construct an Observable with zero Observers.
-     */
+    /** Construct an Observable with zero Observers. */
 
     public Observable() {
         obs = new Vector<>();
@@ -77,8 +75,8 @@ public class Observable {
      * The order in which notifications will be delivered to multiple
      * observers is not specified. See the class comment.
      *
-     * @param o an observer to be added.
-     * @throws NullPointerException if the parameter o is null.
+     * @param   o   an observer to be added.
+     * @throws NullPointerException   if the parameter o is null.
      */
     public synchronized void addObserver(Observer o) {
         if (o == null)
@@ -91,8 +89,7 @@ public class Observable {
     /**
      * Deletes an observer from the set of observers of this object.
      * Passing <CODE>null</CODE> to this method will have no effect.
-     *
-     * @param o the observer to be deleted.
+     * @param   o   the observer to be deleted.
      */
     public synchronized void deleteObserver(Observer o) {
         obs.removeElement(o);
@@ -110,9 +107,9 @@ public class Observable {
      * <blockquote><tt>
      * notifyObservers(null)</tt></blockquote>
      *
-     * @see java.util.Observable#clearChanged()
-     * @see java.util.Observable#hasChanged()
-     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+     * @see     java.util.Observable#clearChanged()
+     * @see     java.util.Observable#hasChanged()
+     * @see     java.util.Observer#update(java.util.Observable, java.lang.Object)
      */
     public void notifyObservers() {
         notifyObservers(null);
@@ -127,10 +124,10 @@ public class Observable {
      * Each observer has its <code>update</code> method called with two
      * arguments: this observable object and the <code>arg</code> argument.
      *
-     * @param arg any object.
-     * @see java.util.Observable#clearChanged()
-     * @see java.util.Observable#hasChanged()
-     * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+     * @param   arg   any object.
+     * @see     java.util.Observable#clearChanged()
+     * @see     java.util.Observable#hasChanged()
+     * @see     java.util.Observer#update(java.util.Observable, java.lang.Object)
      */
     public void notifyObservers(Object arg) {
         /*
@@ -158,8 +155,8 @@ public class Observable {
             clearChanged();
         }
 
-        for (int i = arrLocal.length - 1; i >= 0; i--)
-            ((Observer) arrLocal[i]).update(this, arg);
+        for (int i = arrLocal.length-1; i>=0; i--)
+            ((Observer)arrLocal[i]).update(this, arg);
     }
 
     /**
@@ -184,8 +181,8 @@ public class Observable {
      * This method is called automatically by the
      * <code>notifyObservers</code> methods.
      *
-     * @see java.util.Observable#notifyObservers()
-     * @see java.util.Observable#notifyObservers(java.lang.Object)
+     * @see     java.util.Observable#notifyObservers()
+     * @see     java.util.Observable#notifyObservers(java.lang.Object)
      */
     protected synchronized void clearChanged() {
         changed = false;
@@ -194,12 +191,12 @@ public class Observable {
     /**
      * Tests if this object has changed.
      *
-     * @return <code>true</code> if and only if the <code>setChanged</code>
-     * method has been called more recently than the
-     * <code>clearChanged</code> method on this object;
-     * <code>false</code> otherwise.
-     * @see java.util.Observable#clearChanged()
-     * @see java.util.Observable#setChanged()
+     * @return  <code>true</code> if and only if the <code>setChanged</code>
+     *          method has been called more recently than the
+     *          <code>clearChanged</code> method on this object;
+     *          <code>false</code> otherwise.
+     * @see     java.util.Observable#clearChanged()
+     * @see     java.util.Observable#setChanged()
      */
     public synchronized boolean hasChanged() {
         return changed;
@@ -208,7 +205,7 @@ public class Observable {
     /**
      * Returns the number of observers of this <tt>Observable</tt> object.
      *
-     * @return the number of observers of this object.
+     * @return  the number of observers of this object.
      */
     public synchronized int countObservers() {
         return obs.size();

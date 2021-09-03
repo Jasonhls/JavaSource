@@ -1,36 +1,31 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.nio;
 
 import java.security.AccessController;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.LongAdder;
-
-import sun.misc.JavaLangRefAccess;
-import sun.misc.SharedSecrets;
 import sun.misc.Unsafe;
 import sun.misc.VM;
 
@@ -614,9 +609,7 @@ class Bits {                            // package-private
         String arch = AccessController.doPrivileged(
             new sun.security.action.GetPropertyAction("os.arch"));
         unaligned = arch.equals("i386") || arch.equals("x86")
-            || arch.equals("amd64") || arch.equals("x86_64")
-            || arch.equals("ppc64") || arch.equals("ppc64le")
-            || arch.equals("aarch64");
+            || arch.equals("amd64") || arch.equals("x86_64");
         unalignedKnown = true;
         return unaligned;
     }
@@ -628,103 +621,55 @@ class Bits {                            // package-private
     // direct buffer memory.  This value may be changed during VM
     // initialization if it is launched with "-XX:MaxDirectMemorySize=<size>".
     private static volatile long maxMemory = VM.maxDirectMemory();
-    private static final AtomicLong reservedMemory = new AtomicLong();
-    private static final AtomicLong totalCapacity = new AtomicLong();
-    private static final AtomicLong count = new AtomicLong();
-    private static volatile boolean memoryLimitSet = false;
-    // max. number of sleeps during try-reserving with exponentially
-    // increasing delay before throwing OutOfMemoryError:
-    // 1, 2, 4, 8, 16, 32, 64, 128, 256 (total 511 ms ~ 0.5 s)
-    // which means that OOME will be thrown after 0.5 s of trying
-    private static final int MAX_SLEEPS = 9;
+    private static volatile long reservedMemory;
+    private static volatile long totalCapacity;
+    private static volatile long count;
+    private static boolean memoryLimitSet = false;
 
     // These methods should be called whenever direct memory is allocated or
     // freed.  They allow the user to control the amount of direct memory
     // which a process may access.  All sizes are specified in bytes.
     static void reserveMemory(long size, int cap) {
-
-        if (!memoryLimitSet && VM.isBooted()) {
-            maxMemory = VM.maxDirectMemory();
-            memoryLimitSet = true;
-        }
-
-        // optimist!
-        if (tryReserveMemory(size, cap)) {
-            return;
-        }
-
-        final JavaLangRefAccess jlra = SharedSecrets.getJavaLangRefAccess();
-
-        // retry while helping enqueue pending Reference objects
-        // which includes executing pending Cleaner(s) which includes
-        // Cleaner(s) that free direct buffer memory
-        while (jlra.tryHandlePendingReference()) {
-            if (tryReserveMemory(size, cap)) {
+        synchronized (Bits.class) {
+            if (!memoryLimitSet && VM.isBooted()) {
+                maxMemory = VM.maxDirectMemory();
+                memoryLimitSet = true;
+            }
+            // -XX:MaxDirectMemorySize limits the total capacity rather than the
+            // actual memory usage, which will differ when buffers are page
+            // aligned.
+            if (cap <= maxMemory - totalCapacity) {
+                reservedMemory += size;
+                totalCapacity += cap;
+                count++;
                 return;
             }
         }
 
-        // trigger VM's Reference processing
         System.gc();
-
-        // a retry loop with exponential back-off delays
-        // (this gives VM some time to do it's job)
-        boolean interrupted = false;
         try {
-            long sleepTime = 1;
-            int sleeps = 0;
-            while (true) {
-                if (tryReserveMemory(size, cap)) {
-                    return;
-                }
-                if (sleeps >= MAX_SLEEPS) {
-                    break;
-                }
-                if (!jlra.tryHandlePendingReference()) {
-                    try {
-                        Thread.sleep(sleepTime);
-                        sleepTime <<= 1;
-                        sleeps++;
-                    } catch (InterruptedException e) {
-                        interrupted = true;
-                    }
-                }
-            }
-
-            // no luck
-            throw new OutOfMemoryError("Direct buffer memory");
-
-        } finally {
-            if (interrupted) {
-                // don't swallow interrupts
-                Thread.currentThread().interrupt();
-            }
+            Thread.sleep(100);
+        } catch (InterruptedException x) {
+            // Restore interrupt status
+            Thread.currentThread().interrupt();
         }
-    }
-
-    private static boolean tryReserveMemory(long size, int cap) {
-
-        // -XX:MaxDirectMemorySize limits the total capacity rather than the
-        // actual memory usage, which will differ when buffers are page
-        // aligned.
-        long totalCap;
-        while (cap <= maxMemory - (totalCap = totalCapacity.get())) {
-            if (totalCapacity.compareAndSet(totalCap, totalCap + cap)) {
-                reservedMemory.addAndGet(size);
-                count.incrementAndGet();
-                return true;
-            }
+        synchronized (Bits.class) {
+            if (totalCapacity + cap > maxMemory)
+                throw new OutOfMemoryError("Direct buffer memory");
+            reservedMemory += size;
+            totalCapacity += cap;
+            count++;
         }
 
-        return false;
     }
 
-
-    static void unreserveMemory(long size, int cap) {
-        long cnt = count.decrementAndGet();
-        long reservedMem = reservedMemory.addAndGet(-size);
-        long totalCap = totalCapacity.addAndGet(-cap);
-        assert cnt >= 0 && reservedMem >= 0 && totalCap >= 0;
+    static synchronized void unreserveMemory(long size, int cap) {
+        if (reservedMemory > 0) {
+            reservedMemory -= size;
+            totalCapacity -= cap;
+            count--;
+            assert (reservedMemory > -1);
+        }
     }
 
     // -- Monitoring of direct buffer usage --
@@ -742,15 +687,15 @@ class Bits {                            // package-private
                         }
                         @Override
                         public long getCount() {
-                            return Bits.count.get();
+                            return Bits.count;
                         }
                         @Override
                         public long getTotalCapacity() {
-                            return Bits.totalCapacity.get();
+                            return Bits.totalCapacity;
                         }
                         @Override
                         public long getMemoryUsed() {
-                            return Bits.reservedMemory.get();
+                            return Bits.reservedMemory;
                         }
                     };
                 }
@@ -836,191 +781,31 @@ class Bits {                            // package-private
         }
     }
 
-    /**
-     * Copy and unconditionally byte swap 16 bit elements from a heap array to off-heap memory
-     *
-     * @param src
-     *        the source array, must be a 16-bit primitive array type
-     * @param srcPos
-     *        byte offset within source array of the first element to read
-     * @param dstAddr
-     *        destination address
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyFromCharArray(Object src, long srcPos, long dstAddr, long length) {
-        copySwapMemory(src, unsafe.arrayBaseOffset(src.getClass()) + srcPos, null, dstAddr, length, 2);
+    static void copyFromCharArray(Object src, long srcPos, long dstAddr,
+                                  long length)
+    {
+        copyFromShortArray(src, srcPos, dstAddr, length);
     }
 
-    /**
-     * Copy and unconditionally byte swap 16 bit elements from off-heap memory to a heap array
-     *
-     * @param srcAddr
-     *        source address
-     * @param dst
-     *        destination array, must be a 16-bit primitive array type
-     * @param dstPos
-     *        byte offset within the destination array of the first element to write
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyToCharArray(long srcAddr, Object dst, long dstPos, long length) {
-        copySwapMemory(null, srcAddr, dst, unsafe.arrayBaseOffset(dst.getClass()) + dstPos, length, 2);
+    static void copyToCharArray(long srcAddr, Object dst, long dstPos,
+                                long length)
+    {
+        copyToShortArray(srcAddr, dst, dstPos, length);
     }
 
-    /**
-     * Copy and unconditionally byte swap 16 bit elements from a heap array to off-heap memory
-     *
-     * @param src
-     *        the source array, must be a 16-bit primitive array type
-     * @param srcPos
-     *        byte offset within source array of the first element to read
-     * @param dstAddr
-     *        destination address
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyFromShortArray(Object src, long srcPos, long dstAddr, long length) {
-        copySwapMemory(src, unsafe.arrayBaseOffset(src.getClass()) + srcPos, null, dstAddr, length, 2);
-    }
+    static native void copyFromShortArray(Object src, long srcPos, long dstAddr,
+                                          long length);
+    static native void copyToShortArray(long srcAddr, Object dst, long dstPos,
+                                        long length);
 
-    /**
-     * Copy and unconditionally byte swap 16 bit elements from off-heap memory to a heap array
-     *
-     * @param srcAddr
-     *        source address
-     * @param dst
-     *        destination array, must be a 16-bit primitive array type
-     * @param dstPos
-     *        byte offset within the destination array of the first element to write
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyToShortArray(long srcAddr, Object dst, long dstPos, long length) {
-        copySwapMemory(null, srcAddr, dst, unsafe.arrayBaseOffset(dst.getClass()) + dstPos, length, 2);
-    }
+    static native void copyFromIntArray(Object src, long srcPos, long dstAddr,
+                                        long length);
+    static native void copyToIntArray(long srcAddr, Object dst, long dstPos,
+                                      long length);
 
-    /**
-     * Copy and unconditionally byte swap 32 bit elements from a heap array to off-heap memory
-     *
-     * @param src
-     *        the source array, must be a 32-bit primitive array type
-     * @param srcPos
-     *        byte offset within source array of the first element to read
-     * @param dstAddr
-     *        destination address
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyFromIntArray(Object src, long srcPos, long dstAddr, long length) {
-        copySwapMemory(src, unsafe.arrayBaseOffset(src.getClass()) + srcPos, null, dstAddr, length, 4);
-    }
-
-    /**
-     * Copy and unconditionally byte swap 32 bit elements from off-heap memory to a heap array
-     *
-     * @param srcAddr
-     *        source address
-     * @param dst
-     *        destination array, must be a 32-bit primitive array type
-     * @param dstPos
-     *        byte offset within the destination array of the first element to write
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyToIntArray(long srcAddr, Object dst, long dstPos, long length) {
-        copySwapMemory(null, srcAddr, dst, unsafe.arrayBaseOffset(dst.getClass()) + dstPos, length, 4);
-    }
-
-    /**
-     * Copy and unconditionally byte swap 64 bit elements from a heap array to off-heap memory
-     *
-     * @param src
-     *        the source array, must be a 64-bit primitive array type
-     * @param srcPos
-     *        byte offset within source array of the first element to read
-     * @param dstAddr
-     *        destination address
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyFromLongArray(Object src, long srcPos, long dstAddr, long length) {
-        copySwapMemory(src, unsafe.arrayBaseOffset(src.getClass()) + srcPos, null, dstAddr, length, 8);
-    }
-
-    /**
-     * Copy and unconditionally byte swap 64 bit elements from off-heap memory to a heap array
-     *
-     * @param srcAddr
-     *        source address
-     * @param dst
-     *        destination array, must be a 64-bit primitive array type
-     * @param dstPos
-     *        byte offset within the destination array of the first element to write
-     * @param length
-     *        number of bytes to copy
-     */
-    static void copyToLongArray(long srcAddr, Object dst, long dstPos, long length) {
-        copySwapMemory(null, srcAddr, dst, unsafe.arrayBaseOffset(dst.getClass()) + dstPos, length, 8);
-    }
-
-    private static boolean isPrimitiveArray(Class<?> c) {
-        Class<?> componentType = c.getComponentType();
-        return componentType != null && componentType.isPrimitive();
-    }
-
-    private native static void copySwapMemory0(Object srcBase, long srcOffset,
-                                        Object destBase, long destOffset,
-                                        long bytes, long elemSize);
-
-    /**
-     * Copies all elements from one block of memory to another block,
-     * *unconditionally* byte swapping the elements on the fly.
-     *
-     * <p>This method determines each block's base address by means of two parameters,
-     * and so it provides (in effect) a <em>double-register</em> addressing mode,
-     * as discussed in {@link sun.misc.Unsafe#getInt(Object,long)}.  When the
-     * object reference is null, the offset supplies an absolute base address.
-     *
-     * @since 8u201
-     */
-    private static void copySwapMemory(Object srcBase, long srcOffset,
-                               Object destBase, long destOffset,
-                               long bytes, long elemSize) {
-        if (bytes < 0) {
-            throw new IllegalArgumentException();
-        }
-        if (elemSize != 2 && elemSize != 4 && elemSize != 8) {
-            throw new IllegalArgumentException();
-        }
-        if (bytes % elemSize != 0) {
-            throw new IllegalArgumentException();
-        }
-        if ((srcBase == null && srcOffset == 0) ||
-            (destBase == null && destOffset == 0)) {
-            throw new NullPointerException();
-        }
-
-        // Must be off-heap, or primitive heap arrays
-        if (srcBase != null && (srcOffset < 0 || !isPrimitiveArray(srcBase.getClass()))) {
-            throw new IllegalArgumentException();
-        }
-        if (destBase != null && (destOffset < 0 || !isPrimitiveArray(destBase.getClass()))) {
-            throw new IllegalArgumentException();
-        }
-
-        // Sanity check size and offsets on 32-bit platforms. Most
-        // significant 32 bits must be zero.
-        if (unsafe.addressSize() == 4 &&
-            (bytes >>> 32 != 0 || srcOffset >>> 32 != 0 || destOffset >>> 32 != 0)) {
-            throw new IllegalArgumentException();
-        }
-
-        if (bytes == 0) {
-            return;
-        }
-
-        copySwapMemory0(srcBase, srcOffset, destBase, destOffset, bytes, elemSize);
-    }
+    static native void copyFromLongArray(Object src, long srcPos, long dstAddr,
+                                         long length);
+    static native void copyToLongArray(long srcAddr, Object dst, long dstPos,
+                                       long length);
 
 }

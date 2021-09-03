@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -157,8 +157,7 @@ public interface Temporal extends TemporalAccessor {
      * This adjusts this date-time according to the rules of the specified adjuster.
      * A simple adjuster might simply set the one of the fields, such as the year field.
      * A more complex adjuster might set the date to the last day of the month.
-     * A selection of common adjustments is provided in
-     * {@link java.time.temporal.TemporalAdjusters TemporalAdjusters}.
+     * A selection of common adjustments is provided in {@link TemporalAdjuster}.
      * These include finding the "last day of the month" and "next Wednesday".
      * The adjuster is responsible for handling special cases, such as the varying
      * lengths of month and leap years.
@@ -288,7 +287,7 @@ public interface Temporal extends TemporalAccessor {
      * This provides equivalent, safe behavior for immutable and mutable implementations.
      *
      * @param amountToAdd  the amount of the specified unit to add, may be negative
-     * @param unit  the unit of the amount to add, not null
+     * @param unit  the unit of the period to add, not null
      * @return an object of the same type with the specified period added, not null
      * @throws DateTimeException if the unit cannot be added
      * @throws UnsupportedTemporalTypeException if the unit is not supported
@@ -360,7 +359,7 @@ public interface Temporal extends TemporalAccessor {
      * </pre>
      *
      * @param amountToSubtract  the amount of the specified unit to subtract, may be negative
-     * @param unit  the unit of the amount to subtract, not null
+     * @param unit  the unit of the period to subtract, not null
      * @return an object of the same type with the specified period subtracted, not null
      * @throws DateTimeException if the unit cannot be subtracted
      * @throws UnsupportedTemporalTypeException if the unit is not supported
@@ -379,12 +378,12 @@ public interface Temporal extends TemporalAccessor {
      * The start and end points are {@code this} and the specified temporal.
      * The end point is converted to be of the same type as the start point if different.
      * The result will be negative if the end is before the start.
-     * For example, the amount in hours between two temporal objects can be
+     * For example, the period in hours between two temporal objects can be
      * calculated using {@code startTime.until(endTime, HOURS)}.
      * <p>
      * The calculation returns a whole number, representing the number of
      * complete units between the two temporals.
-     * For example, the amount in hours between the times 11:30 and 13:29
+     * For example, the period in hours between the times 11:30 and 13:29
      * will only be one hour as it is one minute short of two hours.
      * <p>
      * There are two equivalent ways of using this method.

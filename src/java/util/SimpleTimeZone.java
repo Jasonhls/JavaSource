@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2017, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
@@ -41,8 +41,6 @@ package java.util;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.io.InvalidObjectException;
-
 import sun.util.calendar.CalendarSystem;
 import sun.util.calendar.CalendarUtils;
 import sun.util.calendar.BaseCalendar;
@@ -142,11 +140,11 @@ import sun.util.calendar.Gregorian;
  * These parameter rules are also applicable to the set rule methods, such as
  * <code>setStartRule</code>.
  *
- * @author David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
- * @see Calendar
- * @see GregorianCalendar
- * @see TimeZone
  * @since 1.1
+ * @see      Calendar
+ * @see      GregorianCalendar
+ * @see      TimeZone
+ * @author   David Goldsmith, Mark Davis, Chen-Lieh Huang, Alan Liu
  */
 
 public class SimpleTimeZone extends TimeZone {
@@ -154,12 +152,13 @@ public class SimpleTimeZone extends TimeZone {
      * Constructs a SimpleTimeZone with the given base time zone offset from GMT
      * and time zone ID with no daylight saving time schedule.
      *
-     * @param rawOffset The base time zone offset in milliseconds to GMT.
-     * @param ID        The time zone name that is given to this instance.
+     * @param rawOffset  The base time zone offset in milliseconds to GMT.
+     * @param ID         The time zone name that is given to this instance.
      */
-    public SimpleTimeZone(int rawOffset, String ID) {
+    public SimpleTimeZone(int rawOffset, String ID)
+    {
         this.rawOffset = rawOffset;
-        setID(ID);
+        setID (ID);
         dstSavings = millisPerHour; // In case user sets rules later
     }
 
@@ -187,38 +186,39 @@ public class SimpleTimeZone extends TimeZone {
      *                    3600000)
      * </code></pre>
      *
-     * @param rawOffset      The given base time zone offset from GMT.
-     * @param ID             The time zone ID which is given to this object.
-     * @param startMonth     The daylight saving time starting month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field value (0-based. e.g., 0
-     *                       for January).
-     * @param startDay       The day of the month on which the daylight saving time starts.
-     *                       See the class description for the special cases of this parameter.
-     * @param startDayOfWeek The daylight saving time starting day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param startTime      The daylight saving time starting time in local wall clock
-     *                       time (in milliseconds within the day), which is local
-     *                       standard time in this case.
-     * @param endMonth       The daylight saving time ending month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 9 for October).
-     * @param endDay         The day of the month on which the daylight saving time ends.
-     *                       See the class description for the special cases of this parameter.
-     * @param endDayOfWeek   The daylight saving time ending day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param endTime        The daylight saving ending time in local wall clock time,
-     *                       (in milliseconds within the day) which is local daylight
-     *                       time in this case.
-     * @throws IllegalArgumentException if the month, day, dayOfWeek, or time
-     *                                  parameters are out of range for the start or end rule
+     * @param rawOffset       The given base time zone offset from GMT.
+     * @param ID              The time zone ID which is given to this object.
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field value (0-based. e.g., 0
+     *                        for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     *                        See the class description for the special cases of this parameter.
+     * @param startDayOfWeek  The daylight saving time starting day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param startTime       The daylight saving time starting time in local wall clock
+     *                        time (in milliseconds within the day), which is local
+     *                        standard time in this case.
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     *                        See the class description for the special cases of this parameter.
+     * @param endDayOfWeek    The daylight saving time ending day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param endTime         The daylight saving ending time in local wall clock time,
+     *                        (in milliseconds within the day) which is local daylight
+     *                        time in this case.
+     * @exception IllegalArgumentException if the month, day, dayOfWeek, or time
+     * parameters are out of range for the start or end rule
      */
     public SimpleTimeZone(int rawOffset, String ID,
                           int startMonth, int startDay, int startDayOfWeek, int startTime,
-                          int endMonth, int endDay, int endDayOfWeek, int endTime) {
+                          int endMonth, int endDay, int endDayOfWeek, int endTime)
+    {
         this(rawOffset, ID,
-                startMonth, startDay, startDayOfWeek, startTime, WALL_TIME,
-                endMonth, endDay, endDayOfWeek, endTime, WALL_TIME,
-                millisPerHour);
+             startMonth, startDay, startDayOfWeek, startTime, WALL_TIME,
+             endMonth, endDay, endDayOfWeek, endTime, WALL_TIME,
+             millisPerHour);
     }
 
     /**
@@ -243,40 +243,41 @@ public class SimpleTimeZone extends TimeZone {
      *                    dstSavings)
      * </code></pre>
      *
-     * @param rawOffset      The given base time zone offset from GMT.
-     * @param ID             The time zone ID which is given to this object.
-     * @param startMonth     The daylight saving time starting month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 0 for January).
-     * @param startDay       The day of the month on which the daylight saving time starts.
-     *                       See the class description for the special cases of this parameter.
-     * @param startDayOfWeek The daylight saving time starting day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param startTime      The daylight saving time starting time in local wall clock
-     *                       time, which is local standard time in this case.
-     * @param endMonth       The daylight saving time ending month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 9 for October).
-     * @param endDay         The day of the month on which the daylight saving time ends.
-     *                       See the class description for the special cases of this parameter.
-     * @param endDayOfWeek   The daylight saving time ending day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param endTime        The daylight saving ending time in local wall clock time,
-     *                       which is local daylight time in this case.
-     * @param dstSavings     The amount of time in milliseconds saved during
-     *                       daylight saving time.
-     * @throws IllegalArgumentException if the month, day, dayOfWeek, or time
-     *                                  parameters are out of range for the start or end rule
+     * @param rawOffset       The given base time zone offset from GMT.
+     * @param ID              The time zone ID which is given to this object.
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 0 for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     *                        See the class description for the special cases of this parameter.
+     * @param startDayOfWeek  The daylight saving time starting day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param startTime       The daylight saving time starting time in local wall clock
+     *                        time, which is local standard time in this case.
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     *                        See the class description for the special cases of this parameter.
+     * @param endDayOfWeek    The daylight saving time ending day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param endTime         The daylight saving ending time in local wall clock time,
+     *                        which is local daylight time in this case.
+     * @param dstSavings      The amount of time in milliseconds saved during
+     *                        daylight saving time.
+     * @exception IllegalArgumentException if the month, day, dayOfWeek, or time
+     * parameters are out of range for the start or end rule
      * @since 1.2
      */
     public SimpleTimeZone(int rawOffset, String ID,
                           int startMonth, int startDay, int startDayOfWeek, int startTime,
                           int endMonth, int endDay, int endDayOfWeek, int endTime,
-                          int dstSavings) {
+                          int dstSavings)
+    {
         this(rawOffset, ID,
-                startMonth, startDay, startDayOfWeek, startTime, WALL_TIME,
-                endMonth, endDay, endDayOfWeek, endTime, WALL_TIME,
-                dstSavings);
+             startMonth, startDay, startDayOfWeek, startTime, WALL_TIME,
+             endMonth, endDay, endDayOfWeek, endTime, WALL_TIME,
+             dstSavings);
     }
 
     /**
@@ -289,36 +290,39 @@ public class SimpleTimeZone extends TimeZone {
      * time} or {@link #STANDARD_TIME standard time} or {@link #UTC_TIME UTC
      * time}.
      *
-     * @param rawOffset      The given base time zone offset from GMT.
-     * @param ID             The time zone ID which is given to this object.
-     * @param startMonth     The daylight saving time starting month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 0 for January).
-     * @param startDay       The day of the month on which the daylight saving time starts.
-     *                       See the class description for the special cases of this parameter.
-     * @param startDayOfWeek The daylight saving time starting day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param startTime      The daylight saving time starting time in the time mode
-     *                       specified by <code>startTimeMode</code>.
-     * @param startTimeMode  The mode of the start time specified by startTime.
-     * @param endMonth       The daylight saving time ending month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 9 for October).
-     * @param endDay         The day of the month on which the daylight saving time ends.
-     *                       See the class description for the special cases of this parameter.
-     * @param endDayOfWeek   The daylight saving time ending day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param endTime        The daylight saving ending time in time time mode
-     *                       specified by <code>endTimeMode</code>.
-     * @param endTimeMode    The mode of the end time specified by endTime
-     * @param dstSavings     The amount of time in milliseconds saved during
-     *                       daylight saving time.
-     * @throws IllegalArgumentException if the month, day, dayOfWeek, time more, or
-     *                                  time parameters are out of range for the start or end rule, or if a time mode
-     *                                  value is invalid.
+     * @param rawOffset       The given base time zone offset from GMT.
+     * @param ID              The time zone ID which is given to this object.
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 0 for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     *                        See the class description for the special cases of this parameter.
+     * @param startDayOfWeek  The daylight saving time starting day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param startTime       The daylight saving time starting time in the time mode
+     *                        specified by <code>startTimeMode</code>.
+     * @param startTimeMode   The mode of the start time specified by startTime.
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     *                        See the class description for the special cases of this parameter.
+     * @param endDayOfWeek    The daylight saving time ending day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param endTime         The daylight saving ending time in time time mode
+     *                        specified by <code>endTimeMode</code>.
+     * @param endTimeMode     The mode of the end time specified by endTime
+     * @param dstSavings      The amount of time in milliseconds saved during
+     *                        daylight saving time.
+     *
+     * @exception IllegalArgumentException if the month, day, dayOfWeek, time more, or
+     * time parameters are out of range for the start or end rule, or if a time mode
+     * value is invalid.
+     *
      * @see #WALL_TIME
      * @see #STANDARD_TIME
      * @see #UTC_TIME
+     *
      * @since 1.4
      */
     public SimpleTimeZone(int rawOffset, String ID,
@@ -329,18 +333,18 @@ public class SimpleTimeZone extends TimeZone {
                           int dstSavings) {
 
         setID(ID);
-        this.rawOffset = rawOffset;
-        this.startMonth = startMonth;
-        this.startDay = startDay;
+        this.rawOffset      = rawOffset;
+        this.startMonth     = startMonth;
+        this.startDay       = startDay;
         this.startDayOfWeek = startDayOfWeek;
-        this.startTime = startTime;
-        this.startTimeMode = startTimeMode;
-        this.endMonth = endMonth;
-        this.endDay = endDay;
-        this.endDayOfWeek = endDayOfWeek;
-        this.endTime = endTime;
-        this.endTimeMode = endTimeMode;
-        this.dstSavings = dstSavings;
+        this.startTime      = startTime;
+        this.startTimeMode  = startTimeMode;
+        this.endMonth       = endMonth;
+        this.endDay         = endDay;
+        this.endDayOfWeek   = endDayOfWeek;
+        this.endTime        = endTime;
+        this.endTimeMode    = endTimeMode;
+        this.dstSavings     = dstSavings;
 
         // this.useDaylight is set by decodeRules
         decodeRules();
@@ -352,9 +356,10 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * Sets the daylight saving time starting year.
      *
-     * @param year The daylight saving starting year.
+     * @param year  The daylight saving starting year.
      */
-    public void setStartYear(int year) {
+    public void setStartYear(int year)
+    {
         startYear = year;
         invalidateCache();
     }
@@ -365,19 +370,20 @@ public class SimpleTimeZone extends TimeZone {
      * time, you can set the start rule by calling:
      * <pre><code>setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2*60*60*1000);</code></pre>
      *
-     * @param startMonth     The daylight saving time starting month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 0 for January).
-     * @param startDay       The day of the month on which the daylight saving time starts.
-     *                       See the class description for the special cases of this parameter.
-     * @param startDayOfWeek The daylight saving time starting day-of-week.
-     *                       See the class description for the special cases of this parameter.
-     * @param startTime      The daylight saving time starting time in local wall clock
-     *                       time, which is local standard time in this case.
-     * @throws IllegalArgumentException if the <code>startMonth</code>, <code>startDay</code>,
-     *                                  <code>startDayOfWeek</code>, or <code>startTime</code> parameters are out of range
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 0 for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     *                        See the class description for the special cases of this parameter.
+     * @param startDayOfWeek  The daylight saving time starting day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param startTime       The daylight saving time starting time in local wall clock
+     *                        time, which is local standard time in this case.
+     * @exception IllegalArgumentException if the <code>startMonth</code>, <code>startDay</code>,
+     * <code>startDayOfWeek</code>, or <code>startTime</code> parameters are out of range
      */
-    public void setStartRule(int startMonth, int startDay, int startDayOfWeek, int startTime) {
+    public void setStartRule(int startMonth, int startDay, int startDayOfWeek, int startTime)
+    {
         this.startMonth = startMonth;
         this.startDay = startDay;
         this.startDayOfWeek = startDayOfWeek;
@@ -392,15 +398,15 @@ public class SimpleTimeZone extends TimeZone {
      * This method is equivalent to:
      * <pre><code>setStartRule(startMonth, startDay, 0, startTime)</code></pre>
      *
-     * @param startMonth The daylight saving time starting month. Month is
-     *                   a {@link Calendar#MONTH MONTH} field
-     *                   value (0-based. e.g., 0 for January).
-     * @param startDay   The day of the month on which the daylight saving time starts.
-     * @param startTime  The daylight saving time starting time in local wall clock
-     *                   time, which is local standard time in this case.
-     *                   See the class description for the special cases of this parameter.
-     * @throws IllegalArgumentException if the <code>startMonth</code>,
-     *                                  <code>startDayOfMonth</code>, or <code>startTime</code> parameters are out of range
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 0 for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     * @param startTime       The daylight saving time starting time in local wall clock
+     *                        time, which is local standard time in this case.
+     *                        See the class description for the special cases of this parameter.
+     * @exception IllegalArgumentException if the <code>startMonth</code>,
+     * <code>startDayOfMonth</code>, or <code>startTime</code> parameters are out of range
      * @since 1.2
      */
     public void setStartRule(int startMonth, int startDay, int startTime) {
@@ -411,23 +417,24 @@ public class SimpleTimeZone extends TimeZone {
      * Sets the daylight saving time start rule to a weekday before or after the given date within
      * a month, e.g., the first Monday on or after the 8th.
      *
-     * @param startMonth     The daylight saving time starting month. Month is
-     *                       a {@link Calendar#MONTH MONTH} field
-     *                       value (0-based. e.g., 0 for January).
-     * @param startDay       The day of the month on which the daylight saving time starts.
-     * @param startDayOfWeek The daylight saving time starting day-of-week.
-     * @param startTime      The daylight saving time starting time in local wall clock
-     *                       time, which is local standard time in this case.
-     * @param after          If true, this rule selects the first <code>dayOfWeek</code> on or
-     *                       <em>after</em> <code>dayOfMonth</code>.  If false, this rule
-     *                       selects the last <code>dayOfWeek</code> on or <em>before</em>
-     *                       <code>dayOfMonth</code>.
-     * @throws IllegalArgumentException if the <code>startMonth</code>, <code>startDay</code>,
-     *                                  <code>startDayOfWeek</code>, or <code>startTime</code> parameters are out of range
+     * @param startMonth      The daylight saving time starting month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 0 for January).
+     * @param startDay        The day of the month on which the daylight saving time starts.
+     * @param startDayOfWeek  The daylight saving time starting day-of-week.
+     * @param startTime       The daylight saving time starting time in local wall clock
+     *                        time, which is local standard time in this case.
+     * @param after           If true, this rule selects the first <code>dayOfWeek</code> on or
+     *                        <em>after</em> <code>dayOfMonth</code>.  If false, this rule
+     *                        selects the last <code>dayOfWeek</code> on or <em>before</em>
+     *                        <code>dayOfMonth</code>.
+     * @exception IllegalArgumentException if the <code>startMonth</code>, <code>startDay</code>,
+     * <code>startDayOfWeek</code>, or <code>startTime</code> parameters are out of range
      * @since 1.2
      */
     public void setStartRule(int startMonth, int startDay, int startDayOfWeek,
-                             int startTime, boolean after) {
+                             int startTime, boolean after)
+    {
         // TODO: this method doesn't check the initial values of dayOfMonth or dayOfWeek.
         if (after) {
             setStartRule(startMonth, startDay, -startDayOfWeek, startTime);
@@ -442,21 +449,22 @@ public class SimpleTimeZone extends TimeZone {
      * you can set the end rule by calling:
      * <code>setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2*60*60*1000);</code>
      *
-     * @param endMonth     The daylight saving time ending month. Month is
-     *                     a {@link Calendar#MONTH MONTH} field
-     *                     value (0-based. e.g., 9 for October).
-     * @param endDay       The day of the month on which the daylight saving time ends.
-     *                     See the class description for the special cases of this parameter.
-     * @param endDayOfWeek The daylight saving time ending day-of-week.
-     *                     See the class description for the special cases of this parameter.
-     * @param endTime      The daylight saving ending time in local wall clock time,
-     *                     (in milliseconds within the day) which is local daylight
-     *                     time in this case.
-     * @throws IllegalArgumentException if the <code>endMonth</code>, <code>endDay</code>,
-     *                                  <code>endDayOfWeek</code>, or <code>endTime</code> parameters are out of range
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     *                        See the class description for the special cases of this parameter.
+     * @param endDayOfWeek    The daylight saving time ending day-of-week.
+     *                        See the class description for the special cases of this parameter.
+     * @param endTime         The daylight saving ending time in local wall clock time,
+     *                        (in milliseconds within the day) which is local daylight
+     *                        time in this case.
+     * @exception IllegalArgumentException if the <code>endMonth</code>, <code>endDay</code>,
+     * <code>endDayOfWeek</code>, or <code>endTime</code> parameters are out of range
      */
     public void setEndRule(int endMonth, int endDay, int endDayOfWeek,
-                           int endTime) {
+                           int endTime)
+    {
         this.endMonth = endMonth;
         this.endDay = endDay;
         this.endDayOfWeek = endDayOfWeek;
@@ -471,18 +479,19 @@ public class SimpleTimeZone extends TimeZone {
      * This method is equivalent to:
      * <pre><code>setEndRule(endMonth, endDay, 0, endTime)</code></pre>
      *
-     * @param endMonth The daylight saving time ending month. Month is
-     *                 a {@link Calendar#MONTH MONTH} field
-     *                 value (0-based. e.g., 9 for October).
-     * @param endDay   The day of the month on which the daylight saving time ends.
-     * @param endTime  The daylight saving ending time in local wall clock time,
-     *                 (in milliseconds within the day) which is local daylight
-     *                 time in this case.
-     * @throws IllegalArgumentException the <code>endMonth</code>, <code>endDay</code>,
-     *                                  or <code>endTime</code> parameters are out of range
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     * @param endTime         The daylight saving ending time in local wall clock time,
+     *                        (in milliseconds within the day) which is local daylight
+     *                        time in this case.
+     * @exception IllegalArgumentException the <code>endMonth</code>, <code>endDay</code>,
+     * or <code>endTime</code> parameters are out of range
      * @since 1.2
      */
-    public void setEndRule(int endMonth, int endDay, int endTime) {
+    public void setEndRule(int endMonth, int endDay, int endTime)
+    {
         setEndRule(endMonth, endDay, 0, endTime);
     }
 
@@ -490,23 +499,24 @@ public class SimpleTimeZone extends TimeZone {
      * Sets the daylight saving time end rule to a weekday before or after the given date within
      * a month, e.g., the first Monday on or after the 8th.
      *
-     * @param endMonth     The daylight saving time ending month. Month is
-     *                     a {@link Calendar#MONTH MONTH} field
-     *                     value (0-based. e.g., 9 for October).
-     * @param endDay       The day of the month on which the daylight saving time ends.
-     * @param endDayOfWeek The daylight saving time ending day-of-week.
-     * @param endTime      The daylight saving ending time in local wall clock time,
-     *                     (in milliseconds within the day) which is local daylight
-     *                     time in this case.
-     * @param after        If true, this rule selects the first <code>endDayOfWeek</code> on
-     *                     or <em>after</em> <code>endDay</code>.  If false, this rule
-     *                     selects the last <code>endDayOfWeek</code> on or before
-     *                     <code>endDay</code> of the month.
-     * @throws IllegalArgumentException the <code>endMonth</code>, <code>endDay</code>,
-     *                                  <code>endDayOfWeek</code>, or <code>endTime</code> parameters are out of range
+     * @param endMonth        The daylight saving time ending month. Month is
+     *                        a {@link Calendar#MONTH MONTH} field
+     *                        value (0-based. e.g., 9 for October).
+     * @param endDay          The day of the month on which the daylight saving time ends.
+     * @param endDayOfWeek    The daylight saving time ending day-of-week.
+     * @param endTime         The daylight saving ending time in local wall clock time,
+     *                        (in milliseconds within the day) which is local daylight
+     *                        time in this case.
+     * @param after           If true, this rule selects the first <code>endDayOfWeek</code> on
+     *                        or <em>after</em> <code>endDay</code>.  If false, this rule
+     *                        selects the last <code>endDayOfWeek</code> on or before
+     *                        <code>endDay</code> of the month.
+     * @exception IllegalArgumentException the <code>endMonth</code>, <code>endDay</code>,
+     * <code>endDayOfWeek</code>, or <code>endTime</code> parameters are out of range
      * @since 1.2
      */
-    public void setEndRule(int endMonth, int endDay, int endDayOfWeek, int endTime, boolean after) {
+    public void setEndRule(int endMonth, int endDay, int endDayOfWeek, int endTime, boolean after)
+    {
         if (after) {
             setEndRule(endMonth, endDay, -endDayOfWeek, endTime);
         } else {
@@ -535,7 +545,7 @@ public class SimpleTimeZone extends TimeZone {
     int getOffsets(long date, int[] offsets) {
         int offset = rawOffset;
 
-        computeOffset:
+      computeOffset:
         if (useDaylight) {
             synchronized (this) {
                 if (cacheStart != 0) {
@@ -546,7 +556,7 @@ public class SimpleTimeZone extends TimeZone {
                 }
             }
             BaseCalendar cal = date >= GregorianCalendar.DEFAULT_GREGORIAN_CUTOVER ?
-                    gcal : (BaseCalendar) CalendarSystem.forName("julian");
+                gcal : (BaseCalendar) CalendarSystem.forName("julian");
             BaseCalendar.Date cdate = (BaseCalendar.Date) cal.newCalendarDate(TimeZone.NO_TIMEZONE);
             // Get the year in local time
             cal.getCalendarDate(date + rawOffset, cdate);
@@ -565,7 +575,7 @@ public class SimpleTimeZone extends TimeZone {
         return offset;
     }
 
-    /**
+   /**
      * Returns the difference in milliseconds between local time and
      * UTC, taking into account both the raw offset and the effect of
      * daylight saving, for the specified date and time.  This method
@@ -586,13 +596,14 @@ public class SimpleTimeZone extends TimeZone {
      * @param day       The day-in-month of the given date.
      * @param dayOfWeek The day-of-week of the given date.
      * @param millis    The milliseconds in day in <em>standard</em> local time.
-     * @return The milliseconds to add to UTC to get local time.
-     * @throws IllegalArgumentException the <code>era</code>,
-     *                                  <code>month</code>, <code>day</code>, <code>dayOfWeek</code>,
-     *                                  or <code>millis</code> parameters are out of range
+     * @return          The milliseconds to add to UTC to get local time.
+     * @exception       IllegalArgumentException the <code>era</code>,
+     *                  <code>month</code>, <code>day</code>, <code>dayOfWeek</code>,
+     *                  or <code>millis</code> parameters are out of range
      */
     public int getOffset(int era, int year, int month, int day, int dayOfWeek,
-                         int millis) {
+                         int millis)
+    {
         if (era != GregorianCalendar.AD && era != GregorianCalendar.BC) {
             throw new IllegalArgumentException("Illegal era " + era);
         }
@@ -641,13 +652,13 @@ public class SimpleTimeZone extends TimeZone {
         }
 
         if ((cdate.getNormalizedYear() != y)
-                || (cdate.getMonth() != m)
-                || (cdate.getDayOfMonth() != day)
-                // The validation should be cdate.getDayOfWeek() ==
-                // dayOfWeek. However, we don't check dayOfWeek for
-                // compatibility.
-                || (dayOfWeek < Calendar.SUNDAY || dayOfWeek > Calendar.SATURDAY)
-                || (millis < 0 || millis >= (24 * 60 * 60 * 1000))) {
+            || (cdate.getMonth() != m)
+            || (cdate.getDayOfMonth() != day)
+            // The validation should be cdate.getDayOfWeek() ==
+            // dayOfWeek. However, we don't check dayOfWeek for
+            // compatibility.
+            || (dayOfWeek < Calendar.SUNDAY || dayOfWeek > Calendar.SATURDAY)
+            || (millis < 0 || millis >= (24*60*60*1000))) {
             throw new IllegalArgumentException();
         }
 
@@ -716,7 +727,7 @@ public class SimpleTimeZone extends TimeZone {
             time -= rawOffset;
         }
         return getTransition(cal, cdate, startMode, year, startMonth, startDay,
-                startDayOfWeek, time);
+                             startDayOfWeek, time);
     }
 
     private long getEnd(BaseCalendar cal, BaseCalendar.Date cdate, int year) {
@@ -728,7 +739,7 @@ public class SimpleTimeZone extends TimeZone {
             time -= dstSavings;
         }
         return getTransition(cal, cdate, endMode, year, endMonth, endDay,
-                endDayOfWeek, time);
+                                        endDayOfWeek, time);
     }
 
     private long getTransition(BaseCalendar cal, BaseCalendar.Date cdate,
@@ -737,38 +748,38 @@ public class SimpleTimeZone extends TimeZone {
         cdate.setNormalizedYear(year);
         cdate.setMonth(month + 1);
         switch (mode) {
-            case DOM_MODE:
-                cdate.setDayOfMonth(dayOfMonth);
-                break;
+        case DOM_MODE:
+            cdate.setDayOfMonth(dayOfMonth);
+            break;
 
-            case DOW_IN_MONTH_MODE:
-                cdate.setDayOfMonth(1);
-                if (dayOfMonth < 0) {
-                    cdate.setDayOfMonth(cal.getMonthLength(cdate));
-                }
-                cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(dayOfMonth, dayOfWeek, cdate);
-                break;
+        case DOW_IN_MONTH_MODE:
+            cdate.setDayOfMonth(1);
+            if (dayOfMonth < 0) {
+                cdate.setDayOfMonth(cal.getMonthLength(cdate));
+            }
+            cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(dayOfMonth, dayOfWeek, cdate);
+            break;
 
-            case DOW_GE_DOM_MODE:
-                cdate.setDayOfMonth(dayOfMonth);
-                cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(1, dayOfWeek, cdate);
-                break;
+        case DOW_GE_DOM_MODE:
+            cdate.setDayOfMonth(dayOfMonth);
+            cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(1, dayOfWeek, cdate);
+            break;
 
-            case DOW_LE_DOM_MODE:
-                cdate.setDayOfMonth(dayOfMonth);
-                cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(-1, dayOfWeek, cdate);
-                break;
+        case DOW_LE_DOM_MODE:
+            cdate.setDayOfMonth(dayOfMonth);
+            cdate = (BaseCalendar.Date) cal.getNthDayOfWeek(-1, dayOfWeek, cdate);
+            break;
         }
         return cal.getTime(cdate) + timeOfDay;
     }
 
     /**
      * Gets the GMT offset for this time zone.
-     *
      * @return the GMT offset value in milliseconds
      * @see #setRawOffset
      */
-    public int getRawOffset() {
+    public int getRawOffset()
+    {
         // The given date will be taken into account while
         // we have the historical time zone data in place.
         return rawOffset;
@@ -777,27 +788,26 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * Sets the base time zone offset to GMT.
      * This is the offset to add to UTC to get local time.
-     *
      * @see #getRawOffset
      */
-    public void setRawOffset(int offsetMillis) {
+    public void setRawOffset(int offsetMillis)
+    {
         this.rawOffset = offsetMillis;
     }
 
     /**
      * Sets the amount of time in milliseconds that the clock is advanced
      * during daylight saving time.
-     *
      * @param millisSavedDuringDST the number of milliseconds the time is
-     *                             advanced with respect to standard time when the daylight saving time rules
-     *                             are in effect. A positive number, typically one hour (3600000).
+     * advanced with respect to standard time when the daylight saving time rules
+     * are in effect. A positive number, typically one hour (3600000).
      * @see #getDSTSavings
      * @since 1.2
      */
     public void setDSTSavings(int millisSavedDuringDST) {
         if (millisSavedDuringDST <= 0) {
             throw new IllegalArgumentException("Illegal daylight saving value: "
-                    + millisSavedDuringDST);
+                                               + millisSavedDuringDST);
         }
         dstSavings = millisSavedDuringDST;
     }
@@ -810,6 +820,7 @@ public class SimpleTimeZone extends TimeZone {
      * respect to standard time when the daylight saving rules are in
      * effect, or 0 (zero) if this time zone doesn't observe daylight
      * saving time.
+     *
      * @see #setDSTSavings
      * @since 1.2
      */
@@ -819,11 +830,11 @@ public class SimpleTimeZone extends TimeZone {
 
     /**
      * Queries if this time zone uses daylight saving time.
-     *
      * @return true if this time zone uses daylight saving time;
      * false otherwise.
      */
-    public boolean useDaylightTime() {
+    public boolean useDaylightTime()
+    {
         return useDaylight;
     }
 
@@ -843,41 +854,42 @@ public class SimpleTimeZone extends TimeZone {
 
     /**
      * Queries if the given date is in daylight saving time.
-     *
      * @return true if daylight saving time is in effective at the
      * given date; false otherwise.
      */
-    public boolean inDaylightTime(Date date) {
+    public boolean inDaylightTime(Date date)
+    {
         return (getOffset(date.getTime()) != rawOffset);
     }
 
     /**
      * Returns a clone of this <code>SimpleTimeZone</code> instance.
-     *
      * @return a clone of this instance.
      */
-    public Object clone() {
+    public Object clone()
+    {
         return super.clone();
     }
 
     /**
      * Generates the hash code for the SimpleDateFormat object.
-     *
      * @return the hash code for this object
      */
-    public synchronized int hashCode() {
+    public synchronized int hashCode()
+    {
         return startMonth ^ startDay ^ startDayOfWeek ^ startTime ^
-                endMonth ^ endDay ^ endDayOfWeek ^ endTime ^ rawOffset;
+            endMonth ^ endDay ^ endDayOfWeek ^ endTime ^ rawOffset;
     }
 
     /**
      * Compares the equality of two <code>SimpleTimeZone</code> objects.
      *
-     * @param obj The <code>SimpleTimeZone</code> object to be compared with.
-     * @return True if the given <code>obj</code> is the same as this
-     * <code>SimpleTimeZone</code> object; false otherwise.
+     * @param obj  The <code>SimpleTimeZone</code> object to be compared with.
+     * @return     True if the given <code>obj</code> is the same as this
+     *             <code>SimpleTimeZone</code> object; false otherwise.
      */
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }
@@ -888,12 +900,11 @@ public class SimpleTimeZone extends TimeZone {
         SimpleTimeZone that = (SimpleTimeZone) obj;
 
         return getID().equals(that.getID()) &&
-                hasSameRules(that);
+            hasSameRules(that);
     }
 
     /**
      * Returns <code>true</code> if this zone has the same rules and offset as another zone.
-     *
      * @param other the TimeZone object to be compared with
      * @return <code>true</code> if the given zone is a SimpleTimeZone and has the
      * same rules and offset as this one
@@ -908,49 +919,48 @@ public class SimpleTimeZone extends TimeZone {
         }
         SimpleTimeZone that = (SimpleTimeZone) other;
         return rawOffset == that.rawOffset &&
-                useDaylight == that.useDaylight &&
-                (!useDaylight
-                        // Only check rules if using DST
-                        || (dstSavings == that.dstSavings &&
-                        startMode == that.startMode &&
-                        startMonth == that.startMonth &&
-                        startDay == that.startDay &&
-                        startDayOfWeek == that.startDayOfWeek &&
-                        startTime == that.startTime &&
-                        startTimeMode == that.startTimeMode &&
-                        endMode == that.endMode &&
-                        endMonth == that.endMonth &&
-                        endDay == that.endDay &&
-                        endDayOfWeek == that.endDayOfWeek &&
-                        endTime == that.endTime &&
-                        endTimeMode == that.endTimeMode &&
-                        startYear == that.startYear));
+            useDaylight == that.useDaylight &&
+            (!useDaylight
+             // Only check rules if using DST
+             || (dstSavings == that.dstSavings &&
+                 startMode == that.startMode &&
+                 startMonth == that.startMonth &&
+                 startDay == that.startDay &&
+                 startDayOfWeek == that.startDayOfWeek &&
+                 startTime == that.startTime &&
+                 startTimeMode == that.startTimeMode &&
+                 endMode == that.endMode &&
+                 endMonth == that.endMonth &&
+                 endDay == that.endDay &&
+                 endDayOfWeek == that.endDayOfWeek &&
+                 endTime == that.endTime &&
+                 endTimeMode == that.endTimeMode &&
+                 startYear == that.startYear));
     }
 
     /**
      * Returns a string representation of this time zone.
-     *
      * @return a string representation of this time zone.
      */
     public String toString() {
         return getClass().getName() +
-                "[id=" + getID() +
-                ",offset=" + rawOffset +
-                ",dstSavings=" + dstSavings +
-                ",useDaylight=" + useDaylight +
-                ",startYear=" + startYear +
-                ",startMode=" + startMode +
-                ",startMonth=" + startMonth +
-                ",startDay=" + startDay +
-                ",startDayOfWeek=" + startDayOfWeek +
-                ",startTime=" + startTime +
-                ",startTimeMode=" + startTimeMode +
-                ",endMode=" + endMode +
-                ",endMonth=" + endMonth +
-                ",endDay=" + endDay +
-                ",endDayOfWeek=" + endDayOfWeek +
-                ",endTime=" + endTime +
-                ",endTimeMode=" + endTimeMode + ']';
+            "[id=" + getID() +
+            ",offset=" + rawOffset +
+            ",dstSavings=" + dstSavings +
+            ",useDaylight=" + useDaylight +
+            ",startYear=" + startYear +
+            ",startMode=" + startMode +
+            ",startMonth=" + startMonth +
+            ",startDay=" + startDay +
+            ",startDayOfWeek=" + startDayOfWeek +
+            ",startTime=" + startTime +
+            ",startTimeMode=" + startTimeMode +
+            ",endMode=" + endMode +
+            ",endMonth=" + endMonth +
+            ",endDay=" + endDay +
+            ",endDayOfWeek=" + endDayOfWeek +
+            ",endTime=" + endTime +
+            ",endTimeMode=" + endTimeMode + ']';
     }
 
     // =======================privates===============================
@@ -961,7 +971,6 @@ public class SimpleTimeZone extends TimeZone {
      * <code>Calendar.DECEMBER</code> inclusive.  This value must not equal
      * <code>endMonth</code>.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int startMonth;
@@ -987,7 +996,6 @@ public class SimpleTimeZone extends TimeZone {
      * </dd>
      * </dl>
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int startDay;
@@ -998,7 +1006,6 @@ public class SimpleTimeZone extends TimeZone {
      * <code>Calendar.SATURDAY</code> inclusive.
      * <p>If <code>useDaylight</code> is false or
      * <code>startMode == DAY_OF_MONTH</code>, this value is ignored.
-     *
      * @serial
      */
     private int startDayOfWeek;
@@ -1008,14 +1015,12 @@ public class SimpleTimeZone extends TimeZone {
      * time starts.  This value is expressed as wall time, standard time,
      * or UTC time, depending on the setting of <code>startTimeMode</code>.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int startTime;
 
     /**
      * The format of startTime, either WALL_TIME, STANDARD_TIME, or UTC_TIME.
-     *
      * @serial
      * @since 1.3
      */
@@ -1027,7 +1032,6 @@ public class SimpleTimeZone extends TimeZone {
      * <code>Calendar.UNDECIMBER</code>.  This value must not equal
      * <code>startMonth</code>.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int endMonth;
@@ -1053,7 +1057,6 @@ public class SimpleTimeZone extends TimeZone {
      * </dd>
      * </dl>
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int endDay;
@@ -1064,7 +1067,6 @@ public class SimpleTimeZone extends TimeZone {
      * <code>Calendar.SATURDAY</code> inclusive.
      * <p>If <code>useDaylight</code> is false or
      * <code>endMode == DAY_OF_MONTH</code>, this value is ignored.
-     *
      * @serial
      */
     private int endDayOfWeek;
@@ -1074,7 +1076,6 @@ public class SimpleTimeZone extends TimeZone {
      * time ends.  This value is expressed as wall time, standard time,
      * or UTC time, depending on the setting of <code>endTimeMode</code>.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int endTime;
@@ -1082,7 +1083,6 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * The format of endTime, either <code>WALL_TIME</code>,
      * <code>STANDARD_TIME</code>, or <code>UTC_TIME</code>.
-     *
      * @serial
      * @since 1.3
      */
@@ -1093,7 +1093,6 @@ public class SimpleTimeZone extends TimeZone {
      * value.  If this value is less than 1 then daylight saving time is observed
      * for all <code>AD</code> years.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      */
     private int startYear;
@@ -1103,7 +1102,6 @@ public class SimpleTimeZone extends TimeZone {
      * are to the west of Greenwich.  To obtain local <em>standard</em> time,
      * add the offset to GMT time.  To obtain local wall time it may also be
      * necessary to add <code>dstSavings</code>.
-     *
      * @serial
      */
     private int rawOffset;
@@ -1111,26 +1109,24 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * A boolean value which is true if and only if this zone uses daylight
      * saving time.  If this value is false, several other fields are ignored.
-     *
      * @serial
      */
-    private boolean useDaylight = false; // indicate if this time zone uses DST
+    private boolean useDaylight=false; // indicate if this time zone uses DST
 
-    private static final int millisPerHour = 60 * 60 * 1000;
-    private static final int millisPerDay = 24 * millisPerHour;
+    private static final int millisPerHour = 60*60*1000;
+    private static final int millisPerDay  = 24*millisPerHour;
 
     /**
      * This field was serialized in JDK 1.1, so we have to keep it that way
      * to maintain serialization compatibility. However, there's no need to
      * recreate the array each time we create a new time zone.
-     *
      * @serial An array of bytes containing the values {31, 28, 31, 30, 31, 30,
      * 31, 31, 30, 31, 30, 31}.  This is ignored as of the Java 2 platform v1.2, however, it must
      * be streamed out for compatibility with JDK 1.1.
      */
     private final byte monthLength[] = staticMonthLength;
-    private final static byte staticMonthLength[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    private final static byte staticLeapMonthLength[] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    private final static byte staticMonthLength[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+    private final static byte staticLeapMonthLength[] = {31,29,31,30,31,30,31,31,30,31,30,31};
 
     /**
      * Variables specifying the mode of the start rule.  Takes the following
@@ -1156,7 +1152,6 @@ public class SimpleTimeZone extends TimeZone {
      * The setting of this field affects the interpretation of the
      * <code>startDay</code> field.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      * @since 1.1.4
      */
@@ -1186,7 +1181,6 @@ public class SimpleTimeZone extends TimeZone {
      * The setting of this field affects the interpretation of the
      * <code>endDay</code> field.
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      * @since 1.1.4
      */
@@ -1197,7 +1191,6 @@ public class SimpleTimeZone extends TimeZone {
      * milliseconds.
      * Typically one hour (3600000); sometimes 30 minutes (1800000).
      * <p>If <code>useDaylight</code> is false, this value is ignored.
-     *
      * @serial
      * @since 1.1.4
      */
@@ -1210,7 +1203,7 @@ public class SimpleTimeZone extends TimeZone {
      * time. When the cache values are valid, cacheStart is the start
      * time (inclusive) of daylight saving time and cacheEnd is the
      * end time (exclusive).
-     * <p>
+     *
      * cacheYear has a year value if both cacheStart and cacheEnd are
      * in the same year. cacheYear is set to startYear - 1 if
      * cacheStart and cacheEnd are in different years. cacheStart is 0
@@ -1224,23 +1217,21 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * Constants specifying values of startMode and endMode.
      */
-    private static final int DOM_MODE = 1; // Exact day of month, "Mar 1"
+    private static final int DOM_MODE          = 1; // Exact day of month, "Mar 1"
     private static final int DOW_IN_MONTH_MODE = 2; // Day of week in month, "lastSun"
-    private static final int DOW_GE_DOM_MODE = 3; // Day of week after day of month, "Sun>=15"
-    private static final int DOW_LE_DOM_MODE = 4; // Day of week before day of month, "Sun<=21"
+    private static final int DOW_GE_DOM_MODE   = 3; // Day of week after day of month, "Sun>=15"
+    private static final int DOW_LE_DOM_MODE   = 4; // Day of week before day of month, "Sun<=21"
 
     /**
      * Constant for a mode of start or end time specified as wall clock
      * time.  Wall clock time is standard time for the onset rule, and
      * daylight time for the end rule.
-     *
      * @since 1.4
      */
     public static final int WALL_TIME = 0; // Zero for backward compatibility
 
     /**
      * Constant for a mode of start or end time specified as standard time.
-     *
      * @since 1.4
      */
     public static final int STANDARD_TIME = 1;
@@ -1248,7 +1239,6 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * Constant for a mode of start or end time specified as UTC. European
      * Union rules are specified as UTC time, for example.
-     *
      * @since 1.4
      */
     public static final int UTC_TIME = 2;
@@ -1283,14 +1273,10 @@ public class SimpleTimeZone extends TimeZone {
      * When streaming out this class, the most recent format
      * and the highest allowable <code>serialVersionOnStream</code>
      * is written.
-     *
      * @serial
      * @since 1.1.4
      */
     private int serialVersionOnStream = currentSerialVersion;
-
-    // Maximum number of rules.
-    private static final int MAX_RULE_NUM = 6;
 
     synchronized private void invalidateCache() {
         cacheYear = startYear - 1;
@@ -1360,7 +1346,8 @@ public class SimpleTimeZone extends TimeZone {
      * This method also recognizes a startDay or endDay of zero as indicating
      * no DST.
      */
-    private void decodeRules() {
+    private void decodeRules()
+    {
         decodeStartRule();
         decodeEndRule();
     }
@@ -1416,7 +1403,7 @@ public class SimpleTimeZone extends TimeZone {
                 }
                 if (startDayOfWeek > Calendar.SATURDAY) {
                     throw new IllegalArgumentException(
-                            "Illegal start day of week " + startDayOfWeek);
+                           "Illegal start day of week " + startDayOfWeek);
                 }
             }
             if (startMode == DOW_IN_MONTH_MODE) {
@@ -1434,7 +1421,6 @@ public class SimpleTimeZone extends TimeZone {
     /**
      * Decode the end rule and validate the parameters.  This method is exactly
      * analogous to decodeStartRule().
-     *
      * @see decodeStartRule
      */
     private void decodeEndRule() {
@@ -1464,7 +1450,7 @@ public class SimpleTimeZone extends TimeZone {
                 }
                 if (endDayOfWeek > Calendar.SATURDAY) {
                     throw new IllegalArgumentException(
-                            "Illegal end day of week " + endDayOfWeek);
+                           "Illegal end day of week " + endDayOfWeek);
                 }
             }
             if (endMode == DOW_IN_MONTH_MODE) {
@@ -1488,51 +1474,52 @@ public class SimpleTimeZone extends TimeZone {
      * altered, even though semantically they should be set to DOW_IN_MONTH_MODE,
      * since the rule modification is only intended to be temporary.
      */
-    private void makeRulesCompatible() {
+    private void makeRulesCompatible()
+    {
         switch (startMode) {
-            case DOM_MODE:
+        case DOM_MODE:
+            startDay = 1 + (startDay / 7);
+            startDayOfWeek = Calendar.SUNDAY;
+            break;
+
+        case DOW_GE_DOM_MODE:
+            // A day-of-month of 1 is equivalent to DOW_IN_MONTH_MODE
+            // that is, Sun>=1 == firstSun.
+            if (startDay != 1) {
                 startDay = 1 + (startDay / 7);
-                startDayOfWeek = Calendar.SUNDAY;
-                break;
+            }
+            break;
 
-            case DOW_GE_DOM_MODE:
-                // A day-of-month of 1 is equivalent to DOW_IN_MONTH_MODE
-                // that is, Sun>=1 == firstSun.
-                if (startDay != 1) {
-                    startDay = 1 + (startDay / 7);
-                }
-                break;
-
-            case DOW_LE_DOM_MODE:
-                if (startDay >= 30) {
-                    startDay = -1;
-                } else {
-                    startDay = 1 + (startDay / 7);
-                }
-                break;
+        case DOW_LE_DOM_MODE:
+            if (startDay >= 30) {
+                startDay = -1;
+            } else {
+                startDay = 1 + (startDay / 7);
+            }
+            break;
         }
 
         switch (endMode) {
-            case DOM_MODE:
+        case DOM_MODE:
+            endDay = 1 + (endDay / 7);
+            endDayOfWeek = Calendar.SUNDAY;
+            break;
+
+        case DOW_GE_DOM_MODE:
+            // A day-of-month of 1 is equivalent to DOW_IN_MONTH_MODE
+            // that is, Sun>=1 == firstSun.
+            if (endDay != 1) {
                 endDay = 1 + (endDay / 7);
-                endDayOfWeek = Calendar.SUNDAY;
-                break;
+            }
+            break;
 
-            case DOW_GE_DOM_MODE:
-                // A day-of-month of 1 is equivalent to DOW_IN_MONTH_MODE
-                // that is, Sun>=1 == firstSun.
-                if (endDay != 1) {
-                    endDay = 1 + (endDay / 7);
-                }
-                break;
-
-            case DOW_LE_DOM_MODE:
-                if (endDay >= 30) {
-                    endDay = -1;
-                } else {
-                    endDay = 1 + (endDay / 7);
-                }
-                break;
+        case DOW_LE_DOM_MODE:
+            if (endDay >= 30) {
+                endDay = -1;
+            } else {
+                endDay = 1 + (endDay / 7);
+            }
+            break;
         }
 
         /*
@@ -1546,13 +1533,13 @@ public class SimpleTimeZone extends TimeZone {
          * rules anyway.
          */
         switch (startTimeMode) {
-            case UTC_TIME:
-                startTime += rawOffset;
-                break;
+        case UTC_TIME:
+            startTime += rawOffset;
+            break;
         }
         while (startTime < 0) {
             startTime += millisPerDay;
-            startDayOfWeek = 1 + ((startDayOfWeek + 5) % 7); // Back 1 day
+            startDayOfWeek = 1 + ((startDayOfWeek+5) % 7); // Back 1 day
         }
         while (startTime >= millisPerDay) {
             startTime -= millisPerDay;
@@ -1560,15 +1547,15 @@ public class SimpleTimeZone extends TimeZone {
         }
 
         switch (endTimeMode) {
-            case UTC_TIME:
-                endTime += rawOffset + dstSavings;
-                break;
-            case STANDARD_TIME:
-                endTime += dstSavings;
+        case UTC_TIME:
+            endTime += rawOffset + dstSavings;
+            break;
+        case STANDARD_TIME:
+            endTime += dstSavings;
         }
         while (endTime < 0) {
             endTime += millisPerDay;
-            endDayOfWeek = 1 + ((endDayOfWeek + 5) % 7); // Back 1 day
+            endDayOfWeek = 1 + ((endDayOfWeek+5) % 7); // Back 1 day
         }
         while (endTime >= millisPerDay) {
             endTime -= millisPerDay;
@@ -1580,16 +1567,17 @@ public class SimpleTimeZone extends TimeZone {
      * Pack the start and end rules into an array of bytes.  Only pack
      * data which is not preserved by makeRulesCompatible.
      */
-    private byte[] packRules() {
-        byte[] rules = new byte[MAX_RULE_NUM];
-        rules[0] = (byte) startDay;
-        rules[1] = (byte) startDayOfWeek;
-        rules[2] = (byte) endDay;
-        rules[3] = (byte) endDayOfWeek;
+    private byte[] packRules()
+    {
+        byte[] rules = new byte[6];
+        rules[0] = (byte)startDay;
+        rules[1] = (byte)startDayOfWeek;
+        rules[2] = (byte)endDay;
+        rules[3] = (byte)endDayOfWeek;
 
         // As of serial version 2, include time modes
-        rules[4] = (byte) startTimeMode;
-        rules[5] = (byte) endTimeMode;
+        rules[4] = (byte)startTimeMode;
+        rules[5] = (byte)endTimeMode;
 
         return rules;
     }
@@ -1598,16 +1586,17 @@ public class SimpleTimeZone extends TimeZone {
      * Given an array of bytes produced by packRules, interpret them
      * as the start and end rules.
      */
-    private void unpackRules(byte[] rules) {
-        startDay = rules[0];
+    private void unpackRules(byte[] rules)
+    {
+        startDay       = rules[0];
         startDayOfWeek = rules[1];
-        endDay = rules[2];
-        endDayOfWeek = rules[3];
+        endDay         = rules[2];
+        endDayOfWeek   = rules[3];
 
         // As of serial version 2, include time modes
-        if (rules.length >= MAX_RULE_NUM) {
+        if (rules.length >= 6) {
             startTimeMode = rules[4];
-            endTimeMode = rules[5];
+            endTimeMode   = rules[5];
         }
     }
 
@@ -1648,7 +1637,8 @@ public class SimpleTimeZone extends TimeZone {
      * JDK 1.1.
      */
     private void writeObject(ObjectOutputStream stream)
-            throws IOException {
+         throws IOException
+    {
         // Construct a binary rule
         byte[] rules = packRules();
         int[] times = packTimes();
@@ -1672,12 +1662,13 @@ public class SimpleTimeZone extends TimeZone {
 
     /**
      * Reconstitute this object from a stream (i.e., deserialize it).
-     * <p>
+     *
      * We handle both JDK 1.1
      * binary formats and full formats with a packed byte array.
      */
     private void readObject(ObjectInputStream stream)
-            throws IOException, ClassNotFoundException {
+         throws IOException, ClassNotFoundException
+    {
         stream.defaultReadObject();
 
         if (serialVersionOnStream < 1) {
@@ -1700,13 +1691,9 @@ public class SimpleTimeZone extends TimeZone {
             // store the actual rules (which have not be made compatible with 1.1)
             // in the optional area.  Read them in here and parse them.
             int length = stream.readInt();
-            if (length <= MAX_RULE_NUM) {
-                byte[] rules = new byte[length];
-                stream.readFully(rules);
-                unpackRules(rules);
-            } else {
-                throw new InvalidObjectException("Too many rules: " + length);
-            }
+            byte[] rules = new byte[length];
+            stream.readFully(rules);
+            unpackRules(rules);
         }
 
         if (serialVersionOnStream >= 2) {

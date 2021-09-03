@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -60,7 +60,7 @@ import java.util.function.UnaryOperator;
  *                      .mapToInt(w -> w.getWeight())
  *                      .sum();
  * }</pre>
- * <p>
+ *
  * In this example, {@code widgets} is a {@code Collection<Widget>}.  We create
  * a stream of {@code Widget} objects via {@link Collection#stream Collection.stream()},
  * filter it to produce a stream containing only the red widgets, and then
@@ -145,11 +145,11 @@ import java.util.function.UnaryOperator;
  * the {@link #isParallel()} method.
  *
  * @param <T> the type of the stream elements
+ * @since 1.8
  * @see IntStream
  * @see LongStream
  * @see DoubleStream
  * @see <a href="package-summary.html">java.util.stream</a>
- * @since 1.8
  */
 public interface Stream<T> extends BaseStream<T, Stream<T>> {
 
@@ -175,7 +175,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <R>    The element type of the new stream
+     * @param <R> The element type of the new stream
      * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
      *               <a href="package-summary.html#Statelessness">stateless</a>
      *               function to apply to each element
@@ -188,7 +188,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * given function to the elements of this stream.
      *
      * <p>This is an <a href="package-summary.html#StreamOps">
-     * intermediate operation</a>.
+     *     intermediate operation</a>.
      *
      * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
      *               <a href="package-summary.html#Statelessness">stateless</a>
@@ -236,13 +236,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is an <a href="package-summary.html#StreamOps">intermediate
      * operation</a>.
      *
-     * @param <R>    The element type of the new stream
-     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *               <a href="package-summary.html#Statelessness">stateless</a>
-     *               function to apply to each element which produces a stream
-     *               of new values
-     * @return the new stream
-     * @apiNote The {@code flatMap()} operation has the effect of applying a one-to-many
+     * @apiNote
+     * The {@code flatMap()} operation has the effect of applying a one-to-many
      * transformation to the elements of the stream, and then flattening the
      * resulting elements into a new stream.
      *
@@ -264,6 +259,13 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * The {@code mapper} function passed to {@code flatMap} splits a line,
      * using a simple regular expression, into an array of words, and then
      * creates a stream of words from that array.
+     *
+     * @param <R> The element type of the new stream
+     * @param mapper a <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *               <a href="package-summary.html#Statelessness">stateless</a>
+     *               function to apply to each element which produces a stream
+     *               of new values
+     * @return the new stream
      */
     <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
 
@@ -339,8 +341,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">stateful
      * intermediate operation</a>.
      *
-     * @return the new stream
-     * @apiNote Preserving stability for {@code distinct()} in parallel pipelines is
+     * @apiNote
+     * Preserving stability for {@code distinct()} in parallel pipelines is
      * relatively expensive (requires that the operation act as a full barrier,
      * with substantial buffering overhead), and stability is often not needed.
      * Using an unordered stream source (such as {@link #generate(Supplier)})
@@ -351,6 +353,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * or memory utilization with {@code distinct()} in parallel pipelines,
      * switching to sequential execution with {@link #sequential()} may improve
      * performance.
+     *
+     * @return the new stream
      */
     Stream<T> distinct();
 
@@ -400,10 +404,6 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * upstream operation.  If the action modifies shared state,
      * it is responsible for providing the required synchronization.
      *
-     * @param action a <a href="package-summary.html#NonInterference">
-     *               non-interfering</a> action to perform on the elements as
-     *               they are consumed from the stream
-     * @return the new stream
      * @apiNote This method exists mainly to support debugging, where you want
      * to see the elements as they flow past a certain point in a pipeline:
      * <pre>{@code
@@ -414,6 +414,11 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *         .peek(e -> System.out.println("Mapped value: " + e))
      *         .collect(Collectors.toList());
      * }</pre>
+     *
+     * @param action a <a href="package-summary.html#NonInterference">
+     *                 non-interfering</a> action to perform on the elements as
+     *                 they are consumed from the stream
+     * @return the new stream
      */
     Stream<T> peek(Consumer<? super T> action);
 
@@ -424,10 +429,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">short-circuiting
      * stateful intermediate operation</a>.
      *
-     * @param maxSize the number of elements the stream should be limited to
-     * @return the new stream
-     * @throws IllegalArgumentException if {@code maxSize} is negative
-     * @apiNote While {@code limit()} is generally a cheap operation on sequential
+     * @apiNote
+     * While {@code limit()} is generally a cheap operation on sequential
      * stream pipelines, it can be quite expensive on ordered parallel pipelines,
      * especially for large values of {@code maxSize}, since {@code limit(n)}
      * is constrained to return not just any <em>n</em> elements, but the
@@ -439,6 +442,10 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * and you are experiencing poor performance or memory utilization with
      * {@code limit()} in parallel pipelines, switching to sequential execution
      * with {@link #sequential()} may improve performance.
+     *
+     * @param maxSize the number of elements the stream should be limited to
+     * @return the new stream
+     * @throws IllegalArgumentException if {@code maxSize} is negative
      */
     Stream<T> limit(long maxSize);
 
@@ -451,10 +458,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">stateful
      * intermediate operation</a>.
      *
-     * @param n the number of leading elements to skip
-     * @return the new stream
-     * @throws IllegalArgumentException if {@code n} is negative
-     * @apiNote While {@code skip()} is generally a cheap operation on sequential
+     * @apiNote
+     * While {@code skip()} is generally a cheap operation on sequential
      * stream pipelines, it can be quite expensive on ordered parallel pipelines,
      * especially for large values of {@code n}, since {@code skip(n)}
      * is constrained to skip not just any <em>n</em> elements, but the
@@ -466,6 +471,10 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * and you are experiencing poor performance or memory utilization with
      * {@code skip()} in parallel pipelines, switching to sequential execution
      * with {@link #sequential()} may improve performance.
+     *
+     * @param n the number of leading elements to skip
+     * @return the new stream
+     * @throws IllegalArgumentException if {@code n} is negative
      */
     Stream<T> skip(long n);
 
@@ -526,14 +535,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">terminal
      * operation</a>.
      *
-     * @param <A>       the element type of the resulting array
-     * @param generator a function which produces a new array of the desired
-     *                  type and the provided length
-     * @return an array containing the elements in this stream
-     * @throws ArrayStoreException if the runtime type of the array returned
-     *                             from the array generator is not a supertype of the runtime type of every
-     *                             element in this stream
-     * @apiNote The generator function takes an integer, which is the size of the
+     * @apiNote
+     * The generator function takes an integer, which is the size of the
      * desired array, and produces an array of the desired size.  This can be
      * concisely expressed with an array constructor reference:
      * <pre>{@code
@@ -541,6 +544,14 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *                          .filter(p -> p.getGender() == MALE)
      *                          .toArray(Person[]::new);
      * }</pre>
+     *
+     * @param <A> the element type of the resulting array
+     * @param generator a function which produces a new array of the desired
+     *                  type and the provided length
+     * @return an array containing the elements in this stream
+     * @throws ArrayStoreException if the runtime type of the array returned
+     * from the array generator is not a supertype of the runtime type of every
+     * element in this stream
      */
     <A> A[] toArray(IntFunction<A[]> generator);
 
@@ -556,7 +567,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *         result = accumulator.apply(result, element)
      *     return result;
      * }</pre>
-     * <p>
+     *
      * but is not constrained to execute sequentially.
      *
      * <p>The {@code identity} value must be an identity for the accumulator
@@ -568,19 +579,13 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">terminal
      * operation</a>.
      *
-     * @param identity    the identity value for the accumulating function
-     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for combining two values
-     * @return the result of the reduction
      * @apiNote Sum, min, max, average, and string concatenation are all special
      * cases of reduction. Summing a stream of numbers can be expressed as:
      *
      * <pre>{@code
      *     Integer sum = integers.reduce(0, (a, b) -> a+b);
      * }</pre>
-     * <p>
+     *
      * or:
      *
      * <pre>{@code
@@ -591,6 +596,13 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * compared to simply mutating a running total in a loop, reduction
      * operations parallelize more gracefully, without needing additional
      * synchronization and with greatly reduced risk of data races.
+     *
+     * @param identity the identity value for the accumulating function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values
+     * @return the result of the reduction
      */
     T reduce(T identity, BinaryOperator<T> accumulator);
 
@@ -613,7 +625,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *     }
      *     return foundAny ? Optional.of(result) : Optional.empty();
      * }</pre>
-     * <p>
+     *
      * but is not constrained to execute sequentially.
      *
      * <p>The {@code accumulator} function must be an
@@ -644,7 +656,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *         result = accumulator.apply(result, element)
      *     return result;
      * }</pre>
-     * <p>
+     *
      * but is not constrained to execute sequentially.
      *
      * <p>The {@code identity} value must be an identity for the combiner
@@ -659,24 +671,25 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">terminal
      * operation</a>.
      *
-     * @param <U>         The type of the result
-     * @param identity    the identity value for the combiner function
-     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for incorporating an additional element into a result
-     * @param combiner    an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for combining two values, which must be
-     *                    compatible with the accumulator function
-     * @return the result of the reduction
      * @apiNote Many reductions using this form can be represented more simply
      * by an explicit combination of {@code map} and {@code reduce} operations.
      * The {@code accumulator} function acts as a fused mapper and accumulator,
      * which can sometimes be more efficient than separate mapping and reduction,
      * such as when knowing the previously reduced value allows you to avoid
      * some computation.
+     *
+     * @param <U> The type of the result
+     * @param identity the identity value for the combiner function
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for incorporating an additional element into a result
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values, which must be
+     *                    compatible with the accumulator function
+     * @return the result of the reduction
      * @see #reduce(BinaryOperator)
      * @see #reduce(Object, BinaryOperator)
      */
@@ -704,20 +717,6 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">terminal
      * operation</a>.
      *
-     * @param <R>         type of the result
-     * @param supplier    a function that creates a new result container. For a
-     *                    parallel execution, this function may be called
-     *                    multiple times and must return a fresh value each time.
-     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for incorporating an additional element into a result
-     * @param combiner    an <a href="package-summary.html#Associativity">associative</a>,
-     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
-     *                    <a href="package-summary.html#Statelessness">stateless</a>
-     *                    function for combining two values, which must be
-     *                    compatible with the accumulator function
-     * @return the result of the reduction
      * @apiNote There are many existing classes in the JDK whose signatures are
      * well-suited for use with method references as arguments to {@code collect()}.
      * For example, the following will accumulate strings into an {@code ArrayList}:
@@ -733,6 +732,21 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *                                          StringBuilder::append)
      *                                 .toString();
      * }</pre>
+     *
+     * @param <R> type of the result
+     * @param supplier a function that creates a new result container. For a
+     *                 parallel execution, this function may be called
+     *                 multiple times and must return a fresh value each time.
+     * @param accumulator an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for incorporating an additional element into a result
+     * @param combiner an <a href="package-summary.html#Associativity">associative</a>,
+     *                    <a href="package-summary.html#NonInterference">non-interfering</a>,
+     *                    <a href="package-summary.html#Statelessness">stateless</a>
+     *                    function for combining two values, which must be
+     *                    compatible with the accumulator function
+     * @return the result of the reduction
      */
     <R> R collect(Supplier<R> supplier,
                   BiConsumer<R, ? super T> accumulator,
@@ -763,11 +777,8 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * with non-thread-safe data structures (such as {@code ArrayList}), no
      * additional synchronization is needed for a parallel reduction.
      *
-     * @param <R>       the type of the result
-     * @param <A>       the intermediate accumulation type of the {@code Collector}
-     * @param collector the {@code Collector} describing the reduction
-     * @return the result of the reduction
-     * @apiNote The following will accumulate strings into an ArrayList:
+     * @apiNote
+     * The following will accumulate strings into an ArrayList:
      * <pre>{@code
      *     List<String> asList = stringStream.collect(Collectors.toList());
      * }</pre>
@@ -785,6 +796,11 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      *         = personStream.collect(Collectors.groupingBy(Person::getState,
      *                                                      Collectors.groupingBy(Person::getCity)));
      * }</pre>
+     *
+     * @param <R> the type of the result
+     * @param <A> the intermediate accumulation type of the {@code Collector}
+     * @param collector the {@code Collector} describing the reduction
+     * @return the result of the reduction
      * @see #collect(Supplier, BiConsumer, BiConsumer)
      * @see Collectors
      */
@@ -846,13 +862,15 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">short-circuiting
      * terminal operation</a>.
      *
+     * @apiNote
+     * This method evaluates the <em>existential quantification</em> of the
+     * predicate over the elements of the stream (for some x P(x)).
+     *
      * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
      *                  <a href="package-summary.html#Statelessness">stateless</a>
      *                  predicate to apply to elements of this stream
      * @return {@code true} if any elements of the stream match the provided
      * predicate, otherwise {@code false}
-     * @apiNote This method evaluates the <em>existential quantification</em> of the
-     * predicate over the elements of the stream (for some x P(x)).
      */
     boolean anyMatch(Predicate<? super T> predicate);
 
@@ -865,15 +883,17 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">short-circuiting
      * terminal operation</a>.
      *
+     * @apiNote
+     * This method evaluates the <em>universal quantification</em> of the
+     * predicate over the elements of the stream (for all x P(x)).  If the
+     * stream is empty, the quantification is said to be <em>vacuously
+     * satisfied</em> and is always {@code true} (regardless of P(x)).
+     *
      * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
      *                  <a href="package-summary.html#Statelessness">stateless</a>
      *                  predicate to apply to elements of this stream
      * @return {@code true} if either all elements of the stream match the
      * provided predicate or the stream is empty, otherwise {@code false}
-     * @apiNote This method evaluates the <em>universal quantification</em> of the
-     * predicate over the elements of the stream (for all x P(x)).  If the
-     * stream is empty, the quantification is said to be <em>vacuously
-     * satisfied</em> and is always {@code true} (regardless of P(x)).
      */
     boolean allMatch(Predicate<? super T> predicate);
 
@@ -886,15 +906,17 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * <p>This is a <a href="package-summary.html#StreamOps">short-circuiting
      * terminal operation</a>.
      *
+     * @apiNote
+     * This method evaluates the <em>universal quantification</em> of the
+     * negated predicate over the elements of the stream (for all x ~P(x)).  If
+     * the stream is empty, the quantification is said to be vacuously satisfied
+     * and is always {@code true}, regardless of P(x).
+     *
      * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
      *                  <a href="package-summary.html#Statelessness">stateless</a>
      *                  predicate to apply to elements of this stream
      * @return {@code true} if either no elements of the stream match the
      * provided predicate or the stream is empty, otherwise {@code false}
-     * @apiNote This method evaluates the <em>universal quantification</em> of the
-     * negated predicate over the elements of the stream (for all x ~P(x)).  If
-     * the stream is empty, the quantification is said to be vacuously satisfied
-     * and is always {@code true}, regardless of P(x).
      */
     boolean noneMatch(Predicate<? super T> predicate);
 
@@ -940,7 +962,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * @param <T> type of elements
      * @return a stream builder
      */
-    public static <T> Builder<T> builder() {
+    public static<T> Builder<T> builder() {
         return new Streams.StreamBuilderImpl<>();
     }
 
@@ -950,31 +972,31 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * @param <T> the type of stream elements
      * @return an empty sequential stream
      */
-    public static <T> Stream<T> empty() {
+    public static<T> Stream<T> empty() {
         return StreamSupport.stream(Spliterators.<T>emptySpliterator(), false);
     }
 
     /**
      * Returns a sequential {@code Stream} containing a single element.
      *
-     * @param t   the single element
+     * @param t the single element
      * @param <T> the type of stream elements
      * @return a singleton sequential stream
      */
-    public static <T> Stream<T> of(T t) {
+    public static<T> Stream<T> of(T t) {
         return StreamSupport.stream(new Streams.StreamBuilderImpl<>(t), false);
     }
 
     /**
      * Returns a sequential ordered stream whose elements are the specified values.
      *
-     * @param <T>    the type of stream elements
+     * @param <T> the type of stream elements
      * @param values the elements of the new stream
      * @return the new stream
      */
     @SafeVarargs
     @SuppressWarnings("varargs") // Creating a stream from an array is safe
-    public static <T> Stream<T> of(T... values) {
+    public static<T> Stream<T> of(T... values) {
         return Arrays.stream(values);
     }
 
@@ -989,13 +1011,13 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * {@code n}, will be the result of applying the function {@code f} to the
      * element at position {@code n - 1}.
      *
-     * @param <T>  the type of stream elements
+     * @param <T> the type of stream elements
      * @param seed the initial element
-     * @param f    a function to be applied to the previous element to produce
-     *             a new element
+     * @param f a function to be applied to to the previous element to produce
+     *          a new element
      * @return a new sequential {@code Stream}
      */
-    public static <T> Stream<T> iterate(final T seed, final UnaryOperator<T> f) {
+    public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f) {
         Objects.requireNonNull(f);
         final Iterator<T> iterator = new Iterator<T>() {
             @SuppressWarnings("unchecked")
@@ -1022,10 +1044,10 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * generating constant streams, streams of random elements, etc.
      *
      * @param <T> the type of stream elements
-     * @param s   the {@code Supplier} of generated elements
+     * @param s the {@code Supplier} of generated elements
      * @return a new infinite sequential unordered {@code Stream}
      */
-    public static <T> Stream<T> generate(Supplier<T> s) {
+    public static<T> Stream<T> generate(Supplier<T> s) {
         Objects.requireNonNull(s);
         return StreamSupport.stream(
                 new StreamSpliterators.InfiniteSupplyingSpliterator.OfRef<>(Long.MAX_VALUE, s), false);
@@ -1039,13 +1061,15 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
      * streams is parallel.  When the resulting stream is closed, the close
      * handlers for both input streams are invoked.
      *
-     * @param <T> The type of stream elements
-     * @param a   the first stream
-     * @param b   the second stream
-     * @return the concatenation of the two input streams
-     * @implNote Use caution when constructing streams from repeated concatenation.
+     * @implNote
+     * Use caution when constructing streams from repeated concatenation.
      * Accessing an element of a deeply concatenated stream can result in deep
      * call chains, or even {@code StackOverflowException}.
+     *
+     * @param <T> The type of stream elements
+     * @param a the first stream
+     * @param b the second stream
+     * @return the concatenation of the two input streams
      */
     public static <T> Stream<T> concat(Stream<? extends T> a, Stream<? extends T> b) {
         Objects.requireNonNull(a);
@@ -1081,7 +1105,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
          * Adds an element to the stream being built.
          *
          * @throws IllegalStateException if the builder has already transitioned to
-         *                               the built state
+         * the built state
          */
         @Override
         void accept(T t);
@@ -1089,15 +1113,17 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
         /**
          * Adds an element to the stream being built.
          *
-         * @param t the element to add
-         * @return {@code this} builder
-         * @throws IllegalStateException if the builder has already transitioned to
-         *                               the built state
-         * @implSpec The default implementation behaves as if:
+         * @implSpec
+         * The default implementation behaves as if:
          * <pre>{@code
          *     accept(t)
          *     return this;
          * }</pre>
+         *
+         * @param t the element to add
+         * @return {@code this} builder
+         * @throws IllegalStateException if the builder has already transitioned to
+         * the built state
          */
         default Builder<T> add(T t) {
             accept(t);
@@ -1111,7 +1137,7 @@ public interface Stream<T> extends BaseStream<T, Stream<T>> {
          *
          * @return the built stream
          * @throws IllegalStateException if the builder has already transitioned to
-         *                               the built state
+         * the built state
          */
         Stream<T> build();
 

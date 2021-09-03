@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2007-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -132,6 +132,7 @@ public interface ChronoZonedDateTime<D extends ChronoLocalDate>
      * The underlying comparison is equivalent to comparing the epoch-second and nano-of-second.
      *
      * @return a comparator that compares in time-line order ignoring the chronology
+     *
      * @see #isAfter
      * @see #isBefore
      * @see #isEqual
@@ -291,7 +292,7 @@ public interface ChronoZonedDateTime<D extends ChronoLocalDate>
      * <p>
      * This instance is immutable and unaffected by this method call.
      *
-     * @return a {@code ChronoZonedDateTime} based on this date-time with the earlier offset, not null
+     * @return a {@code ZoneChronoDateTime} based on this date-time with the earlier offset, not null
      * @throws DateTimeException if no rules can be found for the zone
      * @throws DateTimeException if no rules are valid for this date-time
      */
@@ -318,7 +319,7 @@ public interface ChronoZonedDateTime<D extends ChronoLocalDate>
     ChronoZonedDateTime<D> withLaterOffsetAtOverlap();
 
     /**
-     * Returns a copy of this date-time with a different time-zone,
+     * Returns a copy of this ZonedDateTime with a different time-zone,
      * retaining the local date-time if possible.
      * <p>
      * This method changes the time-zone and retains the local date-time.
@@ -469,7 +470,7 @@ public interface ChronoZonedDateTime<D extends ChronoLocalDate>
      * what the result of this method will be.
      * <p>
      * The result of this method is obtained by invoking the
-     * {@link TemporalQuery#queryFrom(TemporalAccessor)} method on the
+     * {@link java.time.temporal.TemporalQuery#queryFrom(TemporalAccessor)} method on the
      * specified query passing {@code this} as the argument.
      *
      * @param <R> the type of the result

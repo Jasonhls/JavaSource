@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -37,7 +37,7 @@ package java.util;
  * An iterator for a list of length {@code n} has {@code n+1} possible
  * cursor positions, as illustrated by the carets ({@code ^}) below:
  * <PRE>
- * Element(0)   Element(1)   Element(2)   ... Element(n-1)
+ *                      Element(0)   Element(1)   Element(2)   ... Element(n-1)
  * cursor positions:  ^            ^            ^            ^                  ^
  * </PRE>
  * Note that the {@link #remove} and {@link #set(Object)} methods are
@@ -49,13 +49,13 @@ package java.util;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @author Josh Bloch
+ * @author  Josh Bloch
  * @see Collection
  * @see List
  * @see Iterator
  * @see Enumeration
  * @see List#listIterator()
- * @since 1.2
+ * @since   1.2
  */
 public interface ListIterator<E> extends Iterator<E> {
     // Query Operations
@@ -67,7 +67,7 @@ public interface ListIterator<E> extends Iterator<E> {
      * than throwing an exception.)
      *
      * @return {@code true} if the list iterator has more elements when
-     * traversing the list in the forward direction
+     *         traversing the list in the forward direction
      */
     boolean hasNext();
 
@@ -90,7 +90,7 @@ public interface ListIterator<E> extends Iterator<E> {
      * rather than throwing an exception.)
      *
      * @return {@code true} if the list iterator has more elements when
-     * traversing the list in the reverse direction
+     *         traversing the list in the reverse direction
      */
     boolean hasPrevious();
 
@@ -104,7 +104,7 @@ public interface ListIterator<E> extends Iterator<E> {
      *
      * @return the previous element in the list
      * @throws NoSuchElementException if the iteration has no previous
-     *                                element
+     *         element
      */
     E previous();
 
@@ -114,8 +114,8 @@ public interface ListIterator<E> extends Iterator<E> {
      * iterator is at the end of the list.)
      *
      * @return the index of the element that would be returned by a
-     * subsequent call to {@code next}, or list size if the list
-     * iterator is at the end of the list
+     *         subsequent call to {@code next}, or list size if the list
+     *         iterator is at the end of the list
      */
     int nextIndex();
 
@@ -125,8 +125,8 @@ public interface ListIterator<E> extends Iterator<E> {
      * iterator is at the beginning of the list.)
      *
      * @return the index of the element that would be returned by a
-     * subsequent call to {@code previous}, or -1 if the list
-     * iterator is at the beginning of the list
+     *         subsequent call to {@code previous}, or -1 if the list
+     *         iterator is at the beginning of the list
      */
     int previousIndex();
 
@@ -141,11 +141,11 @@ public interface ListIterator<E> extends Iterator<E> {
      * called after the last call to {@code next} or {@code previous}.
      *
      * @throws UnsupportedOperationException if the {@code remove}
-     *                                       operation is not supported by this list iterator
-     * @throws IllegalStateException         if neither {@code next} nor
-     *                                       {@code previous} have been called, or {@code remove} or
-     *                                       {@code add} have been called after the last call to
-     *                                       {@code next} or {@code previous}
+     *         operation is not supported by this list iterator
+     * @throws IllegalStateException if neither {@code next} nor
+     *         {@code previous} have been called, or {@code remove} or
+     *         {@code add} have been called after the last call to
+     *         {@code next} or {@code previous}
      */
     void remove();
 
@@ -159,15 +159,15 @@ public interface ListIterator<E> extends Iterator<E> {
      * @param e the element with which to replace the last element returned by
      *          {@code next} or {@code previous}
      * @throws UnsupportedOperationException if the {@code set} operation
-     *                                       is not supported by this list iterator
-     * @throws ClassCastException            if the class of the specified element
-     *                                       prevents it from being added to this list
-     * @throws IllegalArgumentException      if some aspect of the specified
-     *                                       element prevents it from being added to this list
-     * @throws IllegalStateException         if neither {@code next} nor
-     *                                       {@code previous} have been called, or {@code remove} or
-     *                                       {@code add} have been called after the last call to
-     *                                       {@code next} or {@code previous}
+     *         is not supported by this list iterator
+     * @throws ClassCastException if the class of the specified element
+     *         prevents it from being added to this list
+     * @throws IllegalArgumentException if some aspect of the specified
+     *         element prevents it from being added to this list
+     * @throws IllegalStateException if neither {@code next} nor
+     *         {@code previous} have been called, or {@code remove} or
+     *         {@code add} have been called after the last call to
+     *         {@code next} or {@code previous}
      */
     void set(E e);
 
@@ -185,11 +185,11 @@ public interface ListIterator<E> extends Iterator<E> {
      *
      * @param e the element to insert
      * @throws UnsupportedOperationException if the {@code add} method is
-     *                                       not supported by this list iterator
-     * @throws ClassCastException            if the class of the specified element
-     *                                       prevents it from being added to this list
-     * @throws IllegalArgumentException      if some aspect of this element
-     *                                       prevents it from being added to this list
+     *         not supported by this list iterator
+     * @throws ClassCastException if the class of the specified element
+     *         prevents it from being added to this list
+     * @throws IllegalArgumentException if some aspect of this element
+     *         prevents it from being added to this list
      */
     void add(E e);
 }

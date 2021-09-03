@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -34,7 +34,6 @@
  */
 
 package java.util.concurrent;
-
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
@@ -151,8 +150,8 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * actions following a successful return from a corresponding
  * {@code await()} in another thread.
  *
- * @author Doug Lea
  * @since 1.5
+ * @author Doug Lea
  */
 public class CountDownLatch {
     /**
@@ -176,11 +175,11 @@ public class CountDownLatch {
 
         protected boolean tryReleaseShared(int releases) {
             // Decrement count; signal when transition to zero
-            for (; ; ) {
+            for (;;) {
                 int c = getState();
                 if (c == 0)
                     return false;
-                int nextc = c - 1;
+                int nextc = c-1;
                 if (compareAndSetState(c, nextc))
                     return nextc == 0;
             }
@@ -193,7 +192,7 @@ public class CountDownLatch {
      * Constructs a {@code CountDownLatch} initialized with the given count.
      *
      * @param count the number of times {@link #countDown} must be invoked
-     *              before threads can pass through {@link #await}
+     *        before threads can pass through {@link #await}
      * @throws IllegalArgumentException if {@code count} is negative
      */
     public CountDownLatch(int count) {
@@ -226,7 +225,7 @@ public class CountDownLatch {
      * interrupted status is cleared.
      *
      * @throws InterruptedException if the current thread is interrupted
-     *                              while waiting
+     *         while waiting
      */
     public void await() throws InterruptedException {
         sync.acquireSharedInterruptibly(1);
@@ -267,14 +266,14 @@ public class CountDownLatch {
      * will not wait at all.
      *
      * @param timeout the maximum time to wait
-     * @param unit    the time unit of the {@code timeout} argument
+     * @param unit the time unit of the {@code timeout} argument
      * @return {@code true} if the count reached zero and {@code false}
-     * if the waiting time elapsed before the count reached zero
+     *         if the waiting time elapsed before the count reached zero
      * @throws InterruptedException if the current thread is interrupted
-     *                              while waiting
+     *         while waiting
      */
     public boolean await(long timeout, TimeUnit unit)
-            throws InterruptedException {
+        throws InterruptedException {
         return sync.tryAcquireSharedNanos(1, unit.toNanos(timeout));
     }
 

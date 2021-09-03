@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -32,16 +32,16 @@ import java.util.concurrent.atomic.AtomicReference;
  * stream ops, which can produce a result without processing all elements of the
  * stream.
  *
- * @param <P_IN>  type of input elements to the pipeline
+ * @param <P_IN> type of input elements to the pipeline
  * @param <P_OUT> type of output elements from the pipeline
- * @param <R>     type of intermediate result, may be different from operation
- *                result type
- * @param <K>     type of child and sibling tasks
+ * @param <R> type of intermediate result, may be different from operation
+ *        result type
+ * @param <K> type of child and sibling tasks
  * @since 1.8
  */
 @SuppressWarnings("serial")
 abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
-        K extends AbstractShortCircuitTask<P_IN, P_OUT, R, K>>
+                                        K extends AbstractShortCircuitTask<P_IN, P_OUT, R, K>>
         extends AbstractTask<P_IN, P_OUT, R, K> {
     /**
      * The result for this computation; this is shared among all tasks and set
@@ -60,8 +60,8 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
     /**
      * Constructor for root tasks.
      *
-     * @param helper      the {@code PipelineHelper} describing the stream pipeline
-     *                    up to this operation
+     * @param helper the {@code PipelineHelper} describing the stream pipeline
+     *               up to this operation
      * @param spliterator the {@code Spliterator} describing the source for this
      *                    pipeline
      */
@@ -74,7 +74,7 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
     /**
      * Constructor for non-root nodes.
      *
-     * @param parent      parent task in the computation tree
+     * @param parent parent task in the computation tree
      * @param spliterator the {@code Spliterator} for the portion of the
      *                    computation tree described by this task
      */
@@ -116,7 +116,7 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
                 break;
             }
             K leftChild, rightChild, taskToFork;
-            task.leftChild = leftChild = task.makeChild(ls);
+            task.leftChild  = leftChild = task.makeChild(ls);
             task.rightChild = rightChild = task.makeChild(rs);
             task.setPendingCount(1);
             if (forkRight) {
@@ -124,7 +124,8 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
                 rs = ls;
                 task = leftChild;
                 taskToFork = rightChild;
-            } else {
+            }
+            else {
                 forkRight = true;
                 task = rightChild;
                 taskToFork = leftChild;
@@ -162,7 +163,8 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
         if (isRoot()) {
             if (localResult != null)
                 sharedResult.compareAndSet(null, localResult);
-        } else
+        }
+        else
             super.setLocalResult(localResult);
     }
 
@@ -183,7 +185,8 @@ abstract class AbstractShortCircuitTask<P_IN, P_OUT, R,
         if (isRoot()) {
             R answer = sharedResult.get();
             return (answer == null) ? getEmptyResult() : answer;
-        } else
+        }
+        else
             return super.getLocalResult();
     }
 

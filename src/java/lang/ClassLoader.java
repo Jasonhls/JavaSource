@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2013, 2020, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.lang;
 
@@ -255,6 +255,9 @@ public abstract class ClassLoader {
         new ProtectionDomain(new CodeSource(null, (Certificate[]) null),
                              null, this, null);
 
+    // The initiating protection domains for all classes loaded by this loader
+    private final Set<ProtectionDomain> domains;
+
     // Invoked by the VM to record every loaded class with this loader.
     void addClass(Class<?> c) {
         classes.addElement(c);
@@ -278,11 +281,14 @@ public abstract class ClassLoader {
         if (ParallelLoaders.isRegistered(this.getClass())) {
             parallelLockMap = new ConcurrentHashMap<>();
             package2certs = new ConcurrentHashMap<>();
+            domains =
+                Collections.synchronizedSet(new HashSet<ProtectionDomain>());
             assertionLock = new Object();
         } else {
             // no finer-grained lock; lock on the classloader instance
             parallelLockMap = null;
             package2certs = new Hashtable<>();
+            domains = new HashSet<>();
             assertionLock = this;
         }
     }
@@ -499,6 +505,7 @@ public abstract class ClassLoader {
                 }, new AccessControlContext(new ProtectionDomain[] {pd}));
             }
         }
+        domains.add(pd);
     }
 
     /**
@@ -646,9 +653,6 @@ public abstract class ClassLoader {
         if (!checkName(name))
             throw new NoClassDefFoundError("IllegalName: " + name);
 
-        // Note:  Checking logic in java.lang.invoke.MemberName.checkForTypeAlias
-        // relies on the fact that spoofing is impossible if a class has a name
-        // of the form "java.*"
         if ((name != null) && name.startsWith("java.")) {
             throw new SecurityException
                 ("Prohibited package name: " +
@@ -859,7 +863,7 @@ public abstract class ClassLoader {
 
     // true if the name is null or has the potential to be a valid binary name
     private boolean checkName(String name) {
-        if ((name == null) || (name.isEmpty()))
+        if ((name == null) || (name.length() == 0))
             return true;
         if ((name.indexOf('/') != -1)
             || (!VM.allowArraySyntax() && (name.charAt(0) == '[')))
@@ -1361,10 +1365,7 @@ public abstract class ClassLoader {
             return null;
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
-            // Check access to the parent class loader
-            // If the caller's class loader is same as this class loader,
-            // permission check is performed.
-            checkClassLoaderPermission(parent, Reflection.getCallerClass());
+            checkClassLoaderPermission(this, Reflection.getCallerClass());
         }
         return parent;
     }
@@ -1507,11 +1508,6 @@ public abstract class ClassLoader {
         return caller.getClassLoader0();
     }
 
-    /*
-     * Checks RuntimePermission("getClassLoader") permission
-     * if caller's class loader is not null and caller's class loader
-     * is not the same as or an ancestor of the given cl argument.
-     */
     static void checkClassLoaderPermission(ClassLoader cl, Class<?> caller) {
         SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
@@ -1720,6 +1716,7 @@ public abstract class ClassLoader {
 
         native long find(String name);
         native void unload(String name, boolean isBuiltin);
+        static native String findBuiltinLib(String name);
 
         public NativeLibrary(Class<?> fromClass, String name, boolean isBuiltin) {
             this.name = name;
@@ -1860,11 +1857,9 @@ public abstract class ClassLoader {
         throw new UnsatisfiedLinkError("no " + name + " in java.library.path");
     }
 
-    private static native String findBuiltinLib(String name);
-
     private static boolean loadLibrary0(Class<?> fromClass, final File file) {
         // Check to see if we're attempting to access a static library
-        String name = findBuiltinLib(file.getName());
+        String name = NativeLibrary.findBuiltinLib(file.getName());
         boolean isBuiltin = (name != null);
         if (!isBuiltin) {
             boolean exists = AccessController.doPrivileged(

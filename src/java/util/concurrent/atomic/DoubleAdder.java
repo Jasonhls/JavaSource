@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -34,7 +34,6 @@
  */
 
 package java.util.concurrent.atomic;
-
 import java.io.Serializable;
 
 /**
@@ -58,8 +57,8 @@ import java.io.Serializable;
  * compareTo} because instances are expected to be mutated, and so are
  * not useful as collection keys.
  *
- * @author Doug Lea
  * @since 1.8
+ * @author Doug Lea
  */
 public class DoubleAdder extends Striped64 implements Serializable {
     private static final long serialVersionUID = 7249069246863182397L;
@@ -87,20 +86,17 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * @param x the value to add
      */
     public void add(double x) {
-        Cell[] as;
-        long b, v;
-        int m;
-        Cell a;
+        Cell[] as; long b, v; int m; Cell a;
         if ((as = cells) != null ||
-                !casBase(b = base,
-                        Double.doubleToRawLongBits
-                                (Double.longBitsToDouble(b) + x))) {
+            !casBase(b = base,
+                     Double.doubleToRawLongBits
+                     (Double.longBitsToDouble(b) + x))) {
             boolean uncontended = true;
             if (as == null || (m = as.length - 1) < 0 ||
-                    (a = as[getProbe() & m]) == null ||
-                    !(uncontended = a.cas(v = a.value,
-                            Double.doubleToRawLongBits
-                                    (Double.longBitsToDouble(v) + x))))
+                (a = as[getProbe() & m]) == null ||
+                !(uncontended = a.cas(v = a.value,
+                                      Double.doubleToRawLongBits
+                                      (Double.longBitsToDouble(v) + x))))
                 doubleAccumulate(x, null, uncontended);
         }
     }
@@ -118,8 +114,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * @return the sum
      */
     public double sum() {
-        Cell[] as = cells;
-        Cell a;
+        Cell[] as = cells; Cell a;
         double sum = Double.longBitsToDouble(base);
         if (as != null) {
             for (int i = 0; i < as.length; ++i) {
@@ -138,8 +133,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * known that no threads are concurrently updating.
      */
     public void reset() {
-        Cell[] as = cells;
-        Cell a;
+        Cell[] as = cells; Cell a;
         base = 0L; // relies on fact that double 0 must have same rep as long
         if (as != null) {
             for (int i = 0; i < as.length; ++i) {
@@ -160,8 +154,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * @return the sum
      */
     public double sumThenReset() {
-        Cell[] as = cells;
-        Cell a;
+        Cell[] as = cells; Cell a;
         double sum = Double.longBitsToDouble(base);
         base = 0L;
         if (as != null) {
@@ -178,7 +171,6 @@ public class DoubleAdder extends Striped64 implements Serializable {
 
     /**
      * Returns the String representation of the {@link #sum}.
-     *
      * @return the String representation of the {@link #sum}
      */
     public String toString() {
@@ -199,7 +191,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * narrowing primitive conversion.
      */
     public long longValue() {
-        return (long) sum();
+        return (long)sum();
     }
 
     /**
@@ -207,7 +199,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * narrowing primitive conversion.
      */
     public int intValue() {
-        return (int) sum();
+        return (int)sum();
     }
 
     /**
@@ -215,13 +207,12 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * after a narrowing primitive conversion.
      */
     public float floatValue() {
-        return (float) sum();
+        return (float)sum();
     }
 
     /**
      * Serialization proxy, used to avoid reference to the non-public
      * Striped64 superclass in serialized forms.
-     *
      * @serial include
      */
     private static class SerializationProxy implements Serializable {
@@ -229,7 +220,6 @@ public class DoubleAdder extends Striped64 implements Serializable {
 
         /**
          * The current value returned by sum().
-         *
          * @serial
          */
         private final double value;
@@ -270,7 +260,7 @@ public class DoubleAdder extends Striped64 implements Serializable {
      * @throws java.io.InvalidObjectException always
      */
     private void readObject(java.io.ObjectInputStream s)
-            throws java.io.InvalidObjectException {
+        throws java.io.InvalidObjectException {
         throw new java.io.InvalidObjectException("Proxy required");
     }
 

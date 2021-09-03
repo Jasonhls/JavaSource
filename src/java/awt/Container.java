@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1995, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.awt;
 
@@ -35,17 +35,14 @@ import java.awt.peer.LightweightPeer;
 import java.beans.PropertyChangeListener;
 
 import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import java.lang.ref.WeakReference;
 import java.security.AccessController;
 
-import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,7 +53,6 @@ import sun.util.logging.PlatformLogger;
 
 import sun.awt.AppContext;
 import sun.awt.AWTAccessor;
-import sun.awt.AWTAccessor.MouseEventAccessor;
 import sun.awt.CausedFocusEvent;
 import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
@@ -78,7 +74,7 @@ import sun.security.action.GetBooleanAction;
  * (and hence to the bottom of the stacking order).
  * <p>
  * <b>Note</b>: For details on the focus subsystem, see
- * <a href="https://docs.oracle.com/javase/tutorial/uiswing/misc/focus.html">
+ * <a href="http://docs.oracle.com/javase/tutorial/uiswing/misc/focus.html">
  * How to Use the Focus Subsystem</a>,
  * a section in <em>The Java Tutorial</em>, and the
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
@@ -103,7 +99,7 @@ public class Container extends Component {
      * @see #add
      * @see #getComponents
      */
-    private java.util.List<Component> component = new ArrayList<>();
+    private java.util.List<Component> component = new java.util.ArrayList<Component>();
 
     /**
      * Layout manager for this container.
@@ -1091,18 +1087,17 @@ public class Container extends Component {
             }
             checkAddToSelf(comp);
             checkNotAWindow(comp);
-            /* Reparent the component and tidy up the tree's state. */
-            if (comp.parent != null) {
-                comp.parent.remove(comp);
-                if (index > component.size()) {
-                    throw new IllegalArgumentException("illegal component position");
-                }
-            }
             if (thisGC != null) {
                 comp.checkGD(thisGC.getDevice().getIDstring());
             }
 
-
+            /* Reparent the component and tidy up the tree's state. */
+            if (comp.parent != null) {
+                comp.parent.remove(comp);
+                    if (index > component.size()) {
+                        throw new IllegalArgumentException("illegal component position");
+                    }
+            }
 
             //index == -1 means add to the end.
             if (index == -1) {
@@ -2549,24 +2544,28 @@ public class Container extends Component {
         if (!contains(x, y)) {
             return null;
         }
-        Component lightweight = null;
         synchronized (getTreeLock()) {
-            // Optimized version of two passes:
-            // see comment in sun.awt.SunGraphicsCallback
-            for (final Component comp : component) {
-                if (comp.contains(x - comp.x, y - comp.y)) {
-                    if (!comp.isLightweight()) {
-                        // return heavyweight component as soon as possible
+            // Two passes: see comment in sun.awt.SunGraphicsCallback
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null &&
+                    !(comp.peer instanceof LightweightPeer)) {
+                    if (comp.contains(x - comp.x, y - comp.y)) {
                         return comp;
                     }
-                    if (lightweight == null) {
-                        // save and return later the first lightweight component
-                        lightweight = comp;
+                }
+            }
+            for (int i = 0; i < component.size(); i++) {
+                Component comp = component.get(i);
+                if (comp != null &&
+                    comp.peer instanceof LightweightPeer) {
+                    if (comp.contains(x - comp.x, y - comp.y)) {
+                        return comp;
                     }
                 }
             }
         }
-        return lightweight != null ? lightweight : this;
+        return this;
     }
 
     /**
@@ -2670,54 +2669,52 @@ public class Container extends Component {
         return null;
     }
 
-    final Component findComponentAtImpl(int x, int y, boolean ignoreEnabled) {
-        // checkTreeLock(); commented for a performance reason
+    final Component findComponentAtImpl(int x, int y, boolean ignoreEnabled){
+        checkTreeLock();
 
         if (!(contains(x, y) && visible && (ignoreEnabled || enabled))) {
             return null;
         }
-        Component lightweight = null;
-        // Optimized version of two passes:
-        // see comment in sun.awt.SunGraphicsCallback
-        for (final Component comp : component) {
-            final int x1 = x - comp.x;
-            final int y1 = y - comp.y;
-            if (!comp.contains(x1, y1)) {
-                continue; // fast path
-            }
-            if (!comp.isLightweight()) {
-                final Component child = getChildAt(comp, x1, y1, ignoreEnabled);
-                if (child != null) {
-                    // return heavyweight component as soon as possible
-                    return child;
-                }
-            } else {
-                if (lightweight == null) {
-                    // save and return later the first lightweight component
-                    lightweight = getChildAt(comp, x1, y1, ignoreEnabled);
-                }
-            }
-        }
-        return lightweight != null ? lightweight : this;
-    }
 
-    /**
-     * Helper method for findComponentAtImpl. Finds a child component using
-     * findComponentAtImpl for Container and getComponentAt for Component.
-     */
-    private static Component getChildAt(Component comp, int x, int y,
-                                        boolean ignoreEnabled) {
-        if (comp instanceof Container) {
-            comp = ((Container) comp).findComponentAtImpl(x, y,
-                                                          ignoreEnabled);
-        } else {
-            comp = comp.getComponentAt(x, y);
+        // Two passes: see comment in sun.awt.SunGraphicsCallback
+        for (int i = 0; i < component.size(); i++) {
+            Component comp = component.get(i);
+            if (comp != null &&
+                !(comp.peer instanceof LightweightPeer)) {
+                if (comp instanceof Container) {
+                    comp = ((Container)comp).findComponentAtImpl(x - comp.x,
+                                                                 y - comp.y,
+                                                                 ignoreEnabled);
+                } else {
+                    comp = comp.getComponentAt(x - comp.x, y - comp.y);
+                }
+                if (comp != null && comp.visible &&
+                    (ignoreEnabled || comp.enabled))
+                {
+                    return comp;
+                }
+            }
         }
-        if (comp != null && comp.visible &&
-                (ignoreEnabled || comp.enabled)) {
-            return comp;
+        for (int i = 0; i < component.size(); i++) {
+            Component comp = component.get(i);
+            if (comp != null &&
+                comp.peer instanceof LightweightPeer) {
+                if (comp instanceof Container) {
+                    comp = ((Container)comp).findComponentAtImpl(x - comp.x,
+                                                                 y - comp.y,
+                                                                 ignoreEnabled);
+                } else {
+                    comp = comp.getComponentAt(x - comp.x, y - comp.y);
+                }
+                if (comp != null && comp.visible &&
+                    (ignoreEnabled || comp.enabled))
+                {
+                    return comp;
+                }
+            }
         }
-        return null;
+
+        return this;
     }
 
     /**
@@ -3313,6 +3310,16 @@ public class Container extends Component {
         }
     }
 
+    @Override
+    void clearLightweightDispatcherOnRemove(Component removedComponent) {
+        if (dispatcher != null) {
+            dispatcher.removeReferences(removedComponent);
+        } else {
+            //It is a Lightweight Container, should clear parent`s Dispatcher
+            super.clearLightweightDispatcherOnRemove(removedComponent);
+        }
+    }
+
     final Container getTraversalRoot() {
         if (isFocusCycleRoot()) {
             return findTraversalRoot();
@@ -3680,7 +3687,7 @@ public class Container extends Component {
     private void writeObject(ObjectOutputStream s) throws IOException {
         ObjectOutputStream.PutField f = s.putFields();
         f.put("ncomponents", component.size());
-        f.put("component", component.toArray(EMPTY_ARRAY));
+        f.put("component", getComponentsSync());
         f.put("layoutMgr", layoutMgr);
         f.put("dispatcher", dispatcher);
         f.put("maxSize", maxSize);
@@ -3719,15 +3726,8 @@ public class Container extends Component {
         throws ClassNotFoundException, IOException
     {
         ObjectInputStream.GetField f = s.readFields();
-        // array of components may not be present in the stream or may be null
-        Component [] tmpComponent = (Component[])f.get("component", null);
-        if (tmpComponent == null) {
-            tmpComponent = EMPTY_ARRAY;
-        }
+        Component [] tmpComponent = (Component[])f.get("component", EMPTY_ARRAY);
         int ncomponents = (Integer) f.get("ncomponents", 0);
-        if (ncomponents < 0 || ncomponents > tmpComponent.length) {
-            throw new InvalidObjectException("Incorrect number of components");
-        }
         component = new java.util.ArrayList<Component>(ncomponents);
         for (int i = 0; i < ncomponents; ++i) {
             component.add(tmpComponent[i]);
@@ -4411,23 +4411,9 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 
     private static final PlatformLogger eventLog = PlatformLogger.getLogger("java.awt.event.LightweightDispatcher");
 
-    private static final int BUTTONS_DOWN_MASK;
-
-    static {
-        int[] buttonsDownMask = AWTAccessor.getInputEventAccessor().
-                getButtonDownMasks();
-        int mask = 0;
-        for (int buttonDownMask : buttonsDownMask) {
-            mask |= buttonDownMask;
-        }
-        BUTTONS_DOWN_MASK = mask;
-    }
-
     LightweightDispatcher(Container nativeContainer) {
         this.nativeContainer = nativeContainer;
-        mouseEventTarget = new WeakReference<>(null);
-        targetLastEntered = new WeakReference<>(null);
-        targetLastEnteredDT = new WeakReference<>(null);
+        mouseEventTarget = null;
         eventMask = 0;
     }
 
@@ -4438,9 +4424,9 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
     void dispose() {
         //System.out.println("Disposing lw dispatcher");
         stopListeningForOtherDrags();
-        mouseEventTarget.clear();
-        targetLastEntered.clear();
-        targetLastEnteredDT.clear();
+        mouseEventTarget = null;
+        targetLastEntered = null;
+        targetLastEnteredDT = null;
     }
 
     /**
@@ -4491,12 +4477,25 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
     private boolean isMouseGrab(MouseEvent e) {
         int modifiers = e.getModifiersEx();
 
-        if (e.getID() == MouseEvent.MOUSE_PRESSED
-                || e.getID() == MouseEvent.MOUSE_RELEASED) {
-            modifiers ^= InputEvent.getMaskForButton(e.getButton());
+        if(e.getID() == MouseEvent.MOUSE_PRESSED
+            || e.getID() == MouseEvent.MOUSE_RELEASED)
+        {
+            switch (e.getButton()) {
+            case MouseEvent.BUTTON1:
+                modifiers ^= InputEvent.BUTTON1_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON2:
+                modifiers ^= InputEvent.BUTTON2_DOWN_MASK;
+                break;
+            case MouseEvent.BUTTON3:
+                modifiers ^= InputEvent.BUTTON3_DOWN_MASK;
+                break;
+            }
         }
         /* modifiers now as just before event */
-        return ((modifiers & BUTTONS_DOWN_MASK) != 0);
+        return ((modifiers & (InputEvent.BUTTON1_DOWN_MASK
+                              | InputEvent.BUTTON2_DOWN_MASK
+                              | InputEvent.BUTTON3_DOWN_MASK)) != 0);
     }
 
     /**
@@ -4514,62 +4513,65 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
 
         trackMouseEnterExit(mouseOver, e);
 
-        Component met = mouseEventTarget.get();
-        // 4508327 : MOUSE_CLICKED should only go to the recipient of
-        // the accompanying MOUSE_PRESSED, so don't reset mouseEventTarget on a
-        // MOUSE_CLICKED.
-        if (!isMouseGrab(e) && id != MouseEvent.MOUSE_CLICKED) {
-            met = (mouseOver != nativeContainer) ? mouseOver : null;
-            mouseEventTarget = new WeakReference<>(met);
+    // 4508327 : MOUSE_CLICKED should only go to the recipient of
+    // the accompanying MOUSE_PRESSED, so don't reset mouseEventTarget on a
+    // MOUSE_CLICKED.
+    if (!isMouseGrab(e) && id != MouseEvent.MOUSE_CLICKED) {
+            mouseEventTarget = (mouseOver != nativeContainer) ? mouseOver: null;
+            isCleaned = false;
         }
 
-        if (met != null) {
+        if (mouseEventTarget != null) {
             switch (id) {
-                case MouseEvent.MOUSE_ENTERED:
-                case MouseEvent.MOUSE_EXITED:
-                    break;
-                case MouseEvent.MOUSE_PRESSED:
-                    retargetMouseEvent(met, id, e);
-                    break;
-                case MouseEvent.MOUSE_RELEASED:
-                    retargetMouseEvent(met, id, e);
-                    break;
-                case MouseEvent.MOUSE_CLICKED:
-                    // 4508327: MOUSE_CLICKED should never be dispatched to a Component
-                    // other than that which received the MOUSE_PRESSED event.  If the
-                    // mouse is now over a different Component, don't dispatch the event.
-                    // The previous fix for a similar problem was associated with bug
-                    // 4155217.
-                    if (mouseOver == met) {
-                        retargetMouseEvent(mouseOver, id, e);
-                    }
-                    break;
-                case MouseEvent.MOUSE_MOVED:
-                    retargetMouseEvent(met, id, e);
-                    break;
-                case MouseEvent.MOUSE_DRAGGED:
-                    if (isMouseGrab(e)) {
-                        retargetMouseEvent(met, id, e);
-                    }
-                    break;
-                case MouseEvent.MOUSE_WHEEL:
-                    // This may send it somewhere that doesn't have MouseWheelEvents
-                    // enabled.  In this case, Component.dispatchEventImpl() will
-                    // retarget the event to a parent that DOES have the events enabled.
-                    if (eventLog.isLoggable(PlatformLogger.Level.FINEST) && (mouseOver != null)) {
-                        eventLog.finest("retargeting mouse wheel to " +
+            case MouseEvent.MOUSE_ENTERED:
+            case MouseEvent.MOUSE_EXITED:
+                break;
+            case MouseEvent.MOUSE_PRESSED:
+                retargetMouseEvent(mouseEventTarget, id, e);
+                break;
+        case MouseEvent.MOUSE_RELEASED:
+            retargetMouseEvent(mouseEventTarget, id, e);
+        break;
+        case MouseEvent.MOUSE_CLICKED:
+        // 4508327: MOUSE_CLICKED should never be dispatched to a Component
+        // other than that which received the MOUSE_PRESSED event.  If the
+        // mouse is now over a different Component, don't dispatch the event.
+        // The previous fix for a similar problem was associated with bug
+        // 4155217.
+        if (mouseOver == mouseEventTarget) {
+            retargetMouseEvent(mouseOver, id, e);
+        }
+        break;
+            case MouseEvent.MOUSE_MOVED:
+                retargetMouseEvent(mouseEventTarget, id, e);
+                break;
+        case MouseEvent.MOUSE_DRAGGED:
+            if (isMouseGrab(e)) {
+                retargetMouseEvent(mouseEventTarget, id, e);
+            }
+                break;
+        case MouseEvent.MOUSE_WHEEL:
+            // This may send it somewhere that doesn't have MouseWheelEvents
+            // enabled.  In this case, Component.dispatchEventImpl() will
+            // retarget the event to a parent that DOES have the events enabled.
+            if (eventLog.isLoggable(PlatformLogger.Level.FINEST) && (mouseOver != null)) {
+                eventLog.finest("retargeting mouse wheel to " +
                                 mouseOver.getName() + ", " +
                                 mouseOver.getClass());
-                    }
-                    retargetMouseEvent(mouseOver, id, e);
-                    break;
             }
-            //Consuming of wheel events is implemented in "retargetMouseEvent".
-            if (id != MouseEvent.MOUSE_WHEEL) {
-                e.consume();
+            retargetMouseEvent(mouseOver, id, e);
+        break;
             }
+        //Consuming of wheel events is implemented in "retargetMouseEvent".
+        if (id != MouseEvent.MOUSE_WHEEL) {
+            e.consume();
         }
-        return e.isConsumed();
+    } else if (isCleaned && id != MouseEvent.MOUSE_WHEEL) {
+        //After mouseEventTarget was removed and cleaned should consume all events
+        //until new mouseEventTarget is found
+        e.consume();
+    }
+    return e.isConsumed();
     }
 
     private boolean processDropTargetEvent(SunDropTargetEvent e) {
@@ -4626,16 +4628,15 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
             // drag has an associated drop target. MOUSE_ENTERED comes when the
             // mouse is in the native container already. To propagate this event
             // properly we should null out targetLastEntered.
-            targetLastEnteredDT.clear();
+            targetLastEnteredDT = null;
         } else if (id == MouseEvent.MOUSE_ENTERED) {
             isMouseDTInNativeContainer = true;
         } else if (id == MouseEvent.MOUSE_EXITED) {
             isMouseDTInNativeContainer = false;
         }
-        Component tle = retargetMouseEnterExit(targetOver, e,
-                                                     targetLastEnteredDT.get(),
+        targetLastEnteredDT = retargetMouseEnterExit(targetOver, e,
+                                                     targetLastEnteredDT,
                                                      isMouseDTInNativeContainer);
-        targetLastEnteredDT = new WeakReference<>(tle);
     }
 
     /*
@@ -4661,10 +4662,9 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
             isMouseInNativeContainer = false;
             stopListeningForOtherDrags();
         }
-        Component tle = retargetMouseEnterExit(targetOver, e,
-                                                   targetLastEntered.get(),
+        targetLastEntered = retargetMouseEnterExit(targetOver, e,
+                                                   targetLastEntered,
                                                    isMouseInNativeContainer);
-        targetLastEntered = new WeakReference<>(tle);
     }
 
     private Component retargetMouseEnterExit(Component targetOver, MouseEvent e,
@@ -4778,9 +4778,6 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                                srcEvent.getClickCount(),
                                srcEvent.isPopupTrigger(),
                                srcEvent.getButton());
-            MouseEventAccessor meAccessor = AWTAccessor.getMouseEventAccessor();
-            meAccessor.setCausedByTouchEvent(me,
-                meAccessor.isCausedByTouchEvent(srcEvent));
             ((AWTEvent)srcEvent).copyPrivateDataInto(me);
             // translate coordinates to this native container
             final Point ptSrcOrigin = srcComponent.getLocationOnScreen();
@@ -4881,9 +4878,6 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
                                             e.getClickCount(),
                                             e.isPopupTrigger(),
                                             e.getButton());
-                MouseEventAccessor meAccessor = AWTAccessor.getMouseEventAccessor();
-                meAccessor.setCausedByTouchEvent(retargeted,
-                    meAccessor.isCausedByTouchEvent(e));
             }
 
             ((AWTEvent)e).copyPrivateDataInto(retargeted);
@@ -4932,17 +4926,22 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
      * is null, there are currently no events being forwarded to
      * a subcomponent.
      */
-    private transient WeakReference<Component> mouseEventTarget;
+    private transient Component mouseEventTarget;
 
     /**
      * The last component entered by the {@code MouseEvent}.
      */
-    private transient  WeakReference<Component> targetLastEntered;
+    private transient Component targetLastEntered;
 
     /**
      * The last component entered by the {@code SunDropTargetEvent}.
      */
-    private transient  WeakReference<Component> targetLastEnteredDT;
+    private transient Component targetLastEnteredDT;
+
+    /**
+     * Indicates whether {@code mouseEventTarget} was removed and nulled
+     */
+    private transient boolean isCleaned;
 
     /**
      * Is the mouse over the native container.
@@ -4983,4 +4982,17 @@ class LightweightDispatcher implements java.io.Serializable, AWTEventListener {
         AWTEvent.MOUSE_EVENT_MASK |
         AWTEvent.MOUSE_MOTION_EVENT_MASK |
         AWTEvent.MOUSE_WHEEL_EVENT_MASK;
+
+    void removeReferences(Component removedComponent) {
+        if (mouseEventTarget == removedComponent) {
+            isCleaned = true;
+            mouseEventTarget = null;
+        }
+        if (targetLastEntered == removedComponent) {
+            targetLastEntered = null;
+        }
+        if (targetLastEnteredDT == removedComponent) {
+            targetLastEnteredDT = null;
+        }
+    }
 }

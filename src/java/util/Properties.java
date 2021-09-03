@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -66,7 +66,7 @@ import sun.util.spi.XmlPropertiesProvider;
  * {@link #store(java.io.Writer, java.lang.String) store(Writer, String)}
  * methods load and store properties from and to a character based stream
  * in a simple line-oriented format specified below.
- * <p>
+ *
  * The {@link #load(java.io.InputStream) load(InputStream)} <tt>/</tt>
  * {@link #store(java.io.OutputStream, java.lang.String) store(OutputStream, String)}
  * methods work the same way as the load(Reader)/store(Writer, String) pair, except
@@ -110,19 +110,20 @@ import sun.util.spi.XmlPropertiesProvider;
  * <p>This class is thread-safe: multiple threads can share a single
  * <tt>Properties</tt> object without the need for external synchronization.
  *
- * @author Arthur van Hoff
- * @author Michael McCloskey
- * @author Xueming Shen
  * @see <a href="../../../technotes/tools/solaris/native2ascii.html">native2ascii tool for Solaris</a>
  * @see <a href="../../../technotes/tools/windows/native2ascii.html">native2ascii tool for Windows</a>
- * @since JDK1.0
+ *
+ * @author  Arthur van Hoff
+ * @author  Michael McCloskey
+ * @author  Xueming Shen
+ * @since   JDK1.0
  */
 public
-class Properties extends Hashtable<Object, Object> {
+class Properties extends Hashtable<Object,Object> {
     /**
      * use serialVersionUID from JDK 1.1.X for interoperability
      */
-    private static final long serialVersionUID = 4112578634029874840L;
+     private static final long serialVersionUID = 4112578634029874840L;
 
     /**
      * A property list that contains default values for any keys not
@@ -142,7 +143,7 @@ class Properties extends Hashtable<Object, Object> {
     /**
      * Creates an empty property list with the specified defaults.
      *
-     * @param defaults the defaults.
+     * @param   defaults   the defaults.
      */
     public Properties(Properties defaults) {
         this.defaults = defaults;
@@ -154,12 +155,12 @@ class Properties extends Hashtable<Object, Object> {
      * strings for property keys and values. The value returned is the
      * result of the <tt>Hashtable</tt> call to {@code put}.
      *
-     * @param key   the key to be placed into this property list.
+     * @param key the key to be placed into this property list.
      * @param value the value corresponding to <tt>key</tt>.
-     * @return the previous value of the specified key in this property
-     * list, or {@code null} if it did not have one.
+     * @return     the previous value of the specified key in this property
+     *             list, or {@code null} if it did not have one.
      * @see #getProperty
-     * @since 1.2
+     * @since    1.2
      */
     public synchronized Object setProperty(String key, String value) {
         return put(key, value);
@@ -223,9 +224,9 @@ class Properties extends Hashtable<Object, Object> {
      * terminator. All of these key termination characters may be
      * included in the key by escaping them with a preceding backslash
      * character; for example,<p>
-     * <p>
+     *
      * {@code \:\=}<p>
-     * <p>
+     *
      * would be the two-character key {@code ":="}.  Line
      * terminator characters can be included using {@code \r} and
      * {@code \n} escape sequences.  Any white space after the
@@ -274,7 +275,7 @@ class Properties extends Hashtable<Object, Object> {
      * sequences similar to those used for character and string literals
      * (see sections 3.3 and 3.10.6 of
      * <cite>The Java&trade; Language Specification</cite>).
-     * <p>
+     *
      * The differences from the character escape sequences and Unicode
      * escapes used for characters and strings are:
      *
@@ -305,12 +306,12 @@ class Properties extends Hashtable<Object, Object> {
      * <p>
      * The specified stream remains open after this method returns.
      *
-     * @param reader the input character stream.
-     * @throws IOException              if an error occurred when reading from the
-     *                                  input stream.
-     * @throws IllegalArgumentException if a malformed Unicode escape
-     *                                  appears in the input.
-     * @since 1.6
+     * @param   reader   the input character stream.
+     * @throws  IOException  if an error occurred when reading from the
+     *          input stream.
+     * @throws  IllegalArgumentException if a malformed Unicode escape
+     *          appears in the input.
+     * @since   1.6
      */
     public synchronized void load(Reader reader) throws IOException {
         load0(new LineReader(reader));
@@ -329,18 +330,18 @@ class Properties extends Hashtable<Object, Object> {
      * <p>
      * The specified stream remains open after this method returns.
      *
-     * @param inStream the input stream.
-     * @throws IOException              if an error occurred when reading from the
-     *                                  input stream.
-     * @throws IllegalArgumentException if the input stream contains a
-     *                                  malformed Unicode escape sequence.
+     * @param      inStream   the input stream.
+     * @exception  IOException  if an error occurred when reading from the
+     *             input stream.
+     * @throws     IllegalArgumentException if the input stream contains a
+     *             malformed Unicode escape sequence.
      * @since 1.2
      */
     public synchronized void load(InputStream inStream) throws IOException {
         load0(new LineReader(inStream));
     }
 
-    private void load0(LineReader lr) throws IOException {
+    private void load0 (LineReader lr) throws IOException {
         char[] convtBuf = new char[1024];
         int limit;
         int keyLen;
@@ -360,11 +361,11 @@ class Properties extends Hashtable<Object, Object> {
             while (keyLen < limit) {
                 c = lr.lineBuf[keyLen];
                 //need check if escaped.
-                if ((c == '=' || c == ':') && !precedingBackslash) {
+                if ((c == '=' ||  c == ':') && !precedingBackslash) {
                     valueStart = keyLen + 1;
                     hasSep = true;
                     break;
-                } else if ((c == ' ' || c == '\t' || c == '\f') && !precedingBackslash) {
+                } else if ((c == ' ' || c == '\t' ||  c == '\f') && !precedingBackslash) {
                     valueStart = keyLen + 1;
                     break;
                 }
@@ -377,8 +378,8 @@ class Properties extends Hashtable<Object, Object> {
             }
             while (valueStart < limit) {
                 c = lr.lineBuf[valueStart];
-                if (c != ' ' && c != '\t' && c != '\f') {
-                    if (!hasSep && (c == '=' || c == ':')) {
+                if (c != ' ' && c != '\t' &&  c != '\f') {
+                    if (!hasSep && (c == '=' ||  c == ':')) {
                         hasSep = true;
                     } else {
                         break;
@@ -430,8 +431,8 @@ class Properties extends Hashtable<Object, Object> {
 
             while (true) {
                 if (inOff >= inLimit) {
-                    inLimit = (inStream == null) ? reader.read(inCharBuf)
-                            : inStream.read(inByteBuf);
+                    inLimit = (inStream==null)?reader.read(inCharBuf)
+                                              :inStream.read(inByteBuf);
                     inOff = 0;
                     if (inLimit <= 0) {
                         if (len == 0 || isCommentLine) {
@@ -491,7 +492,8 @@ class Properties extends Hashtable<Object, Object> {
                     } else {
                         precedingBackslash = false;
                     }
-                } else {
+                }
+                else {
                     // reached EOL
                     if (isCommentLine || len == 0) {
                         isCommentLine = false;
@@ -501,9 +503,9 @@ class Properties extends Hashtable<Object, Object> {
                         continue;
                     }
                     if (inOff >= inLimit) {
-                        inLimit = (inStream == null)
-                                ? reader.read(inCharBuf)
-                                : inStream.read(inByteBuf);
+                        inLimit = (inStream==null)
+                                  ?reader.read(inCharBuf)
+                                  :inStream.read(inByteBuf);
                         inOff = 0;
                         if (inLimit <= 0) {
                             if (precedingBackslash) {
@@ -533,7 +535,7 @@ class Properties extends Hashtable<Object, Object> {
      * Converts encoded &#92;uxxxx to unicode chars
      * and changes special saved chars to their original forms
      */
-    private String loadConvert(char[] in, int off, int len, char[] convtBuf) {
+    private String loadConvert (char[] in, int off, int len, char[] convtBuf) {
         if (convtBuf.length < len) {
             int newLen = len * 2;
             if (newLen < 0) {
@@ -550,46 +552,30 @@ class Properties extends Hashtable<Object, Object> {
             aChar = in[off++];
             if (aChar == '\\') {
                 aChar = in[off++];
-                if (aChar == 'u') {
+                if(aChar == 'u') {
                     // Read the xxxx
-                    int value = 0;
-                    for (int i = 0; i < 4; i++) {
+                    int value=0;
+                    for (int i=0; i<4; i++) {
                         aChar = in[off++];
                         switch (aChar) {
-                            case '0':
-                            case '1':
-                            case '2':
-                            case '3':
-                            case '4':
-                            case '5':
-                            case '6':
-                            case '7':
-                            case '8':
-                            case '9':
-                                value = (value << 4) + aChar - '0';
-                                break;
-                            case 'a':
-                            case 'b':
-                            case 'c':
-                            case 'd':
-                            case 'e':
-                            case 'f':
-                                value = (value << 4) + 10 + aChar - 'a';
-                                break;
-                            case 'A':
-                            case 'B':
-                            case 'C':
-                            case 'D':
-                            case 'E':
-                            case 'F':
-                                value = (value << 4) + 10 + aChar - 'A';
-                                break;
-                            default:
-                                throw new IllegalArgumentException(
-                                        "Malformed \\uxxxx encoding.");
+                          case '0': case '1': case '2': case '3': case '4':
+                          case '5': case '6': case '7': case '8': case '9':
+                             value = (value << 4) + aChar - '0';
+                             break;
+                          case 'a': case 'b': case 'c':
+                          case 'd': case 'e': case 'f':
+                             value = (value << 4) + 10 + aChar - 'a';
+                             break;
+                          case 'A': case 'B': case 'C':
+                          case 'D': case 'E': case 'F':
+                             value = (value << 4) + 10 + aChar - 'A';
+                             break;
+                          default:
+                              throw new IllegalArgumentException(
+                                           "Malformed \\uxxxx encoding.");
                         }
-                    }
-                    out[outLen++] = (char) value;
+                     }
+                    out[outLen++] = (char)value;
                 } else {
                     if (aChar == 't') aChar = '\t';
                     else if (aChar == 'r') aChar = '\r';
@@ -601,7 +587,7 @@ class Properties extends Hashtable<Object, Object> {
                 out[outLen++] = aChar;
             }
         }
-        return new String(out, 0, outLen);
+        return new String (out, 0, outLen);
     }
 
     /*
@@ -618,56 +604,46 @@ class Properties extends Hashtable<Object, Object> {
         }
         StringBuffer outBuffer = new StringBuffer(bufLen);
 
-        for (int x = 0; x < len; x++) {
+        for(int x=0; x<len; x++) {
             char aChar = theString.charAt(x);
             // Handle common case first, selecting largest block that
             // avoids the specials below
             if ((aChar > 61) && (aChar < 127)) {
                 if (aChar == '\\') {
-                    outBuffer.append('\\');
-                    outBuffer.append('\\');
+                    outBuffer.append('\\'); outBuffer.append('\\');
                     continue;
                 }
                 outBuffer.append(aChar);
                 continue;
             }
-            switch (aChar) {
+            switch(aChar) {
                 case ' ':
                     if (x == 0 || escapeSpace)
                         outBuffer.append('\\');
                     outBuffer.append(' ');
                     break;
-                case '\t':
-                    outBuffer.append('\\');
-                    outBuffer.append('t');
-                    break;
-                case '\n':
-                    outBuffer.append('\\');
-                    outBuffer.append('n');
-                    break;
-                case '\r':
-                    outBuffer.append('\\');
-                    outBuffer.append('r');
-                    break;
-                case '\f':
-                    outBuffer.append('\\');
-                    outBuffer.append('f');
-                    break;
+                case '\t':outBuffer.append('\\'); outBuffer.append('t');
+                          break;
+                case '\n':outBuffer.append('\\'); outBuffer.append('n');
+                          break;
+                case '\r':outBuffer.append('\\'); outBuffer.append('r');
+                          break;
+                case '\f':outBuffer.append('\\'); outBuffer.append('f');
+                          break;
                 case '=': // Fall through
                 case ':': // Fall through
                 case '#': // Fall through
                 case '!':
-                    outBuffer.append('\\');
-                    outBuffer.append(aChar);
+                    outBuffer.append('\\'); outBuffer.append(aChar);
                     break;
                 default:
-                    if (((aChar < 0x0020) || (aChar > 0x007e)) & escapeUnicode) {
+                    if (((aChar < 0x0020) || (aChar > 0x007e)) & escapeUnicode ) {
                         outBuffer.append('\\');
                         outBuffer.append('u');
                         outBuffer.append(toHex((aChar >> 12) & 0xF));
-                        outBuffer.append(toHex((aChar >> 8) & 0xF));
-                        outBuffer.append(toHex((aChar >> 4) & 0xF));
-                        outBuffer.append(toHex(aChar & 0xF));
+                        outBuffer.append(toHex((aChar >>  8) & 0xF));
+                        outBuffer.append(toHex((aChar >>  4) & 0xF));
+                        outBuffer.append(toHex( aChar        & 0xF));
                     } else {
                         outBuffer.append(aChar);
                     }
@@ -677,7 +653,7 @@ class Properties extends Hashtable<Object, Object> {
     }
 
     private static void writeComments(BufferedWriter bw, String comments)
-            throws IOException {
+        throws IOException {
         bw.write("#");
         int len = comments.length();
         int current = 0;
@@ -692,20 +668,20 @@ class Properties extends Hashtable<Object, Object> {
                     bw.write(comments.substring(last, current));
                 if (c > '\u00ff') {
                     uu[2] = toHex((c >> 12) & 0xf);
-                    uu[3] = toHex((c >> 8) & 0xf);
-                    uu[4] = toHex((c >> 4) & 0xf);
-                    uu[5] = toHex(c & 0xf);
+                    uu[3] = toHex((c >>  8) & 0xf);
+                    uu[4] = toHex((c >>  4) & 0xf);
+                    uu[5] = toHex( c        & 0xf);
                     bw.write(new String(uu));
                 } else {
                     bw.newLine();
                     if (c == '\r' &&
-                            current != len - 1 &&
-                            comments.charAt(current + 1) == '\n') {
+                        current != len - 1 &&
+                        comments.charAt(current + 1) == '\n') {
                         current++;
                     }
                     if (current == len - 1 ||
-                            (comments.charAt(current + 1) != '#' &&
-                                    comments.charAt(current + 1) != '!'))
+                        (comments.charAt(current + 1) != '#' &&
+                        comments.charAt(current + 1) != '!'))
                         bw.write("#");
                 }
                 last = current + 1;
@@ -721,19 +697,20 @@ class Properties extends Hashtable<Object, Object> {
      * Calls the {@code store(OutputStream out, String comments)} method
      * and suppresses IOExceptions that were thrown.
      *
-     * @param out      an output stream.
-     * @param comments a description of the property list.
-     * @throws ClassCastException if this {@code Properties} object
-     *                            contains any keys or values that are not
-     *                            {@code Strings}.
      * @deprecated This method does not throw an IOException if an I/O error
      * occurs while saving the property list.  The preferred way to save a
      * properties list is via the {@code store(OutputStream out,
      * String comments)} method or the
      * {@code storeToXML(OutputStream os, String comment)} method.
+     *
+     * @param   out      an output stream.
+     * @param   comments   a description of the property list.
+     * @exception  ClassCastException  if this {@code Properties} object
+     *             contains any keys or values that are not
+     *             {@code Strings}.
      */
     @Deprecated
-    public void save(OutputStream out, String comments) {
+    public void save(OutputStream out, String comments)  {
         try {
             store(out, comments);
         } catch (IOException e) {
@@ -779,21 +756,22 @@ class Properties extends Hashtable<Object, Object> {
      * The output stream remains open after this method returns.
      * <p>
      *
-     * @param writer   an output character stream writer.
-     * @param comments a description of the property list.
-     * @throws IOException          if writing this property list to the specified
-     *                              output stream throws an <tt>IOException</tt>.
-     * @throws ClassCastException   if this {@code Properties} object
-     *                              contains any keys or values that are not {@code Strings}.
-     * @throws NullPointerException if {@code writer} is null.
+     * @param   writer      an output character stream writer.
+     * @param   comments   a description of the property list.
+     * @exception  IOException if writing this property list to the specified
+     *             output stream throws an <tt>IOException</tt>.
+     * @exception  ClassCastException  if this {@code Properties} object
+     *             contains any keys or values that are not {@code Strings}.
+     * @exception  NullPointerException  if {@code writer} is null.
      * @since 1.6
      */
     public void store(Writer writer, String comments)
-            throws IOException {
-        store0((writer instanceof BufferedWriter) ? (BufferedWriter) writer
-                        : new BufferedWriter(writer),
-                comments,
-                false);
+        throws IOException
+    {
+        store0((writer instanceof BufferedWriter)?(BufferedWriter)writer
+                                                 : new BufferedWriter(writer),
+               comments,
+               false);
     }
 
     /**
@@ -825,34 +803,35 @@ class Properties extends Hashtable<Object, Object> {
      * After the entries have been written, the output stream is flushed.
      * The output stream remains open after this method returns.
      * <p>
-     *
-     * @param out      an output stream.
-     * @param comments a description of the property list.
-     * @throws IOException          if writing this property list to the specified
-     *                              output stream throws an <tt>IOException</tt>.
-     * @throws ClassCastException   if this {@code Properties} object
-     *                              contains any keys or values that are not {@code Strings}.
-     * @throws NullPointerException if {@code out} is null.
+     * @param   out      an output stream.
+     * @param   comments   a description of the property list.
+     * @exception  IOException if writing this property list to the specified
+     *             output stream throws an <tt>IOException</tt>.
+     * @exception  ClassCastException  if this {@code Properties} object
+     *             contains any keys or values that are not {@code Strings}.
+     * @exception  NullPointerException  if {@code out} is null.
      * @since 1.2
      */
     public void store(OutputStream out, String comments)
-            throws IOException {
+        throws IOException
+    {
         store0(new BufferedWriter(new OutputStreamWriter(out, "8859_1")),
-                comments,
-                true);
+               comments,
+               true);
     }
 
     private void store0(BufferedWriter bw, String comments, boolean escUnicode)
-            throws IOException {
+        throws IOException
+    {
         if (comments != null) {
             writeComments(bw, comments);
         }
         bw.write("#" + new Date().toString());
         bw.newLine();
         synchronized (this) {
-            for (Enumeration<?> e = keys(); e.hasMoreElements(); ) {
-                String key = (String) e.nextElement();
-                String val = (String) get(key);
+            for (Enumeration<?> e = keys(); e.hasMoreElements();) {
+                String key = (String)e.nextElement();
+                String val = (String)get(key);
                 key = saveConvert(key, true, escUnicode);
                 /* No need to escape embedded and trailing spaces for value, hence
                  * pass false to flag.
@@ -883,21 +862,22 @@ class Properties extends Hashtable<Object, Object> {
      * <p>The specified stream is closed after this method returns.
      *
      * @param in the input stream from which to read the XML document.
-     * @throws IOException                          if reading from the specified input stream
-     *                                              results in an <tt>IOException</tt>.
+     * @throws IOException if reading from the specified input stream
+     *         results in an <tt>IOException</tt>.
      * @throws java.io.UnsupportedEncodingException if the document's encoding
-     *                                              declaration can be read and it specifies an encoding that is not
-     *                                              supported
-     * @throws InvalidPropertiesFormatException     Data on input stream does not
-     *                                              constitute a valid XML document with the mandated document type.
-     * @throws NullPointerException                 if {@code in} is null.
-     * @see #storeToXML(OutputStream, String, String)
-     * @see <a href="http://www.w3.org/TR/REC-xml/#charencoding">Character
-     * Encoding in Entities</a>
+     *         declaration can be read and it specifies an encoding that is not
+     *         supported
+     * @throws InvalidPropertiesFormatException Data on input stream does not
+     *         constitute a valid XML document with the mandated document type.
+     * @throws NullPointerException if {@code in} is null.
+     * @see    #storeToXML(OutputStream, String, String)
+     * @see    <a href="http://www.w3.org/TR/REC-xml/#charencoding">Character
+     *         Encoding in Entities</a>
      * @since 1.5
      */
     public synchronized void loadFromXML(InputStream in)
-            throws IOException, InvalidPropertiesFormatException {
+        throws IOException, InvalidPropertiesFormatException
+    {
         XmlSupport.load(this, Objects.requireNonNull(in));
         in.close();
     }
@@ -910,20 +890,21 @@ class Properties extends Hashtable<Object, Object> {
      * comment)</tt> behaves in exactly the same way as the invocation
      * <tt>props.storeToXML(os, comment, "UTF-8");</tt>.
      *
-     * @param os      the output stream on which to emit the XML document.
+     * @param os the output stream on which to emit the XML document.
      * @param comment a description of the property list, or {@code null}
-     *                if no comment is desired.
-     * @throws IOException          if writing to the specified output stream
-     *                              results in an <tt>IOException</tt>.
+     *        if no comment is desired.
+     * @throws IOException if writing to the specified output stream
+     *         results in an <tt>IOException</tt>.
      * @throws NullPointerException if {@code os} is null.
-     * @throws ClassCastException   if this {@code Properties} object
-     *                              contains any keys or values that are not
-     *                              {@code Strings}.
-     * @see #loadFromXML(InputStream)
+     * @throws ClassCastException  if this {@code Properties} object
+     *         contains any keys or values that are not
+     *         {@code Strings}.
+     * @see    #loadFromXML(InputStream)
      * @since 1.5
      */
     public void storeToXML(OutputStream os, String comment)
-            throws IOException {
+        throws IOException
+    {
         storeToXML(os, comment, "UTF-8");
     }
 
@@ -945,30 +926,32 @@ class Properties extends Hashtable<Object, Object> {
      *
      * <p>The specified stream remains open after this method returns.
      *
-     * @param os       the output stream on which to emit the XML document.
-     * @param comment  a description of the property list, or {@code null}
-     *                 if no comment is desired.
-     * @param encoding the name of a supported
-     *                 <a href="../lang/package-summary.html#charenc">
-     *                 character encoding</a>
-     * @throws IOException                          if writing to the specified output stream
-     *                                              results in an <tt>IOException</tt>.
+     * @param os        the output stream on which to emit the XML document.
+     * @param comment   a description of the property list, or {@code null}
+     *                  if no comment is desired.
+     * @param  encoding the name of a supported
+     *                  <a href="../lang/package-summary.html#charenc">
+     *                  character encoding</a>
+     *
+     * @throws IOException if writing to the specified output stream
+     *         results in an <tt>IOException</tt>.
      * @throws java.io.UnsupportedEncodingException if the encoding is not
-     *                                              supported by the implementation.
-     * @throws NullPointerException                 if {@code os} is {@code null},
-     *                                              or if {@code encoding} is {@code null}.
-     * @throws ClassCastException                   if this {@code Properties} object
-     *                                              contains any keys or values that are not
-     *                                              {@code Strings}.
-     * @see #loadFromXML(InputStream)
-     * @see <a href="http://www.w3.org/TR/REC-xml/#charencoding">Character
-     * Encoding in Entities</a>
+     *         supported by the implementation.
+     * @throws NullPointerException if {@code os} is {@code null},
+     *         or if {@code encoding} is {@code null}.
+     * @throws ClassCastException  if this {@code Properties} object
+     *         contains any keys or values that are not
+     *         {@code Strings}.
+     * @see    #loadFromXML(InputStream)
+     * @see    <a href="http://www.w3.org/TR/REC-xml/#charencoding">Character
+     *         Encoding in Entities</a>
      * @since 1.5
      */
     public void storeToXML(OutputStream os, String comment, String encoding)
-            throws IOException {
+        throws IOException
+    {
         XmlSupport.save(this, Objects.requireNonNull(os), comment,
-                Objects.requireNonNull(encoding));
+                        Objects.requireNonNull(encoding));
     }
 
     /**
@@ -977,14 +960,14 @@ class Properties extends Hashtable<Object, Object> {
      * and its defaults, recursively, are then checked. The method returns
      * {@code null} if the property is not found.
      *
-     * @param key the property key.
-     * @return the value in this property list with the specified key value.
-     * @see #setProperty
-     * @see #defaults
+     * @param   key   the property key.
+     * @return  the value in this property list with the specified key value.
+     * @see     #setProperty
+     * @see     #defaults
      */
     public String getProperty(String key) {
         Object oval = super.get(key);
-        String sval = (oval instanceof String) ? (String) oval : null;
+        String sval = (oval instanceof String) ? (String)oval : null;
         return ((sval == null) && (defaults != null)) ? defaults.getProperty(key) : sval;
     }
 
@@ -994,11 +977,12 @@ class Properties extends Hashtable<Object, Object> {
      * and its defaults, recursively, are then checked. The method returns the
      * default value argument if the property is not found.
      *
-     * @param key          the hashtable key.
-     * @param defaultValue a default value.
-     * @return the value in this property list with the specified key value.
-     * @see #setProperty
-     * @see #defaults
+     * @param   key            the hashtable key.
+     * @param   defaultValue   a default value.
+     *
+     * @return  the value in this property list with the specified key value.
+     * @see     #setProperty
+     * @see     #defaults
      */
     public String getProperty(String key, String defaultValue) {
         String val = getProperty(key);
@@ -1011,16 +995,16 @@ class Properties extends Hashtable<Object, Object> {
      * of the same name has not already been found from the main
      * properties list.
      *
-     * @return an enumeration of all the keys in this property list, including
-     * the keys in the default property list.
-     * @throws ClassCastException if any key in this property list
-     *                            is not a string.
-     * @see java.util.Enumeration
-     * @see java.util.Properties#defaults
-     * @see #stringPropertyNames
+     * @return  an enumeration of all the keys in this property list, including
+     *          the keys in the default property list.
+     * @throws  ClassCastException if any key in this property list
+     *          is not a string.
+     * @see     java.util.Enumeration
+     * @see     java.util.Properties#defaults
+     * @see     #stringPropertyNames
      */
     public Enumeration<?> propertyNames() {
-        Hashtable<String, Object> h = new Hashtable<>();
+        Hashtable<String,Object> h = new Hashtable<>();
         enumerate(h);
         return h.keys();
     }
@@ -1037,11 +1021,11 @@ class Properties extends Hashtable<Object, Object> {
      * Changes to this <tt>Properties</tt> are not reflected in the set,
      * or vice versa.
      *
-     * @return a set of keys in this property list where
-     * the key and its corresponding value are strings,
-     * including the keys in the default property list.
-     * @see java.util.Properties#defaults
-     * @since 1.6
+     * @return  a set of keys in this property list where
+     *          the key and its corresponding value are strings,
+     *          including the keys in the default property list.
+     * @see     java.util.Properties#defaults
+     * @since   1.6
      */
     public Set<String> stringPropertyNames() {
         Hashtable<String, String> h = new Hashtable<>();
@@ -1053,17 +1037,17 @@ class Properties extends Hashtable<Object, Object> {
      * Prints this property list out to the specified output stream.
      * This method is useful for debugging.
      *
-     * @param out an output stream.
-     * @throws ClassCastException if any key in this property list
-     *                            is not a string.
+     * @param   out   an output stream.
+     * @throws  ClassCastException if any key in this property list
+     *          is not a string.
      */
     public void list(PrintStream out) {
         out.println("-- listing properties --");
-        Hashtable<String, Object> h = new Hashtable<>();
+        Hashtable<String,Object> h = new Hashtable<>();
         enumerate(h);
-        for (Enumeration<String> e = h.keys(); e.hasMoreElements(); ) {
+        for (Enumeration<String> e = h.keys() ; e.hasMoreElements() ;) {
             String key = e.nextElement();
-            String val = (String) h.get(key);
+            String val = (String)h.get(key);
             if (val.length() > 40) {
                 val = val.substring(0, 37) + "...";
             }
@@ -1075,10 +1059,10 @@ class Properties extends Hashtable<Object, Object> {
      * Prints this property list out to the specified output stream.
      * This method is useful for debugging.
      *
-     * @param out an output stream.
-     * @throws ClassCastException if any key in this property list
-     *                            is not a string.
-     * @since JDK1.1
+     * @param   out   an output stream.
+     * @throws  ClassCastException if any key in this property list
+     *          is not a string.
+     * @since   JDK1.1
      */
     /*
      * Rather than use an anonymous inner class to share common code, this
@@ -1087,11 +1071,11 @@ class Properties extends Hashtable<Object, Object> {
      */
     public void list(PrintWriter out) {
         out.println("-- listing properties --");
-        Hashtable<String, Object> h = new Hashtable<>();
+        Hashtable<String,Object> h = new Hashtable<>();
         enumerate(h);
-        for (Enumeration<String> e = h.keys(); e.hasMoreElements(); ) {
+        for (Enumeration<String> e = h.keys() ; e.hasMoreElements() ;) {
             String key = e.nextElement();
-            String val = (String) h.get(key);
+            String val = (String)h.get(key);
             if (val.length() > 40) {
                 val = val.substring(0, 37) + "...";
             }
@@ -1101,17 +1085,16 @@ class Properties extends Hashtable<Object, Object> {
 
     /**
      * Enumerates all key/value pairs in the specified hashtable.
-     *
      * @param h the hashtable
      * @throws ClassCastException if any of the property keys
-     *                            is not of String type.
+     *         is not of String type.
      */
-    private synchronized void enumerate(Hashtable<String, Object> h) {
+    private synchronized void enumerate(Hashtable<String,Object> h) {
         if (defaults != null) {
             defaults.enumerate(h);
         }
-        for (Enumeration<?> e = keys(); e.hasMoreElements(); ) {
-            String key = (String) e.nextElement();
+        for (Enumeration<?> e = keys() ; e.hasMoreElements() ;) {
+            String key = (String)e.nextElement();
             h.put(key, get(key));
         }
     }
@@ -1119,14 +1102,13 @@ class Properties extends Hashtable<Object, Object> {
     /**
      * Enumerates all key/value pairs in the specified hashtable
      * and omits the property if the key or value is not a string.
-     *
      * @param h the hashtable
      */
     private synchronized void enumerateStringProperties(Hashtable<String, String> h) {
         if (defaults != null) {
             defaults.enumerateStringProperties(h);
         }
-        for (Enumeration<?> e = keys(); e.hasMoreElements(); ) {
+        for (Enumeration<?> e = keys() ; e.hasMoreElements() ;) {
             Object k = e.nextElement();
             Object v = get(k);
             if (k instanceof String && v instanceof String) {
@@ -1137,18 +1119,15 @@ class Properties extends Hashtable<Object, Object> {
 
     /**
      * Convert a nibble to a hex character
-     *
-     * @param nibble the nibble to convert.
+     * @param   nibble  the nibble to convert.
      */
     private static char toHex(int nibble) {
         return hexDigit[(nibble & 0xF)];
     }
 
-    /**
-     * A table of hex digits
-     */
+    /** A table of hex digits */
     private static final char[] hexDigit = {
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
     };
 
     /**
@@ -1185,46 +1164,47 @@ class Properties extends Hashtable<Object, Object> {
                 return null;
             try {
                 Class<?> c = Class.forName(cn, true, cl);
-                return (XmlPropertiesProvider) c.newInstance();
+                return (XmlPropertiesProvider)c.newInstance();
             } catch (ClassNotFoundException |
-                    IllegalAccessException |
-                    InstantiationException x) {
+                     IllegalAccessException |
+                     InstantiationException x) {
                 throw new ServiceConfigurationError(null, x);
             }
         }
 
         private static XmlPropertiesProvider loadProviderAsService(ClassLoader cl) {
             Iterator<XmlPropertiesProvider> iterator =
-                    ServiceLoader.load(XmlPropertiesProvider.class, cl).iterator();
+                 ServiceLoader.load(XmlPropertiesProvider.class, cl).iterator();
             return iterator.hasNext() ? iterator.next() : null;
         }
 
         private static XmlPropertiesProvider loadProvider() {
             return AccessController.doPrivileged(
-                    new PrivilegedAction<XmlPropertiesProvider>() {
-                        public XmlPropertiesProvider run() {
-                            ClassLoader cl = ClassLoader.getSystemClassLoader();
-                            XmlPropertiesProvider provider = loadProviderFromProperty(cl);
-                            if (provider != null)
-                                return provider;
-                            provider = loadProviderAsService(cl);
-                            if (provider != null)
-                                return provider;
-                            return new jdk.internal.util.xml.BasicXmlPropertiesProvider();
-                        }
-                    });
+                new PrivilegedAction<XmlPropertiesProvider>() {
+                    public XmlPropertiesProvider run() {
+                        ClassLoader cl = ClassLoader.getSystemClassLoader();
+                        XmlPropertiesProvider provider = loadProviderFromProperty(cl);
+                        if (provider != null)
+                            return provider;
+                        provider = loadProviderAsService(cl);
+                        if (provider != null)
+                            return provider;
+                        return new jdk.internal.util.xml.BasicXmlPropertiesProvider();
+                }});
         }
 
         private static final XmlPropertiesProvider PROVIDER = loadProvider();
 
         static void load(Properties props, InputStream in)
-                throws IOException, InvalidPropertiesFormatException {
+            throws IOException, InvalidPropertiesFormatException
+        {
             PROVIDER.load(props, in);
         }
 
         static void save(Properties props, OutputStream os, String comment,
                          String encoding)
-                throws IOException {
+            throws IOException
+        {
             PROVIDER.store(props, os, comment, encoding);
         }
     }

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2016, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.rmi;
@@ -34,13 +34,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamConstants;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import sun.rmi.server.MarshalInputStream;
 import sun.rmi.server.MarshalOutputStream;
-
-import sun.misc.ObjectInputFilter;
 
 /**
  * A <code>MarshalledObject</code> contains a byte stream with the serialized
@@ -95,9 +90,6 @@ public final class MarshalledObject<T> implements Serializable {
      */
     private int hash;
 
-    /** Filter used when creating the instance from a stream; may be null. */
-    private transient ObjectInputFilter objectInputFilter = null;
-
     /** Indicate compatibility with 1.2 version of class. */
     private static final long serialVersionUID = 8988374069173025854L;
 
@@ -141,20 +133,6 @@ public final class MarshalledObject<T> implements Serializable {
     }
 
     /**
-     * Reads in the state of the object and saves the stream's
-     * serialization filter to be used when the object is deserialized.
-     *
-     * @param stream the stream
-     * @throws IOException if an I/O error occurs
-     * @throws ClassNotFoundException if a class cannot be found
-     */
-    private void readObject(ObjectInputStream stream)
-        throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();     // read in all fields
-        objectInputFilter = ObjectInputFilter.Config.getObjectInputFilter(stream);
-    }
-
-    /**
      * Returns a new copy of the contained marshalledobject.  The internal
      * representation is deserialized with the semantics used for
      * unmarshaling parameters for RMI calls.
@@ -177,7 +155,7 @@ public final class MarshalledObject<T> implements Serializable {
         ByteArrayInputStream lin =
             (locBytes == null ? null : new ByteArrayInputStream(locBytes));
         MarshalledObjectInputStream in =
-            new MarshalledObjectInputStream(bin, lin, objectInputFilter);
+            new MarshalledObjectInputStream(bin, lin);
         @SuppressWarnings("unchecked")
         T obj = (T) in.readObject();
         in.close();
@@ -317,24 +295,11 @@ public final class MarshalledObject<T> implements Serializable {
          * <code>null</code>, then all annotations will be
          * <code>null</code>.
          */
-        MarshalledObjectInputStream(InputStream objIn, InputStream locIn,
-                    ObjectInputFilter filter)
+        MarshalledObjectInputStream(InputStream objIn, InputStream locIn)
             throws IOException
         {
             super(objIn);
             this.locIn = (locIn == null ? null : new ObjectInputStream(locIn));
-            if (filter != null) {
-                AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                    @Override
-                    public Void run() {
-                        ObjectInputFilter.Config.setObjectInputFilter(MarshalledObjectInputStream.this, filter);
-                        if (MarshalledObjectInputStream.this.locIn != null) {
-                            ObjectInputFilter.Config.setObjectInputFilter(MarshalledObjectInputStream.this.locIn, filter);
-                        }
-                        return null;
-                    }
-                });
-            }
         }
 
         /**

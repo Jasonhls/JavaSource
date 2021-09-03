@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2007-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -280,7 +280,7 @@ public final class LocalDate
      * @param dayOfYear  the day-of-year to represent, from 1 to 366
      * @return the local date, not null
      * @throws DateTimeException if the value of any field is out of range,
-     *  or if the day-of-year is invalid for the year
+     *  or if the day-of-year is invalid for the month-year
      */
     public static LocalDate ofYearDay(int year, int dayOfYear) {
         YEAR.checkValidValue(year);
@@ -308,7 +308,7 @@ public final class LocalDate
      *
      * @param epochDay  the Epoch Day to convert, based on the epoch 1970-01-01
      * @return the local date, not null
-     * @throws DateTimeException if the epoch day exceeds the supported date range
+     * @throws DateTimeException if the epoch days exceeds the supported date range
      */
     public static LocalDate ofEpochDay(long epochDay) {
         long zeroDay = epochDay + DAYS_0000_TO_1970;
@@ -515,7 +515,7 @@ public final class LocalDate
     /**
      * Checks if the specified unit is supported.
      * <p>
-     * This checks if the specified unit can be added to, or subtracted from, this date.
+     * This checks if the specified unit can be added to, or subtracted from, this date-time.
      * If false, then calling the {@link #plus(long, TemporalUnit)} and
      * {@link #minus(long, TemporalUnit) minus} methods will throw an exception.
      * <p>
@@ -592,7 +592,7 @@ public final class LocalDate
     /**
      * Gets the value of the specified field from this date as an {@code int}.
      * <p>
-     * This queries this date for the value of the specified field.
+     * This queries this date for the value for the specified field.
      * The returned value will always be within the valid range of values for the field.
      * If it is not possible to return the value, because the field is not supported
      * or for some other reason, an exception is thrown.
@@ -627,7 +627,7 @@ public final class LocalDate
     /**
      * Gets the value of the specified field from this date as a {@code long}.
      * <p>
-     * This queries this date for the value of the specified field.
+     * This queries this date for the value for the specified field.
      * If it is not possible to return the value, because the field is not supported
      * or for some other reason, an exception is thrown.
      * <p>
@@ -875,9 +875,7 @@ public final class LocalDate
      * <p>
      * A simple adjuster might simply set the one of the fields, such as the year field.
      * A more complex adjuster might set the date to the last day of the month.
-     * <p>
-     * A selection of common adjustments is provided in
-     * {@link java.time.temporal.TemporalAdjusters TemporalAdjusters}.
+     * A selection of common adjustments is provided in {@link TemporalAdjuster}.
      * These include finding the "last day of the month" and "next Wednesday".
      * Key date-time classes also implement the {@code TemporalAdjuster} interface,
      * such as {@link Month} and {@link java.time.MonthDay MonthDay}.
@@ -887,7 +885,7 @@ public final class LocalDate
      * For example this code returns a date on the last day of July:
      * <pre>
      *  import static java.time.Month.*;
-     *  import static java.time.temporal.TemporalAdjusters.*;
+     *  import static java.time.temporal.Adjusters.*;
      *
      *  result = localDate.with(JULY).with(lastDayOfMonth());
      * </pre>
@@ -1043,8 +1041,7 @@ public final class LocalDate
 
     //-----------------------------------------------------------------------
     /**
-     * Returns a copy of this {@code LocalDate} with the year altered.
-     * <p>
+     * Returns a copy of this date with the year altered.
      * If the day-of-month is invalid for the year, it will be changed to the last valid day of the month.
      * <p>
      * This instance is immutable and unaffected by this method call.
@@ -1062,8 +1059,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the month-of-year altered.
-     * <p>
+     * Returns a copy of this date with the month-of-year altered.
      * If the day-of-month is invalid for the year, it will be changed to the last valid day of the month.
      * <p>
      * This instance is immutable and unaffected by this method call.
@@ -1081,8 +1077,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the day-of-month altered.
-     * <p>
+     * Returns a copy of this date with the day-of-month altered.
      * If the resulting date is invalid, an exception is thrown.
      * <p>
      * This instance is immutable and unaffected by this method call.
@@ -1100,8 +1095,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the day-of-year altered.
-     * <p>
+     * Returns a copy of this date with the day-of-year altered.
      * If the resulting date is invalid, an exception is thrown.
      * <p>
      * This instance is immutable and unaffected by this method call.
@@ -1251,7 +1245,7 @@ public final class LocalDate
 
     //-----------------------------------------------------------------------
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of years added.
+     * Returns a copy of this {@code LocalDate} with the specified period in years added.
      * <p>
      * This method adds the specified amount to the years field in three steps:
      * <ol>
@@ -1279,7 +1273,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of months added.
+     * Returns a copy of this {@code LocalDate} with the specified period in months added.
      * <p>
      * This method adds the specified amount to the months field in three steps:
      * <ol>
@@ -1310,7 +1304,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of weeks added.
+     * Returns a copy of this {@code LocalDate} with the specified period in weeks added.
      * <p>
      * This method adds the specified amount in weeks to the days field incrementing
      * the month and year fields as necessary to ensure the result remains valid.
@@ -1408,11 +1402,11 @@ public final class LocalDate
 
     //-----------------------------------------------------------------------
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of years subtracted.
+     * Returns a copy of this {@code LocalDate} with the specified period in years subtracted.
      * <p>
      * This method subtracts the specified amount from the years field in three steps:
      * <ol>
-     * <li>Subtract the input years from the year field</li>
+     * <li>Subtract the input years to the year field</li>
      * <li>Check if the resulting date would be invalid</li>
      * <li>Adjust the day-of-month to the last valid day if necessary</li>
      * </ol>
@@ -1432,11 +1426,11 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of months subtracted.
+     * Returns a copy of this {@code LocalDate} with the specified period in months subtracted.
      * <p>
      * This method subtracts the specified amount from the months field in three steps:
      * <ol>
-     * <li>Subtract the input months from the month-of-year field</li>
+     * <li>Subtract the input months to the month-of-year field</li>
      * <li>Check if the resulting date would be invalid</li>
      * <li>Adjust the day-of-month to the last valid day if necessary</li>
      * </ol>
@@ -1456,7 +1450,7 @@ public final class LocalDate
     }
 
     /**
-     * Returns a copy of this {@code LocalDate} with the specified number of weeks subtracted.
+     * Returns a copy of this {@code LocalDate} with the specified period in weeks subtracted.
      * <p>
      * This method subtracts the specified amount in weeks from the days field decrementing
      * the month and year fields as necessary to ensure the result remains valid.
@@ -2059,7 +2053,6 @@ public final class LocalDate
     /**
      * Defend against malicious streams.
      *
-     * @param s the stream to read
      * @throws InvalidObjectException always
      */
     private void readObject(ObjectInputStream s) throws InvalidObjectException {

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
@@ -83,17 +83,6 @@ class DatagramSocket implements java.io.Closeable {
      */
     boolean oldImpl = false;
 
-    /**
-     * Set when a socket is ST_CONNECTED until we are certain
-     * that any packets which might have been received prior
-     * to calling connect() but not read by the application
-     * have been read. During this time we check the source
-     * address of all packets received to be sure they are from
-     * the connected destination. Other packets are read but
-     * silently dropped.
-     */
-    private boolean explicitFilter = false;
-    private int bytesLeftToFilter;
     /*
      * Connection state:
      * ST_NOT_CONNECTED = socket not connected
@@ -153,15 +142,6 @@ class DatagramSocket implements java.io.Closeable {
 
                 // socket is now connected by the impl
                 connectState = ST_CONNECTED;
-                // Do we need to filter some packets?
-                int avail = getImpl().dataAvailable();
-                if (avail == -1) {
-                    throw new SocketException();
-                }
-                explicitFilter = avail > 0;
-                if (explicitFilter) {
-                    bytesLeftToFilter = getReceiveBufferSize();
-                }
             } catch (SocketException se) {
 
                 // connection will be emulated by DatagramSocket
@@ -335,7 +315,6 @@ class DatagramSocket implements java.io.Closeable {
         }
         // creates a udp socket
         impl.create();
-        impl.setDatagramSocket(this);
         created = true;
     }
 
@@ -510,7 +489,6 @@ class DatagramSocket implements java.io.Closeable {
             connectedAddress = null;
             connectedPort = -1;
             connectState = ST_NOT_CONNECTED;
-            explicitFilter = false;
         }
     }
 
@@ -769,13 +747,10 @@ class DatagramSocket implements java.io.Closeable {
                     } // end of while
                 }
             }
-            DatagramPacket tmp = null;
-            if ((connectState == ST_CONNECTED_NO_IMPL) || explicitFilter) {
+            if (connectState == ST_CONNECTED_NO_IMPL) {
                 // We have to do the filtering the old fashioned way since
                 // the native impl doesn't support connect or the connect
-                // via the impl failed, or .. "explicitFilter" may be set when
-                // a socket is connected via the impl, for a period of time
-                // when packets from other sources might be queued on socket.
+                // via the impl failed.
                 boolean stop = false;
                 while (!stop) {
                     InetAddress peekAddress = null;
@@ -794,14 +769,8 @@ class DatagramSocket implements java.io.Closeable {
                     if ((!connectedAddress.equals(peekAddress)) ||
                         (connectedPort != peekPort)) {
                         // throw the packet away and silently continue
-                        tmp = new DatagramPacket(
-                                                new byte[1024], 1024);
+                        DatagramPacket tmp = new DatagramPacket(new byte[1], 1);
                         getImpl().receive(tmp);
-                        if (explicitFilter) {
-                            if (checkFiltering(tmp)) {
-                                stop = true;
-                            }
-                        }
                     } else {
                         stop = true;
                     }
@@ -810,20 +779,7 @@ class DatagramSocket implements java.io.Closeable {
             // If the security check succeeds, or the datagram is
             // connected then receive the packet
             getImpl().receive(p);
-            if (explicitFilter && tmp == null) {
-                // packet was not filtered, account for it here
-                checkFiltering(p);
-            }
         }
-    }
-
-    private boolean checkFiltering(DatagramPacket p) throws SocketException {
-        bytesLeftToFilter -= p.getLength();
-        if (bytesLeftToFilter <= 0 || getImpl().dataAvailable() <= 0) {
-            explicitFilter = false;
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -1182,14 +1138,7 @@ class DatagramSocket implements java.io.Closeable {
 
         if (isClosed())
             throw new SocketException("Socket is closed");
-        try {
-            getImpl().setOption(SocketOptions.IP_TOS, tc);
-        } catch (SocketException se) {
-            // not supported if socket already connected
-            // Solaris returns error in such cases
-            if(!isConnected())
-                throw se;
-        }
+        getImpl().setOption(SocketOptions.IP_TOS, new Integer(tc));
     }
 
     /**

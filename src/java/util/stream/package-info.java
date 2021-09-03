@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /**
@@ -72,7 +72,7 @@
  *     must be generated to revisit the same elements of the source.
  *     </li>
  * </ul>
- * <p>
+ *
  * Streams can be obtained in a number of ways. Some examples include:
  * <ul>
  *     <li>From a {@link java.util.Collection} via the {@code stream()} and
@@ -207,7 +207,7 @@
  * method references.
  *
  * <h3><a name="NonInterference">Non-interference</a></h3>
- * <p>
+ *
  * Streams enable you to execute possibly-parallel aggregate operations over a
  * variety of data sources, including even non-thread-safe collections such as
  * {@code ArrayList}. This is possible only if we can prevent
@@ -230,7 +230,7 @@
  * to all pipelines, not just parallel ones.  Unless the stream source is
  * concurrent, modifying a stream's data source during execution of a stream
  * pipeline can cause exceptions, incorrect answers, or nonconformant behavior.
- * <p>
+ *
  * For well-behaved stream sources, the source can be modified before the
  * terminal operation commences and those modifications will be reflected in
  * the covered elements.  For example, consider the following code:
@@ -241,7 +241,7 @@
  *     l.add("three");
  *     String s = sl.collect(joining(" "));
  * }</pre>
- * <p>
+ *
  * First a list is created consisting of two strings: "one"; and "two". Then a
  * stream is created from that list. Next the list is modified by adding a third
  * string: "three". Finally the elements of the stream are collected and joined
@@ -253,7 +253,7 @@
  * construction</a> for requirements for building well-behaved streams.
  *
  * <h3><a name="Statelessness">Stateless behaviors</a></h3>
- * <p>
+ *
  * Stream pipeline results may be nondeterministic or incorrect if the behavioral
  * parameters to the stream operations are <em>stateful</em>.  A stateful lambda
  * (or other object implementing the appropriate functional interface) is one
@@ -265,7 +265,7 @@
  *     Set<Integer> seen = Collections.synchronizedSet(new HashSet<>());
  *     stream.parallel().map(e -> { if (seen.add(e)) return 0; else return e; })...
  * }</pre>
- * <p>
+ *
  * Here, if the mapping operation is performed in parallel, the results for the
  * same input could vary from run to run, due to thread scheduling differences,
  * whereas, with a stateless lambda expression the results would always be the
@@ -281,7 +281,7 @@
  * restructure the stream pipeline to avoid statefulness.
  *
  * <h3>Side-effects</h3>
- * <p>
+ *
  * Side-effects in behavioral parameters to stream operations are, in general,
  * discouraged, as they can often lead to unwitting violations of the
  * statelessness requirement, as well as other thread-safety hazards.
@@ -317,7 +317,7 @@
  *     stream.filter(s -> pattern.matcher(s).matches())
  *           .forEach(s -> results.add(s));  // Unnecessary use of side-effects!
  * }</pre>
- * <p>
+ *
  * This code unnecessarily uses side-effects.  If executed in parallel, the
  * non-thread-safety of {@code ArrayList} would cause incorrect results, and
  * adding needed synchronization would cause contention, undermining the
@@ -372,7 +372,7 @@
  * above, still parallelize efficiently even under ordering constraints.
  *
  * <h2><a name="Reduction">Reduction operations</a></h2>
- * <p>
+ *
  * A <em>reduction</em> operation (also called a <em>fold</em>) takes a sequence
  * of input elements and combines them into a single summary result by repeated
  * application of a combining operation, such as finding the sum or maximum of
@@ -477,7 +477,7 @@
  * into a single function.
  *
  * <h3><a name="MutableReduction">Mutable reduction</a></h3>
- * <p>
+ *
  * A <em>mutable reduction operation</em> accumulates input elements into a
  * mutable result container, such as a {@code Collection} or {@code StringBuilder},
  * as it processes the elements in the stream.
@@ -562,7 +562,7 @@
  *     Collector<Employee, ?, Integer> summingSalaries
  *         = Collectors.summingInt(Employee::getSalary);
  * }</pre>
- * <p>
+ *
  * (The {@code ?} for the second type parameter merely indicates that we don't
  * care about the intermediate representation used by this collector.)
  * If we wanted to create a collector to tabulate the sum of salaries by
@@ -604,7 +604,7 @@
  * order.
  *
  * <h3><a name="ConcurrentReduction">Reduction, concurrency, and ordering</a></h3>
- * <p>
+ *
  * With some complex reduction operations, for example a {@code collect()} that
  * produces a {@code Map}, such as:
  * <pre>{@code
@@ -659,7 +659,7 @@
  * a merge-based parallel reduction.
  *
  * <h3><a name="Associativity">Associativity</a></h3>
- * <p>
+ *
  * An operator or function {@code op} is <em>associative</em> if the following
  * holds:
  * <pre>{@code
@@ -677,7 +677,7 @@
  * max, and string concatenation.
  *
  * <h2><a name="StreamSources">Low-level stream construction</a></h2>
- * <p>
+ *
  * So far, all the stream examples have used methods like
  * {@link java.util.Collection#stream()} or {@link java.util.Arrays#stream(Object[])}
  * to obtain a stream.  How are those stream-bearing methods implemented?
@@ -712,7 +712,7 @@
  * timing of binding to the data, since the data could change between the time
  * the spliterator is created and the time the stream pipeline is executed.
  * Ideally, a spliterator for a stream would report a characteristic of
- * <p>
+
  * {@code IMMUTABLE} or {@code CONCURRENT}; if not it should be
  * <a href="../Spliterator.html#binding"><em>late-binding</em></a>. If a source
  * cannot directly supply a recommended spliterator, it may indirectly supply

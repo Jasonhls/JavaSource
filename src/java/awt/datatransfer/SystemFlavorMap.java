@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.awt.datatransfer;
@@ -38,16 +38,14 @@ import java.net.URL;
 import java.net.MalformedURLException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
 
-import sun.awt.AppContext;
 import sun.awt.datatransfer.DataTransferer;
 
 /**
@@ -68,7 +66,10 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      */
     private static String JavaMIME = "JAVA_DATAFLAVOR:";
 
-    private static final Object FLAVOR_MAP_KEY = new Object();
+    /**
+     * System singleton which maps a thread's ClassLoader to a SystemFlavorMap.
+     */
+    private static final WeakHashMap<ClassLoader, FlavorMap> flavorMaps = new WeakHashMap<>();
 
     /**
      * Copied from java.util.Properties.
@@ -104,11 +105,19 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     private static final String HTML_TEXT_BASE_TYPE = "text/html";
 
     /**
+     * This constant is passed to flavorToNativeLookup() to indicate that a
+     * a native should be synthesized, stored, and returned by encoding the
+     * DataFlavor's MIME type in case if the DataFlavor is not found in
+     * 'flavorToNative' map.
+     */
+    private static final boolean SYNTHESIZE_IF_NOT_FOUND = true;
+
+    /**
      * Maps native Strings to Lists of DataFlavors (or base type Strings for
      * text DataFlavors).
      * Do not use the field directly, use getNativeToFlavor() instead.
      */
-    private final Map<String, LinkedHashSet<DataFlavor>> nativeToFlavor = new HashMap<>();
+    private final Map<String, List<DataFlavor>> nativeToFlavor = new HashMap<>();
 
     /**
      * Accessor to nativeToFlavor map.  Since we use lazy initialization we must
@@ -117,7 +126,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      *
      * @return nativeToFlavor
      */
-    private Map<String, LinkedHashSet<DataFlavor>> getNativeToFlavor() {
+    private Map<String, List<DataFlavor>> getNativeToFlavor() {
         if (!isMapInitialized) {
             initSystemFlavorMap();
         }
@@ -129,7 +138,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * native Strings.
      * Do not use the field directly, use getFlavorToNative() instead.
      */
-    private final Map<DataFlavor, LinkedHashSet<String>> flavorToNative = new HashMap<>();
+    private final Map<DataFlavor, List<String>> flavorToNative = new HashMap<>();
 
     /**
      * Accessor to flavorToNative map.  Since we use lazy initialization we must
@@ -138,7 +147,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      *
      * @return flavorToNative
      */
-    private synchronized Map<DataFlavor, LinkedHashSet<String>> getFlavorToNative() {
+    private synchronized Map<DataFlavor, List<String>> getFlavorToNative() {
         if (!isMapInitialized) {
             initSystemFlavorMap();
         }
@@ -146,44 +155,21 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     }
 
     /**
-     * Maps a text DataFlavor primary mime-type to the native. Used only to store
-     * standard mappings registered in the flavormap.properties
-     * Do not use this field directly, use getTextTypeToNative() instead.
-     */
-    private Map<String, LinkedHashSet<String>> textTypeToNative = new HashMap<>();
-
-    /**
      * Shows if the object has been initialized.
      */
     private boolean isMapInitialized = false;
 
     /**
-     * An accessor to textTypeToNative map.  Since we use lazy initialization we
-     * must use this accessor instead of direct access to the field which may not
-     * be initialized yet. This method will initialize the field if needed.
-     *
-     * @return textTypeToNative
-     */
-    private synchronized Map<String, LinkedHashSet<String>> getTextTypeToNative() {
-        if (!isMapInitialized) {
-            initSystemFlavorMap();
-            // From this point the map should not be modified
-            textTypeToNative = Collections.unmodifiableMap(textTypeToNative);
-        }
-        return textTypeToNative;
-    }
-
-    /**
      * Caches the result of getNativesForFlavor(). Maps DataFlavors to
-     * SoftReferences which reference LinkedHashSet of String natives.
+     * SoftReferences which reference Lists of String natives.
      */
-    private final SoftCache<DataFlavor, String> nativesForFlavorCache = new SoftCache<>();
+    private Map<DataFlavor, SoftReference<List<String>>> getNativesForFlavorCache = new HashMap<>();
 
     /**
      * Caches the result getFlavorsForNative(). Maps String natives to
-     * SoftReferences which reference LinkedHashSet of DataFlavors.
+     * SoftReferences which reference Lists of DataFlavors.
      */
-    private final SoftCache<String, DataFlavor> flavorsForNativeCache = new SoftCache<>();
+    private Map<String, SoftReference<List<DataFlavor>>> getFlavorsForNativeCache = new HashMap<>();
 
     /**
      * Dynamic mapping generation used for text mappings should not be applied
@@ -191,18 +177,28 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * explicitly specified with setFlavorsForNative() or
      * setNativesForFlavor(). This keeps all such keys.
      */
-    private Set<Object> disabledMappingGenerationKeys = new HashSet<>();
+    private Set disabledMappingGenerationKeys = new HashSet();
 
     /**
      * Returns the default FlavorMap for this thread's ClassLoader.
      */
     public static FlavorMap getDefaultFlavorMap() {
-        AppContext context = AppContext.getAppContext();
-        FlavorMap fm = (FlavorMap) context.get(FLAVOR_MAP_KEY);
-        if (fm == null) {
-            fm = new SystemFlavorMap();
-            context.put(FLAVOR_MAP_KEY, fm);
+        ClassLoader contextClassLoader =
+            Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader == null) {
+            contextClassLoader = ClassLoader.getSystemClassLoader();
         }
+
+        FlavorMap fm;
+
+        synchronized(flavorMaps) {
+            fm = flavorMaps.get(contextClassLoader);
+            if (fm == null) {
+                fm = new SystemFlavorMap();
+                flavorMaps.put(contextClassLoader, fm);
+            }
+        }
+
         return fm;
     }
 
@@ -243,11 +239,26 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                     }
                 });
 
-        String url =
+        BufferedReader flavormapURL =
             java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction<String>() {
-                    public String run() {
-                        return Toolkit.getProperty("AWT.DnD.flavorMapFileURL", null);
+                new java.security.PrivilegedAction<BufferedReader>() {
+                    public BufferedReader run() {
+                        String url = Toolkit.getProperty("AWT.DnD.flavorMapFileURL", null);
+
+                        if (url == null) {
+                            return null;
+                        }
+
+                        try {
+                            return new BufferedReader
+                                (new InputStreamReader
+                                    (new URL(url).openStream(), "ISO-8859-1"));
+                        } catch (MalformedURLException e) {
+                            System.err.println("MalformedURLException:" + e + " while reading AWT.DnD.flavorMapFileURL:" + url);
+                        } catch (IOException e) {
+                            System.err.println("IOException:" + e + " while reading AWT.DnD.flavorMapFileURL:" + url);
+                        }
+                        return null;
                     }
                 });
 
@@ -256,19 +267,6 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                 parseAndStoreReader(flavormapDotProperties);
             } catch (IOException e) {
                 System.err.println("IOException:" + e + " while parsing default flavormap.properties file");
-            }
-        }
-
-        BufferedReader flavormapURL = null;
-        if (url != null) {
-            try {
-                flavormapURL = new BufferedReader(new InputStreamReader(new URL(url).openStream(), "ISO-8859-1"));
-            } catch (MalformedURLException e) {
-                System.err.println("MalformedURLException:" + e + " while reading AWT.DnD.flavorMapFileURL:" + url);
-            } catch (IOException e) {
-                System.err.println("IOException:" + e + " while reading AWT.DnD.flavorMapFileURL:" + url);
-            } catch (SecurityException e) {
-                // ignored
             }
         }
 
@@ -420,7 +418,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                         flavor = new DataFlavor(value);
                     } catch (Exception e) {
                         try {
-                            flavor = new DataFlavor(value, null);
+                            flavor = new DataFlavor(value, (String)null);
                         } catch (Exception ee) {
                             ee.printStackTrace();
                             continue;
@@ -428,11 +426,11 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
                     }
 
                     final LinkedHashSet<DataFlavor> dfs = new LinkedHashSet<>();
+
                     dfs.add(flavor);
 
                     if ("text".equals(flavor.getPrimaryType())) {
                         dfs.addAll(convertMimeTypeToDataFlavors(value));
-                        store(flavor.mimeType.getBaseType(), key, getTextTypeToNative());
                     }
 
                     for (DataFlavor df : dfs) {
@@ -521,10 +519,10 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * the appropriate Map location, but rather will be appended to a List
      * stored in that location.
      */
-    private <H, L> void store(H hashed, L listed, Map<H, LinkedHashSet<L>> map) {
-        LinkedHashSet<L> list = map.get(hashed);
+    private <H, L> void store(H hashed, L listed, Map<H, List<L>> map) {
+        List<L> list = map.get(hashed);
         if (list == null) {
-            list = new LinkedHashSet<>(1);
+            list = new ArrayList<>(1);
             map.put(hashed, list);
         }
         if (!list.contains(listed)) {
@@ -538,17 +536,17 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * case, a new DataFlavor is synthesized, stored, and returned, if and
      * only if the specified native is encoded as a Java MIME type.
      */
-    private LinkedHashSet<DataFlavor> nativeToFlavorLookup(String nat) {
-        LinkedHashSet<DataFlavor> flavors = getNativeToFlavor().get(nat);
-
+    private List<DataFlavor> nativeToFlavorLookup(String nat) {
+        List<DataFlavor> flavors = getNativeToFlavor().get(nat);
 
         if (nat != null && !disabledMappingGenerationKeys.contains(nat)) {
             DataTransferer transferer = DataTransferer.getInstance();
             if (transferer != null) {
-                LinkedHashSet<DataFlavor> platformFlavors =
+                List<DataFlavor> platformFlavors =
                     transferer.getPlatformMappingsForNative(nat);
                 if (!platformFlavors.isEmpty()) {
                     if (flavors != null) {
+                        platformFlavors.removeAll(new HashSet<>(flavors));
                         // Prepending the platform-specific mappings ensures
                         // that the flavors added with
                         // addFlavorForUnencodedNative() are at the end of
@@ -574,22 +572,24 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             }
 
             if (flavor != null) {
-                flavors = new LinkedHashSet<>(1);
+                flavors = new ArrayList<>(1);
                 getNativeToFlavor().put(nat, flavors);
                 flavors.add(flavor);
-                flavorsForNativeCache.remove(nat);
+                getFlavorsForNativeCache.remove(nat);
+                getFlavorsForNativeCache.remove(null);
 
-                LinkedHashSet<String> natives = getFlavorToNative().get(flavor);
+                List<String> natives = getFlavorToNative().get(flavor);
                 if (natives == null) {
-                    natives = new LinkedHashSet<>(1);
+                    natives = new ArrayList<>(1);
                     getFlavorToNative().put(flavor, natives);
                 }
                 natives.add(nat);
-                nativesForFlavorCache.remove(flavor);
+                getNativesForFlavorCache.remove(flavor);
+                getNativesForFlavorCache.remove(null);
             }
         }
 
-        return (flavors != null) ? flavors : new LinkedHashSet<>(0);
+        return (flavors != null) ? flavors : new ArrayList<>(0);
     }
 
     /**
@@ -600,18 +600,18 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * encoding the DataFlavor's MIME type. Otherwise an empty List is returned
      * and 'flavorToNative' remains unaffected.
      */
-    private LinkedHashSet<String> flavorToNativeLookup(final DataFlavor flav,
-                                                       final boolean synthesize) {
-
-        LinkedHashSet<String> natives = getFlavorToNative().get(flav);
+    private List<String> flavorToNativeLookup(final DataFlavor flav,
+                                              final boolean synthesize) {
+        List<String> natives = getFlavorToNative().get(flav);
 
         if (flav != null && !disabledMappingGenerationKeys.contains(flav)) {
             DataTransferer transferer = DataTransferer.getInstance();
             if (transferer != null) {
-                LinkedHashSet<String> platformNatives =
+                List<String> platformNatives =
                     transferer.getPlatformMappingsForFlavor(flav);
                 if (!platformNatives.isEmpty()) {
                     if (natives != null) {
+                        platformNatives.removeAll(new HashSet<>(natives));
                         // Prepend the platform-specific mappings to ensure
                         // that the natives added with
                         // addUnencodedNativeForFlavor() are at the end of
@@ -626,25 +626,26 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
         if (natives == null) {
             if (synthesize) {
                 String encoded = encodeDataFlavor(flav);
-                natives = new LinkedHashSet<>(1);
+                natives = new ArrayList<>(1);
                 getFlavorToNative().put(flav, natives);
                 natives.add(encoded);
+                getNativesForFlavorCache.remove(flav);
+                getNativesForFlavorCache.remove(null);
 
-                LinkedHashSet<DataFlavor> flavors = getNativeToFlavor().get(encoded);
+                List<DataFlavor> flavors = getNativeToFlavor().get(encoded);
                 if (flavors == null) {
-                    flavors = new LinkedHashSet<>(1);
+                    flavors = new ArrayList<>(1);
                     getNativeToFlavor().put(encoded, flavors);
                 }
                 flavors.add(flav);
-
-                nativesForFlavorCache.remove(flav);
-                flavorsForNativeCache.remove(encoded);
+                getFlavorsForNativeCache.remove(encoded);
+                getFlavorsForNativeCache.remove(null);
             } else {
-                natives = new LinkedHashSet<>(0);
+                natives = new ArrayList<>(0);
             }
         }
 
-        return new LinkedHashSet<>(natives);
+        return natives;
     }
 
     /**
@@ -672,63 +673,103 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #encodeDataFlavor
      * @since 1.4
      */
-    @Override
     public synchronized List<String> getNativesForFlavor(DataFlavor flav) {
-        LinkedHashSet<String> retval = nativesForFlavorCache.check(flav);
-        if (retval != null) {
-            return new ArrayList<>(retval);
+        List<String> retval = null;
+
+        // Check cache, even for null flav
+        SoftReference<List<String>> ref = getNativesForFlavorCache.get(flav);
+        if (ref != null) {
+            retval = ref.get();
+            if (retval != null) {
+                // Create a copy, because client code can modify the returned
+                // list.
+                return new ArrayList<>(retval);
+            }
         }
 
         if (flav == null) {
-            retval = new LinkedHashSet<>(getNativeToFlavor().keySet());
+            retval = new ArrayList<>(getNativeToFlavor().keySet());
         } else if (disabledMappingGenerationKeys.contains(flav)) {
             // In this case we shouldn't synthesize a native for this flavor,
             // since its mappings were explicitly specified.
-            retval = flavorToNativeLookup(flav, false);
+            retval = flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
         } else if (DataTransferer.isFlavorCharsetTextType(flav)) {
-            retval = new LinkedHashSet<>(0);
 
             // For text/* flavors, flavor-to-native mappings specified in
             // flavormap.properties are stored per flavor's base type.
             if ("text".equals(flav.getPrimaryType())) {
-                LinkedHashSet<String> textTypeNatives =
-                        getTextTypeToNative().get(flav.mimeType.getBaseType());
-                if (textTypeNatives != null) {
-                    retval.addAll(textTypeNatives);
+                retval = getAllNativesForType(flav.mimeType.getBaseType());
+                if (retval != null) {
+                    // To prevent the List stored in the map from modification.
+                    retval = new ArrayList(retval);
                 }
             }
 
             // Also include text/plain natives, but don't duplicate Strings
-            LinkedHashSet<String> textTypeNatives =
-                    getTextTypeToNative().get(TEXT_PLAIN_BASE_TYPE);
-            if (textTypeNatives != null) {
-                retval.addAll(textTypeNatives);
-            }
+            List<String> textPlainList = getAllNativesForType(TEXT_PLAIN_BASE_TYPE);
 
-            if (retval.isEmpty()) {
-                retval = flavorToNativeLookup(flav, true);
-            } else {
-                // In this branch it is guaranteed that natives explicitly
-                // listed for flav's MIME type were added with
-                // addUnencodedNativeForFlavor(), so they have lower priority.
-                retval.addAll(flavorToNativeLookup(flav, false));
+            if (textPlainList != null && !textPlainList.isEmpty()) {
+                // To prevent the List stored in the map from modification.
+                // This also guarantees that removeAll() is supported.
+                textPlainList = new ArrayList<>(textPlainList);
+                if (retval != null && !retval.isEmpty()) {
+                    // Use HashSet to get constant-time performance for search.
+                    textPlainList.removeAll(new HashSet<>(retval));
+                    retval.addAll(textPlainList);
+                } else {
+                    retval = textPlainList;
+                }
             }
-        } else if (DataTransferer.isFlavorNoncharsetTextType(flav)) {
-            retval = getTextTypeToNative().get(flav.mimeType.getBaseType());
 
             if (retval == null || retval.isEmpty()) {
-                retval = flavorToNativeLookup(flav, true);
+                retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
             } else {
                 // In this branch it is guaranteed that natives explicitly
                 // listed for flav's MIME type were added with
                 // addUnencodedNativeForFlavor(), so they have lower priority.
-                retval.addAll(flavorToNativeLookup(flav, false));
+                List<String> explicitList =
+                    flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
+
+                // flavorToNativeLookup() never returns null.
+                // It can return an empty List, however.
+                if (!explicitList.isEmpty()) {
+                    // To prevent the List stored in the map from modification.
+                    // This also guarantees that removeAll() is supported.
+                    explicitList = new ArrayList<>(explicitList);
+                    // Use HashSet to get constant-time performance for search.
+                    explicitList.removeAll(new HashSet<>(retval));
+                    retval.addAll(explicitList);
+                }
+            }
+        } else if (DataTransferer.isFlavorNoncharsetTextType(flav)) {
+            retval = getAllNativesForType(flav.mimeType.getBaseType());
+
+            if (retval == null || retval.isEmpty()) {
+                retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
+            } else {
+                // In this branch it is guaranteed that natives explicitly
+                // listed for flav's MIME type were added with
+                // addUnencodedNativeForFlavor(), so they have lower priority.
+                List<String> explicitList =
+                    flavorToNativeLookup(flav, !SYNTHESIZE_IF_NOT_FOUND);
+
+                // flavorToNativeLookup() never returns null.
+                // It can return an empty List, however.
+                if (!explicitList.isEmpty()) {
+                    // To prevent the List stored in the map from modification.
+                    // This also guarantees that add/removeAll() are supported.
+                    retval = new ArrayList<>(retval);
+                    explicitList = new ArrayList<>(explicitList);
+                    // Use HashSet to get constant-time performance for search.
+                    explicitList.removeAll(new HashSet<>(retval));
+                    retval.addAll(explicitList);
+                }
             }
         } else {
-            retval = flavorToNativeLookup(flav, true);
+            retval = flavorToNativeLookup(flav, SYNTHESIZE_IF_NOT_FOUND);
         }
 
-        nativesForFlavorCache.put(flav, retval);
+        getNativesForFlavorCache.put(flav, new SoftReference<>(retval));
         // Create a copy, because client code can modify the returned list.
         return new ArrayList<>(retval);
     }
@@ -764,38 +805,62 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #encodeJavaMIMEType
      * @since 1.4
      */
-    @Override
     public synchronized List<DataFlavor> getFlavorsForNative(String nat) {
-        LinkedHashSet<DataFlavor> returnValue = flavorsForNativeCache.check(nat);
-        if (returnValue != null) {
-            return new ArrayList<>(returnValue);
-        } else {
-            returnValue = new LinkedHashSet<>();
+
+        // Check cache, even for null nat
+        SoftReference<List<DataFlavor>> ref = getFlavorsForNativeCache.get(nat);
+        if (ref != null) {
+            List<DataFlavor> retval = ref.get();
+            if (retval != null) {
+                return new ArrayList<>(retval);
+            }
         }
+
+        final LinkedHashSet <DataFlavor> returnValue =
+            new LinkedHashSet<>();
 
         if (nat == null) {
-            for (String n : getNativesForFlavor(null)) {
-                returnValue.addAll(getFlavorsForNative(n));
-            }
-        } else {
-            final LinkedHashSet<DataFlavor> flavors = nativeToFlavorLookup(nat);
-            if (disabledMappingGenerationKeys.contains(nat)) {
-                return new ArrayList<>(flavors);
-            }
+            final List<String> natives = getNativesForFlavor(null);
 
-            final LinkedHashSet<DataFlavor> flavorsWithSynthesized =
-                    nativeToFlavorLookup(nat);
+            for (String n : natives)
+            {
+                final List<DataFlavor> flavors = getFlavorsForNative(n);
 
-            for (DataFlavor df : flavorsWithSynthesized) {
-                returnValue.add(df);
-                if ("text".equals(df.getPrimaryType())) {
-                    String baseType = df.mimeType.getBaseType();
-                    returnValue.addAll(convertMimeTypeToDataFlavors(baseType));
+                for (DataFlavor df : flavors)
+                {
+                    returnValue.add(df);
                 }
             }
+        } else {
+
+            final List<DataFlavor> flavors = nativeToFlavorLookup(nat);
+
+            if (disabledMappingGenerationKeys.contains(nat)) {
+                return flavors;
+            }
+
+            final List<DataFlavor> flavorsAndBaseTypes =
+                nativeToFlavorLookup(nat);
+
+            for (DataFlavor df : flavorsAndBaseTypes) {
+                returnValue.add(df);
+                if ("text".equals(df.getPrimaryType())) {
+                    try {
+                        returnValue.addAll(
+                                convertMimeTypeToDataFlavors(
+                                        new MimeType(df.getMimeType()
+                                        ).getBaseType()));
+                    } catch (MimeTypeParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         }
-        flavorsForNativeCache.put(nat, returnValue);
-        return new ArrayList<>(returnValue);
+
+        final List<DataFlavor> arrayList = new ArrayList<>(returnValue);
+        getFlavorsForNativeCache.put(nat, new SoftReference<>(arrayList));
+        return new ArrayList<>(arrayList);
     }
 
     private static Set<DataFlavor> convertMimeTypeToDataFlavors(
@@ -811,6 +876,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
         } catch (MimeTypeParseException mtpe) {
             // Cannot happen, since we checked all mappings
             // on load from flavormap.properties.
+            assert(false);
         }
 
         if (DataTransferer.doesSubtypeSupportCharset(subType, null)) {
@@ -889,10 +955,10 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
     }
 
     private static final String [] htmlDocumntTypes =
-            new String [] {"all", "selection", "fragment"};
+        new String [] {"all", "selection", "fragment"};
 
-    private static LinkedHashSet<String> handleHtmlMimeTypes(String baseType,
-                                                             String mimeType) {
+    private static LinkedHashSet<String> handleHtmlMimeTypes(
+        String baseType, String mimeType) {
 
         LinkedHashSet<String> returnValues = new LinkedHashSet<>();
 
@@ -929,14 +995,14 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #getNativesForFlavor
      * @see #encodeDataFlavor
      */
-    @Override
-    public synchronized Map<DataFlavor,String> getNativesForFlavors(DataFlavor[] flavors)
+    public synchronized Map<DataFlavor,String>
+        getNativesForFlavors(DataFlavor[] flavors)
     {
         // Use getNativesForFlavor to generate extra natives for text flavors
         // and stringFlavor
 
         if (flavors == null) {
-            List<DataFlavor> flavor_list = getFlavorsForNative(null);
+            List flavor_list = getFlavorsForNative(null);
             flavors = new DataFlavor[flavor_list.size()];
             flavor_list.toArray(flavors);
         }
@@ -975,14 +1041,15 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      * @see #getFlavorsForNative
      * @see #encodeJavaMIMEType
      */
-    @Override
-    public synchronized Map<String,DataFlavor> getFlavorsForNatives(String[] natives)
+    public synchronized Map<String,DataFlavor>
+        getFlavorsForNatives(String[] natives)
     {
         // Use getFlavorsForNative to generate extra flavors for text natives
+
         if (natives == null) {
-            List<String> nativesList = getNativesForFlavor(null);
-            natives = new String[nativesList.size()];
-            nativesList.toArray(natives);
+            List native_list = getNativesForFlavor(null);
+            natives = new String[native_list.size()];
+            native_list.toArray(natives);
         }
 
         Map<String, DataFlavor> retval = new HashMap<>(natives.length, 1.0f);
@@ -991,6 +1058,7 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             DataFlavor flav = (flavors.isEmpty())? null : flavors.get(0);
             retval.put(aNative, flav);
         }
+
         return retval;
     }
 
@@ -1016,16 +1084,20 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      */
     public synchronized void addUnencodedNativeForFlavor(DataFlavor flav,
                                                          String nat) {
-        Objects.requireNonNull(nat, "Null native not permitted");
-        Objects.requireNonNull(flav, "Null flavor not permitted");
+        if (flav == null || nat == null) {
+            throw new NullPointerException("null arguments not permitted");
+        }
 
-        LinkedHashSet<String> natives = getFlavorToNative().get(flav);
+        List<String> natives = getFlavorToNative().get(flav);
         if (natives == null) {
-            natives = new LinkedHashSet<>(1);
+            natives = new ArrayList<>(1);
             getFlavorToNative().put(flav, natives);
+        } else if (natives.contains(nat)) {
+            return;
         }
         natives.add(nat);
-        nativesForFlavorCache.remove(flav);
+        getNativesForFlavorCache.remove(flav);
+        getNativesForFlavorCache.remove(null);
     }
 
     /**
@@ -1058,15 +1130,18 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      */
     public synchronized void setNativesForFlavor(DataFlavor flav,
                                                  String[] natives) {
-        Objects.requireNonNull(natives, "Null natives not permitted");
-        Objects.requireNonNull(flav, "Null flavors not permitted");
+        if (flav == null || natives == null) {
+            throw new NullPointerException("null arguments not permitted");
+        }
 
         getFlavorToNative().remove(flav);
         for (String aNative : natives) {
             addUnencodedNativeForFlavor(flav, aNative);
         }
         disabledMappingGenerationKeys.add(flav);
-        nativesForFlavorCache.remove(flav);
+        // Clear the cache to handle the case of empty natives.
+        getNativesForFlavorCache.remove(flav);
+        getNativesForFlavorCache.remove(null);
     }
 
     /**
@@ -1089,16 +1164,20 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      */
     public synchronized void addFlavorForUnencodedNative(String nat,
                                                          DataFlavor flav) {
-        Objects.requireNonNull(nat, "Null native not permitted");
-        Objects.requireNonNull(flav, "Null flavor not permitted");
+        if (nat == null || flav == null) {
+            throw new NullPointerException("null arguments not permitted");
+        }
 
-        LinkedHashSet<DataFlavor> flavors = getNativeToFlavor().get(nat);
+        List<DataFlavor> flavors = getNativeToFlavor().get(nat);
         if (flavors == null) {
-            flavors = new LinkedHashSet<>(1);
+            flavors = new ArrayList<>(1);
             getNativeToFlavor().put(nat, flavors);
+        } else if (flavors.contains(flav)) {
+            return;
         }
         flavors.add(flav);
-        flavorsForNativeCache.remove(nat);
+        getFlavorsForNativeCache.remove(nat);
+        getFlavorsForNativeCache.remove(null);
     }
 
     /**
@@ -1130,15 +1209,18 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
      */
     public synchronized void setFlavorsForNative(String nat,
                                                  DataFlavor[] flavors) {
-        Objects.requireNonNull(nat, "Null native not permitted");
-        Objects.requireNonNull(flavors, "Null flavors not permitted");
+        if (nat == null || flavors == null) {
+            throw new NullPointerException("null arguments not permitted");
+        }
 
         getNativeToFlavor().remove(nat);
         for (DataFlavor flavor : flavors) {
             addFlavorForUnencodedNative(nat, flavor);
         }
         disabledMappingGenerationKeys.add(nat);
-        flavorsForNativeCache.remove(nat);
+        // Clear the cache to handle the case of empty flavors.
+        getFlavorsForNativeCache.remove(nat);
+        getFlavorsForNativeCache.remove(null);
     }
 
     /**
@@ -1237,29 +1319,17 @@ public final class SystemFlavorMap implements FlavorMap, FlavorTable {
             : null;
     }
 
-    private static final class SoftCache<K, V> {
-        Map<K, SoftReference<LinkedHashSet<V>>> cache;
-
-        public void put(K key, LinkedHashSet<V> value) {
-            if (cache == null) {
-                cache = new HashMap<>(1);
+    private List<String> getAllNativesForType(String type) {
+        Set<String> retval = null;
+        for (DataFlavor dataFlavor : convertMimeTypeToDataFlavors(type)) {
+            List<String> natives = getFlavorToNative().get(dataFlavor);
+            if (natives != null && !natives.isEmpty()) {
+                if (retval == null) {
+                    retval = new LinkedHashSet<>();
+                }
+                retval.addAll(natives);
             }
-            cache.put(key, new SoftReference<>(value));
         }
-
-        public void remove(K key) {
-            if (cache == null) return;
-            cache.remove(null);
-            cache.remove(key);
-        }
-
-        public LinkedHashSet<V> check(K key) {
-            if (cache == null) return null;
-            SoftReference<LinkedHashSet<V>> ref = cache.get(key);
-            if (ref != null) {
-                return ref.get();
-            }
-            return null;
-        }
+        return retval == null ? null : new ArrayList<>(retval);
     }
 }

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1995, 2014, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
@@ -277,30 +277,6 @@ class MulticastSocket extends DatagramSocket {
         return getImpl().getTimeToLive();
     }
 
-    private static final NetworkInterface defNetIntf;
-    static {
-        String name = java.security.AccessController.doPrivileged(
-            new java.security.PrivilegedAction<String>() {
-                public String run() {
-                    return System.getProperty("jdk.net.defaultMulticastInterface");
-                }
-            });
-        NetworkInterface ni = null;
-        if (name != null) {
-            try {
-                ni = NetworkInterface.getByName(name);
-                if (ni == null) {
-                    System.err.println("WARNING: cannot find network interface " + name);
-                } else {
-                    System.err.println("INFO: network interface set to " + name);
-                }
-            } catch (SocketException se) {
-                System.err.println("ERROR: failed to find network interface " + name);
-            }
-        }
-        defNetIntf = ni;
-    }
-
     /**
      * Joins a multicast group. Its behavior may be affected by
      * {@code setInterface} or {@code setNetworkInterface}.
@@ -320,17 +296,6 @@ class MulticastSocket extends DatagramSocket {
      * @see SecurityManager#checkMulticast(InetAddress)
      */
     public void joinGroup(InetAddress mcastaddr) throws IOException {
-
-        synchronized (infLock) {
-            if (!interfaceSet && defNetIntf != null) {
-                if (mcastaddr == null) {
-                    throw new NullPointerException("Multicast address is null");
-                }
-                joinGroup(new InetSocketAddress(mcastaddr, 0), defNetIntf);
-                return;
-            }
-        }
-
         if (isClosed()) {
             throw new SocketException("Socket is closed");
         }
@@ -376,17 +341,6 @@ class MulticastSocket extends DatagramSocket {
      * @see SecurityManager#checkMulticast(InetAddress)
      */
     public void leaveGroup(InetAddress mcastaddr) throws IOException {
-
-        synchronized (infLock) {
-            if (!interfaceSet && defNetIntf != null) {
-                if (mcastaddr == null) {
-                    throw new NullPointerException("Multicast address is null");
-                }
-                leaveGroup(new InetSocketAddress(mcastaddr, 0), defNetIntf);
-                return;
-            }
-        }
-
         if (isClosed()) {
             throw new SocketException("Socket is closed");
         }
@@ -615,7 +569,7 @@ class MulticastSocket extends DatagramSocket {
     public NetworkInterface getNetworkInterface() throws SocketException {
         NetworkInterface ni
             = (NetworkInterface)getImpl().getOption(SocketOptions.IP_MULTICAST_IF2);
-        if ((ni.getIndex() == 0) || (ni.getIndex() == -1)) {
+        if (ni.getIndex() == 0) {
             InetAddress[] addrs = new InetAddress[1];
             addrs[0] = InetAddress.anyLocalAddress();
             return new NetworkInterface(addrs[0].getHostName(), 0, addrs);

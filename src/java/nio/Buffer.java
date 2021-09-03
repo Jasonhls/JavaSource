@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.nio;
@@ -241,32 +241,10 @@ public abstract class Buffer {
      */
     public final Buffer position(int newPosition) {
         if ((newPosition > limit) || (newPosition < 0))
-            throw createPositionException(newPosition);
-        if (mark > newPosition) mark = -1;
+            throw new IllegalArgumentException();
         position = newPosition;
+        if (mark > position) mark = -1;
         return this;
-    }
-
-    /**
-     * Verify that {@code 0 < newPosition <= limit}
-     *
-     * @param newPosition
-     *        The new position value
-     *
-     * @throws IllegalArgumentException
-     *         If the specified position is out of bounds.
-     */
-    private IllegalArgumentException createPositionException(int newPosition) {
-        String msg = null;
-
-        if (newPosition > limit) {
-            msg = "newPosition > limit: (" + newPosition + " > " + limit + ")";
-        } else { // assume negative
-            assert newPosition < 0 : "newPosition expected to be negative";
-            msg = "newPosition < 0: (" + newPosition + " < 0)";
-        }
-
-        return new IllegalArgumentException(msg);
     }
 
     /**
@@ -296,8 +274,8 @@ public abstract class Buffer {
         if ((newLimit > capacity) || (newLimit < 0))
             throw new IllegalArgumentException();
         limit = newLimit;
-        if (position > newLimit) position = newLimit;
-        if (mark > newLimit) mark = -1;
+        if (position > limit) position = limit;
+        if (mark > limit) mark = -1;
         return this;
     }
 
@@ -410,8 +388,7 @@ public abstract class Buffer {
      * @return  The number of elements remaining in this buffer
      */
     public final int remaining() {
-        int rem = limit - position;
-        return rem > 0 ? rem : 0;
+        return limit - position;
     }
 
     /**
@@ -519,18 +496,16 @@ public abstract class Buffer {
      * @return  The current position value, before it is incremented
      */
     final int nextGetIndex() {                          // package-private
-        int p = position;
-        if (p >= limit)
+        if (position >= limit)
             throw new BufferUnderflowException();
-        position = p + 1;
-        return p;
+        return position++;
     }
 
     final int nextGetIndex(int nb) {                    // package-private
-        int p = position;
-        if (limit - p < nb)
+        if (limit - position < nb)
             throw new BufferUnderflowException();
-        position = p + nb;
+        int p = position;
+        position += nb;
         return p;
     }
 
@@ -542,18 +517,16 @@ public abstract class Buffer {
      * @return  The current position value, before it is incremented
      */
     final int nextPutIndex() {                          // package-private
-        int p = position;
-        if (p >= limit)
+        if (position >= limit)
             throw new BufferOverflowException();
-        position = p + 1;
-        return p;
+        return position++;
     }
 
     final int nextPutIndex(int nb) {                    // package-private
-        int p = position;
-        if (limit - p < nb)
+        if (limit - position < nb)
             throw new BufferOverflowException();
-        position = p + nb;
+        int p = position;
+        position += nb;
         return p;
     }
 

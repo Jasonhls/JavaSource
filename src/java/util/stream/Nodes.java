@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -63,7 +63,7 @@ final class Nodes {
     // IllegalArgumentException messages
     static final String BAD_SIZE = "Stream size exceeds max array size";
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("raw")
     private static final Node EMPTY_NODE = new EmptyNode.OfRef();
     private static final Node.OfInt EMPTY_INT_NODE = new EmptyNode.OfInt();
     private static final Node.OfLong EMPTY_LONG_NODE = new EmptyNode.OfLong();
@@ -74,21 +74,17 @@ final class Nodes {
     /**
      * Produces an empty node whose count is zero, has no children and no content.
      *
-     * @param <T>   the type of elements of the created node
+     * @param <T> the type of elements of the created node
      * @param shape the shape of the node to be created
      * @return an empty node.
      */
     @SuppressWarnings("unchecked")
     static <T> Node<T> emptyNode(StreamShape shape) {
         switch (shape) {
-            case REFERENCE:
-                return (Node<T>) EMPTY_NODE;
-            case INT_VALUE:
-                return (Node<T>) EMPTY_INT_NODE;
-            case LONG_VALUE:
-                return (Node<T>) EMPTY_LONG_NODE;
-            case DOUBLE_VALUE:
-                return (Node<T>) EMPTY_DOUBLE_NODE;
+            case REFERENCE:    return (Node<T>) EMPTY_NODE;
+            case INT_VALUE:    return (Node<T>) EMPTY_INT_NODE;
+            case LONG_VALUE:   return (Node<T>) EMPTY_LONG_NODE;
+            case DOUBLE_VALUE: return (Node<T>) EMPTY_DOUBLE_NODE;
             default:
                 throw new IllegalStateException("Unknown shape " + shape);
         }
@@ -105,13 +101,13 @@ final class Nodes {
      * <p>The result may be a concatenated node, the input sole node if the size
      * of the list is 1, or an empty node.
      *
-     * @param <T>   the type of elements of the concatenated node
+     * @param <T> the type of elements of the concatenated node
      * @param shape the shape of the concatenated node to be created
-     * @param left  the left input node
+     * @param left the left input node
      * @param right the right input node
      * @return a {@code Node} covering the elements of the input nodes
      * @throws IllegalStateException if all {@link Node} elements of the list
-     *                               are an not instance of type supported by this factory.
+     * are an not instance of type supported by this factory.
      */
     @SuppressWarnings("unchecked")
     static <T> Node<T> conc(StreamShape shape, Node<T> left, Node<T> right) {
@@ -136,7 +132,7 @@ final class Nodes {
      *
      * <p>The node will hold a reference to the array and will not make a copy.
      *
-     * @param <T>   the type of elements held by the node
+     * @param <T> the type of elements held by the node
      * @param array the array
      * @return a node holding an array
      */
@@ -150,7 +146,7 @@ final class Nodes {
      * The node will hold a reference to the collection and will not make a copy.
      *
      * @param <T> the type of elements held by the node
-     * @param c   the collection
+     * @param c the collection
      * @return a node holding a collection
      */
     static <T> Node<T> node(Collection<T> c) {
@@ -161,16 +157,16 @@ final class Nodes {
      * Produces a {@link Node.Builder}.
      *
      * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     *                         otherwise the exact capacity desired.  A fixed capacity builder will
-     *                         fail if the wrong number of elements are added to the builder.
-     * @param generator        the array factory
-     * @param <T>              the type of elements of the node builder
+     * otherwise the exact capacity desired.  A fixed capacity builder will
+     * fail if the wrong number of elements are added to the builder.
+     * @param generator the array factory
+     * @param <T> the type of elements of the node builder
      * @return a {@code Node.Builder}
      */
     static <T> Node.Builder<T> builder(long exactSizeIfKnown, IntFunction<T[]> generator) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
-                ? new FixedNodeBuilder<>(exactSizeIfKnown, generator)
-                : builder();
+               ? new FixedNodeBuilder<>(exactSizeIfKnown, generator)
+               : builder();
     }
 
     /**
@@ -201,14 +197,14 @@ final class Nodes {
      * Produces a {@link Node.Builder.OfInt}.
      *
      * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     *                         otherwise the exact capacity desired.  A fixed capacity builder will
-     *                         fail if the wrong number of elements are added to the builder.
+     * otherwise the exact capacity desired.  A fixed capacity builder will
+     * fail if the wrong number of elements are added to the builder.
      * @return a {@code Node.Builder.OfInt}
      */
     static Node.Builder.OfInt intBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
-                ? new IntFixedNodeBuilder(exactSizeIfKnown)
-                : intBuilder();
+               ? new IntFixedNodeBuilder(exactSizeIfKnown)
+               : intBuilder();
     }
 
     /**
@@ -238,14 +234,14 @@ final class Nodes {
      * Produces a {@link Node.Builder.OfLong}.
      *
      * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     *                         otherwise the exact capacity desired.  A fixed capacity builder will
-     *                         fail if the wrong number of elements are added to the builder.
+     * otherwise the exact capacity desired.  A fixed capacity builder will
+     * fail if the wrong number of elements are added to the builder.
      * @return a {@code Node.Builder.OfLong}
      */
     static Node.Builder.OfLong longBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
-                ? new LongFixedNodeBuilder(exactSizeIfKnown)
-                : longBuilder();
+               ? new LongFixedNodeBuilder(exactSizeIfKnown)
+               : longBuilder();
     }
 
     /**
@@ -275,14 +271,14 @@ final class Nodes {
      * Produces a {@link Node.Builder.OfDouble}.
      *
      * @param exactSizeIfKnown -1 if a variable size builder is requested,
-     *                         otherwise the exact capacity desired.  A fixed capacity builder will
-     *                         fail if the wrong number of elements are added to the builder.
+     * otherwise the exact capacity desired.  A fixed capacity builder will
+     * fail if the wrong number of elements are added to the builder.
      * @return a {@code Node.Builder.OfDouble}
      */
     static Node.Builder.OfDouble doubleBuilder(long exactSizeIfKnown) {
         return (exactSizeIfKnown >= 0 && exactSizeIfKnown < MAX_ARRAY_SIZE)
-                ? new DoubleFixedNodeBuilder(exactSizeIfKnown)
-                : doubleBuilder();
+               ? new DoubleFixedNodeBuilder(exactSizeIfKnown)
+               : doubleBuilder();
     }
 
     /**
@@ -300,12 +296,8 @@ final class Nodes {
      * Collect, in parallel, elements output from a pipeline and describe those
      * elements with a {@link Node}.
      *
-     * @param helper      the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @param generator   the array generator
-     * @return a {@link Node} describing the output elements
-     * @implSpec If the exact size of the output from the pipeline is known and the source
+     * @implSpec
+     * If the exact size of the output from the pipeline is known and the source
      * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
      * then a flat {@link Node} will be returned whose content is an array,
      * since the size is known the array can be constructed in advance and
@@ -314,6 +306,12 @@ final class Nodes {
      * elements are collected into a conc-node whose shape mirrors that
      * of the computation. This conc-node can then be flattened in
      * parallel to produce a flat {@code Node} if desired.
+     *
+     * @param helper the pipeline helper describing the pipeline
+     * @param flattenTree whether a conc node should be flattened into a node
+     *                    describing an array before returning
+     * @param generator the array generator
+     * @return a {@link Node} describing the output elements
      */
     public static <P_IN, P_OUT> Node<P_OUT> collect(PipelineHelper<P_OUT> helper,
                                                     Spliterator<P_IN> spliterator,
@@ -336,12 +334,8 @@ final class Nodes {
      * Collect, in parallel, elements output from an int-valued pipeline and
      * describe those elements with a {@link Node.OfInt}.
      *
-     * @param <P_IN>      the type of elements from the source Spliterator
-     * @param helper      the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfInt} describing the output elements
-     * @implSpec If the exact size of the output from the pipeline is known and the source
+     * @implSpec
+     * If the exact size of the output from the pipeline is known and the source
      * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
      * then a flat {@link Node} will be returned whose content is an array,
      * since the size is known the array can be constructed in advance and
@@ -350,6 +344,12 @@ final class Nodes {
      * elements are collected into a conc-node whose shape mirrors that
      * of the computation. This conc-node can then be flattened in
      * parallel to produce a flat {@code Node.OfInt} if desired.
+     *
+     * @param <P_IN> the type of elements from the source Spliterator
+     * @param helper the pipeline helper describing the pipeline
+     * @param flattenTree whether a conc node should be flattened into a node
+     *                    describing an array before returning
+     * @return a {@link Node.OfInt} describing the output elements
      */
     public static <P_IN> Node.OfInt collectInt(PipelineHelper<Integer> helper,
                                                Spliterator<P_IN> spliterator,
@@ -361,7 +361,8 @@ final class Nodes {
             int[] array = new int[(int) size];
             new SizedCollectorTask.OfInt<>(spliterator, helper, array).invoke();
             return node(array);
-        } else {
+        }
+        else {
             Node.OfInt node = new CollectorTask.OfInt<>(helper, spliterator).invoke();
             return flattenTree ? flattenInt(node) : node;
         }
@@ -371,12 +372,8 @@ final class Nodes {
      * Collect, in parallel, elements output from a long-valued pipeline and
      * describe those elements with a {@link Node.OfLong}.
      *
-     * @param <P_IN>      the type of elements from the source Spliterator
-     * @param helper      the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfLong} describing the output elements
-     * @implSpec If the exact size of the output from the pipeline is known and the source
+     * @implSpec
+     * If the exact size of the output from the pipeline is known and the source
      * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
      * then a flat {@link Node} will be returned whose content is an array,
      * since the size is known the array can be constructed in advance and
@@ -385,6 +382,12 @@ final class Nodes {
      * elements are collected into a conc-node whose shape mirrors that
      * of the computation. This conc-node can then be flattened in
      * parallel to produce a flat {@code Node.OfLong} if desired.
+     *
+     * @param <P_IN> the type of elements from the source Spliterator
+     * @param helper the pipeline helper describing the pipeline
+     * @param flattenTree whether a conc node should be flattened into a node
+     *                    describing an array before returning
+     * @return a {@link Node.OfLong} describing the output elements
      */
     public static <P_IN> Node.OfLong collectLong(PipelineHelper<Long> helper,
                                                  Spliterator<P_IN> spliterator,
@@ -396,7 +399,8 @@ final class Nodes {
             long[] array = new long[(int) size];
             new SizedCollectorTask.OfLong<>(spliterator, helper, array).invoke();
             return node(array);
-        } else {
+        }
+        else {
             Node.OfLong node = new CollectorTask.OfLong<>(helper, spliterator).invoke();
             return flattenTree ? flattenLong(node) : node;
         }
@@ -406,12 +410,8 @@ final class Nodes {
      * Collect, in parallel, elements output from n double-valued pipeline and
      * describe those elements with a {@link Node.OfDouble}.
      *
-     * @param <P_IN>      the type of elements from the source Spliterator
-     * @param helper      the pipeline helper describing the pipeline
-     * @param flattenTree whether a conc node should be flattened into a node
-     *                    describing an array before returning
-     * @return a {@link Node.OfDouble} describing the output elements
-     * @implSpec If the exact size of the output from the pipeline is known and the source
+     * @implSpec
+     * If the exact size of the output from the pipeline is known and the source
      * {@link Spliterator} has the {@link Spliterator#SUBSIZED} characteristic,
      * then a flat {@link Node} will be returned whose content is an array,
      * since the size is known the array can be constructed in advance and
@@ -420,6 +420,12 @@ final class Nodes {
      * elements are collected into a conc-node whose shape mirrors that
      * of the computation. This conc-node can then be flattened in
      * parallel to produce a flat {@code Node.OfDouble} if desired.
+     *
+     * @param <P_IN> the type of elements from the source Spliterator
+     * @param helper the pipeline helper describing the pipeline
+     * @param flattenTree whether a conc node should be flattened into a node
+     *                    describing an array before returning
+     * @return a {@link Node.OfDouble} describing the output elements
      */
     public static <P_IN> Node.OfDouble collectDouble(PipelineHelper<Double> helper,
                                                      Spliterator<P_IN> spliterator,
@@ -431,7 +437,8 @@ final class Nodes {
             double[] array = new double[(int) size];
             new SizedCollectorTask.OfDouble<>(spliterator, helper, array).invoke();
             return node(array);
-        } else {
+        }
+        else {
             Node.OfDouble node = new CollectorTask.OfDouble<>(helper, spliterator).invoke();
             return flattenTree ? flattenDouble(node) : node;
         }
@@ -443,14 +450,16 @@ final class Nodes {
      * Flatten, in parallel, a {@link Node}.  A flattened node is one that has
      * no children.  If the node is already flat, it is simply returned.
      *
-     * @param <T>       type of elements contained by the node
-     * @param node      the node to flatten
-     * @param generator the array factory used to create array instances
-     * @return a flat {@code Node}
-     * @implSpec If a new node is to be created, the generator is used to create an array
+     * @implSpec
+     * If a new node is to be created, the generator is used to create an array
      * whose length is {@link Node#count()}.  Then the node tree is traversed
      * and leaf node elements are placed in the array concurrently by leaf tasks
      * at the correct offsets.
+     *
+     * @param <T> type of elements contained by the node
+     * @param node the node to flatten
+     * @param generator the array factory used to create array instances
+     * @return a flat {@code Node}
      */
     public static <T> Node<T> flatten(Node<T> node, IntFunction<T[]> generator) {
         if (node.getChildCount() > 0) {
@@ -469,12 +478,14 @@ final class Nodes {
      * Flatten, in parallel, a {@link Node.OfInt}.  A flattened node is one that
      * has no children.  If the node is already flat, it is simply returned.
      *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfInt}
-     * @implSpec If a new node is to be created, a new int[] array is created whose length
+     * @implSpec
+     * If a new node is to be created, a new int[] array is created whose length
      * is {@link Node#count()}.  Then the node tree is traversed and leaf node
      * elements are placed in the array concurrently by leaf tasks at the
      * correct offsets.
+     *
+     * @param node the node to flatten
+     * @return a flat {@code Node.OfInt}
      */
     public static Node.OfInt flattenInt(Node.OfInt node) {
         if (node.getChildCount() > 0) {
@@ -493,12 +504,14 @@ final class Nodes {
      * Flatten, in parallel, a {@link Node.OfLong}.  A flattened node is one that
      * has no children.  If the node is already flat, it is simply returned.
      *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfLong}
-     * @implSpec If a new node is to be created, a new long[] array is created whose length
+     * @implSpec
+     * If a new node is to be created, a new long[] array is created whose length
      * is {@link Node#count()}.  Then the node tree is traversed and leaf node
      * elements are placed in the array concurrently by leaf tasks at the
      * correct offsets.
+     *
+     * @param node the node to flatten
+     * @return a flat {@code Node.OfLong}
      */
     public static Node.OfLong flattenLong(Node.OfLong node) {
         if (node.getChildCount() > 0) {
@@ -517,12 +530,14 @@ final class Nodes {
      * Flatten, in parallel, a {@link Node.OfDouble}.  A flattened node is one that
      * has no children.  If the node is already flat, it is simply returned.
      *
-     * @param node the node to flatten
-     * @return a flat {@code Node.OfDouble}
-     * @implSpec If a new node is to be created, a new double[] array is created whose length
+     * @implSpec
+     * If a new node is to be created, a new double[] array is created whose length
      * is {@link Node#count()}.  Then the node tree is traversed and leaf node
      * elements are placed in the array concurrently by leaf tasks at the
      * correct offsets.
+     *
+     * @param node the node to flatten
+     * @return a flat {@code Node.OfDouble}
      */
     public static Node.OfDouble flattenDouble(Node.OfDouble node) {
         if (node.getChildCount() > 0) {
@@ -540,24 +555,21 @@ final class Nodes {
     // Implementations
 
     private static abstract class EmptyNode<T, T_ARR, T_CONS> implements Node<T> {
-        EmptyNode() {
-        }
+        EmptyNode() { }
 
         @Override
         public T[] asArray(IntFunction<T[]> generator) {
             return generator.apply(0);
         }
 
-        public void copyInto(T_ARR array, int offset) {
-        }
+        public void copyInto(T_ARR array, int offset) { }
 
         @Override
         public long count() {
             return 0;
         }
 
-        public void forEach(T_CONS consumer) {
-        }
+        public void forEach(T_CONS consumer) { }
 
         private static class OfRef<T> extends EmptyNode<T, T[], Consumer<? super T>> {
             private OfRef() {
@@ -574,8 +586,7 @@ final class Nodes {
                 extends EmptyNode<Integer, int[], IntConsumer>
                 implements Node.OfInt {
 
-            OfInt() {
-            } // Avoid creation of special accessor
+            OfInt() { } // Avoid creation of special accessor
 
             @Override
             public Spliterator.OfInt spliterator() {
@@ -592,8 +603,7 @@ final class Nodes {
                 extends EmptyNode<Long, long[], LongConsumer>
                 implements Node.OfLong {
 
-            OfLong() {
-            } // Avoid creation of special accessor
+            OfLong() { } // Avoid creation of special accessor
 
             @Override
             public Spliterator.OfLong spliterator() {
@@ -610,8 +620,7 @@ final class Nodes {
                 extends EmptyNode<Double, double[], DoubleConsumer>
                 implements Node.OfDouble {
 
-            OfDouble() {
-            } // Avoid creation of special accessor
+            OfDouble() { } // Avoid creation of special accessor
 
             @Override
             public Spliterator.OfDouble spliterator() {
@@ -625,9 +634,7 @@ final class Nodes {
         }
     }
 
-    /**
-     * Node class for a reference array
-     */
+    /** Node class for a reference array */
     private static class ArrayNode<T> implements Node<T> {
         final T[] array;
         int curSize;
@@ -683,13 +690,11 @@ final class Nodes {
         @Override
         public String toString() {
             return String.format("ArrayNode[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
-    /**
-     * Node class for a Collection
-     */
+    /** Node class for a Collection */
     private static final class CollectionNode<T> implements Node<T> {
         private final Collection<T> c;
 
@@ -819,7 +824,7 @@ final class Nodes {
                 return left.truncate(from, to, generator);
             else {
                 return Nodes.conc(getShape(), left.truncate(from, leftCount, generator),
-                        right.truncate(0, to - leftCount, generator));
+                                  right.truncate(0, to - leftCount, generator));
             }
         }
 
@@ -833,8 +838,8 @@ final class Nodes {
         }
 
         private abstract static class OfPrimitive<E, T_CONS, T_ARR,
-                T_SPLITR extends Spliterator.OfPrimitive<E, T_CONS, T_SPLITR>,
-                T_NODE extends Node.OfPrimitive<E, T_CONS, T_ARR, T_SPLITR, T_NODE>>
+                                                  T_SPLITR extends Spliterator.OfPrimitive<E, T_CONS, T_SPLITR>,
+                                                  T_NODE extends Node.OfPrimitive<E, T_CONS, T_ARR, T_SPLITR, T_NODE>>
                 extends AbstractConcNode<E, T_NODE>
                 implements Node.OfPrimitive<E, T_CONS, T_ARR, T_SPLITR, T_NODE> {
 
@@ -918,12 +923,10 @@ final class Nodes {
         }
     }
 
-    /**
-     * Abstract class for spliterator for all internal node classes
-     */
+    /** Abstract class for spliterator for all internal node classes */
     private static abstract class InternalNodeSpliterator<T,
-            S extends Spliterator<T>,
-            N extends Node<T>>
+                                                          S extends Spliterator<T>,
+                                                          N extends Node<T>>
             implements Spliterator<T> {
         // Node we are pointing to
         // null if full traversal has occurred
@@ -953,7 +956,6 @@ final class Nodes {
          * Initiate a stack containing, in left-to-right order, the child nodes
          * covered by this spliterator
          */
-        @SuppressWarnings("unchecked")
         protected final Deque<N> initStack() {
             // Bias size to the case where leaf nodes are close to this node
             // 8 is the minimum initial capacity for the ArrayDeque implementation
@@ -967,7 +969,6 @@ final class Nodes {
          * Depth first search, in left-to-right order, of the node tree, using
          * an explicit stack, to find the next non-empty leaf node.
          */
-        @SuppressWarnings("unchecked")
         protected final N findNextLeafNode(Deque<N> stack) {
             N n = null;
             while ((n = stack.pollFirst()) != null) {
@@ -983,7 +984,6 @@ final class Nodes {
             return null;
         }
 
-        @SuppressWarnings("unchecked")
         protected final boolean initTryAdvance() {
             if (curNode == null)
                 return false;
@@ -1001,7 +1001,8 @@ final class Nodes {
                         curNode = null;
                         return false;
                     }
-                } else
+                }
+                else
                     tryAdvanceSpliterator = lastNodeSpliterator;
             }
             return true;
@@ -1021,7 +1022,8 @@ final class Nodes {
                 if (curNode.getChildCount() == 0) {
                     lastNodeSpliterator = (S) curNode.spliterator();
                     return (S) lastNodeSpliterator.trySplit();
-                } else {
+                }
+                else {
                     curChildIndex = 0;
                     return (S) curNode.getChild(curChildIndex++).spliterator();
                 }
@@ -1092,17 +1094,18 @@ final class Nodes {
                             leaf.forEach(consumer);
                         }
                         curNode = null;
-                    } else
-                        lastNodeSpliterator.forEachRemaining(consumer);
-                } else
-                    while (tryAdvance(consumer)) {
                     }
+                    else
+                        lastNodeSpliterator.forEachRemaining(consumer);
+                }
+                else
+                    while(tryAdvance(consumer)) { }
             }
         }
 
         private static abstract class OfPrimitive<T, T_CONS, T_ARR,
-                T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
-                N extends Node.OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, N>>
+                                                  T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
+                                                  N extends Node.OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, N>>
                 extends InternalNodeSpliterator<T, T_SPLITR, N>
                 implements Spliterator.OfPrimitive<T, T_CONS, T_SPLITR> {
 
@@ -1145,11 +1148,12 @@ final class Nodes {
                             leaf.forEach(consumer);
                         }
                         curNode = null;
-                    } else
-                        lastNodeSpliterator.forEachRemaining(consumer);
-                } else
-                    while (tryAdvance(consumer)) {
                     }
+                    else
+                        lastNodeSpliterator.forEachRemaining(consumer);
+                }
+                else
+                    while(tryAdvance(consumer)) { }
             }
         }
 
@@ -1197,7 +1201,7 @@ final class Nodes {
         public Node<T> build() {
             if (curSize < array.length)
                 throw new IllegalStateException(String.format("Current size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             return this;
         }
 
@@ -1205,7 +1209,7 @@ final class Nodes {
         public void begin(long size) {
             if (size != array.length)
                 throw new IllegalStateException(String.format("Begin size %d is not equal to fixed size %d",
-                        size, array.length));
+                                                              size, array.length));
             curSize = 0;
         }
 
@@ -1215,7 +1219,7 @@ final class Nodes {
                 array[curSize++] = t;
             } else {
                 throw new IllegalStateException(String.format("Accept exceeded fixed size of %d",
-                        array.length));
+                                                              array.length));
             }
         }
 
@@ -1223,13 +1227,13 @@ final class Nodes {
         public void end() {
             if (curSize < array.length)
                 throw new IllegalStateException(String.format("End size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
         }
 
         @Override
         public String toString() {
             return String.format("FixedNodeBuilder[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1241,8 +1245,7 @@ final class Nodes {
             implements Node<T>, Node.Builder<T> {
         private boolean building = false;
 
-        SpinedNodeBuilder() {
-        } // Avoid creation of special accessor
+        SpinedNodeBuilder() {} // Avoid creation of special accessor
 
         @Override
         public Spliterator<T> spliterator() {
@@ -1355,7 +1358,7 @@ final class Nodes {
         @Override
         public String toString() {
             return String.format("IntArrayNode[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1409,7 +1412,7 @@ final class Nodes {
         @Override
         public String toString() {
             return String.format("LongArrayNode[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1463,7 +1466,7 @@ final class Nodes {
         @Override
         public String toString() {
             return String.format("DoubleArrayNode[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1480,7 +1483,7 @@ final class Nodes {
         public Node.OfInt build() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("Current size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
 
             return this;
@@ -1490,7 +1493,7 @@ final class Nodes {
         public void begin(long size) {
             if (size != array.length) {
                 throw new IllegalStateException(String.format("Begin size %d is not equal to fixed size %d",
-                        size, array.length));
+                                                              size, array.length));
             }
 
             curSize = 0;
@@ -1502,7 +1505,7 @@ final class Nodes {
                 array[curSize++] = i;
             } else {
                 throw new IllegalStateException(String.format("Accept exceeded fixed size of %d",
-                        array.length));
+                                                              array.length));
             }
         }
 
@@ -1510,14 +1513,14 @@ final class Nodes {
         public void end() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("End size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
         }
 
         @Override
         public String toString() {
             return String.format("IntFixedNodeBuilder[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1534,7 +1537,7 @@ final class Nodes {
         public Node.OfLong build() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("Current size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
 
             return this;
@@ -1544,7 +1547,7 @@ final class Nodes {
         public void begin(long size) {
             if (size != array.length) {
                 throw new IllegalStateException(String.format("Begin size %d is not equal to fixed size %d",
-                        size, array.length));
+                                                              size, array.length));
             }
 
             curSize = 0;
@@ -1556,7 +1559,7 @@ final class Nodes {
                 array[curSize++] = i;
             } else {
                 throw new IllegalStateException(String.format("Accept exceeded fixed size of %d",
-                        array.length));
+                                                              array.length));
             }
         }
 
@@ -1564,14 +1567,14 @@ final class Nodes {
         public void end() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("End size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
         }
 
         @Override
         public String toString() {
             return String.format("LongFixedNodeBuilder[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1588,7 +1591,7 @@ final class Nodes {
         public Node.OfDouble build() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("Current size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
 
             return this;
@@ -1598,7 +1601,7 @@ final class Nodes {
         public void begin(long size) {
             if (size != array.length) {
                 throw new IllegalStateException(String.format("Begin size %d is not equal to fixed size %d",
-                        size, array.length));
+                                                              size, array.length));
             }
 
             curSize = 0;
@@ -1610,7 +1613,7 @@ final class Nodes {
                 array[curSize++] = i;
             } else {
                 throw new IllegalStateException(String.format("Accept exceeded fixed size of %d",
-                        array.length));
+                                                              array.length));
             }
         }
 
@@ -1618,14 +1621,14 @@ final class Nodes {
         public void end() {
             if (curSize < array.length) {
                 throw new IllegalStateException(String.format("End size %d is less than fixed size %d",
-                        curSize, array.length));
+                                                              curSize, array.length));
             }
         }
 
         @Override
         public String toString() {
             return String.format("DoubleFixedNodeBuilder[%d][%s]",
-                    array.length - curSize, Arrays.toString(array));
+                                 array.length - curSize, Arrays.toString(array));
         }
     }
 
@@ -1634,8 +1637,7 @@ final class Nodes {
             implements Node.OfInt, Node.Builder.OfInt {
         private boolean building = false;
 
-        IntSpinedNodeBuilder() {
-        } // Avoid creation of special accessor
+        IntSpinedNodeBuilder() {} // Avoid creation of special accessor
 
         @Override
         public Spliterator.OfInt spliterator() {
@@ -1695,8 +1697,7 @@ final class Nodes {
             implements Node.OfLong, Node.Builder.OfLong {
         private boolean building = false;
 
-        LongSpinedNodeBuilder() {
-        } // Avoid creation of special accessor
+        LongSpinedNodeBuilder() {} // Avoid creation of special accessor
 
         @Override
         public Spliterator.OfLong spliterator() {
@@ -1756,8 +1757,7 @@ final class Nodes {
             implements Node.OfDouble, Node.Builder.OfDouble {
         private boolean building = false;
 
-        DoubleSpinedNodeBuilder() {
-        } // Avoid creation of special accessor
+        DoubleSpinedNodeBuilder() {} // Avoid creation of special accessor
 
         @Override
         public Spliterator.OfDouble spliterator() {
@@ -1817,7 +1817,7 @@ final class Nodes {
      */
     @SuppressWarnings("serial")
     private static abstract class SizedCollectorTask<P_IN, P_OUT, T_SINK extends Sink<P_OUT>,
-            K extends SizedCollectorTask<P_IN, P_OUT, T_SINK, K>>
+                                                     K extends SizedCollectorTask<P_IN, P_OUT, T_SINK, K>>
             extends CountedCompleter<Void>
             implements Sink<P_OUT> {
         protected final Spliterator<P_IN> spliterator;
@@ -1852,7 +1852,7 @@ final class Nodes {
             if (offset < 0 || length < 0 || (offset + length - 1 >= arrayLength)) {
                 throw new IllegalArgumentException(
                         String.format("offset and length interval [%d, %d + %d) is not within array size interval [0, %d)",
-                                offset, offset, length, arrayLength));
+                                      offset, offset, length, arrayLength));
             }
         }
 
@@ -1861,16 +1861,15 @@ final class Nodes {
             SizedCollectorTask<P_IN, P_OUT, T_SINK, K> task = this;
             Spliterator<P_IN> rightSplit = spliterator, leftSplit;
             while (rightSplit.estimateSize() > task.targetSize &&
-                    (leftSplit = rightSplit.trySplit()) != null) {
+                   (leftSplit = rightSplit.trySplit()) != null) {
                 task.setPendingCount(1);
                 long leftSplitSize = leftSplit.estimateSize();
                 task.makeChild(leftSplit, task.offset, leftSplitSize).fork();
                 task = task.makeChild(rightSplit, task.offset + leftSplitSize,
-                        task.length - leftSplitSize);
+                                      task.length - leftSplitSize);
             }
 
             assert task.offset + task.length < MAX_ARRAY_SIZE;
-            @SuppressWarnings("unchecked")
             T_SINK sink = (T_SINK) task;
             task.helper.wrapAndCopyInto(sink, rightSplit);
             task.propagateCompletion();
@@ -2020,7 +2019,7 @@ final class Nodes {
 
     @SuppressWarnings("serial")
     private static abstract class ToArrayTask<T, T_NODE extends Node<T>,
-            K extends ToArrayTask<T, T_NODE, K>>
+                                              K extends ToArrayTask<T, T_NODE, K>>
             extends CountedCompleter<Void> {
         protected final T_NODE node;
         protected final int offset;
@@ -2048,12 +2047,13 @@ final class Nodes {
                     task.copyNodeToArray();
                     task.propagateCompletion();
                     return;
-                } else {
+                }
+                else {
                     task.setPendingCount(task.node.getChildCount() - 1);
 
                     int size = 0;
                     int i = 0;
-                    for (; i < task.node.getChildCount() - 1; i++) {
+                    for (;i < task.node.getChildCount() - 1; i++) {
                         K leftTask = task.makeChild(i, task.offset + size);
                         size += leftTask.node.count();
                         leftTask.fork();
@@ -2091,8 +2091,8 @@ final class Nodes {
 
         @SuppressWarnings("serial")
         private static class OfPrimitive<T, T_CONS, T_ARR,
-                T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
-                T_NODE extends Node.OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, T_NODE>>
+                                         T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
+                                         T_NODE extends Node.OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, T_NODE>>
                 extends ToArrayTask<T, T_NODE, OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, T_NODE>> {
             private final T_ARR array;
 
@@ -2173,7 +2173,6 @@ final class Nodes {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         protected T_NODE doLeaf() {
             T_BUILDER builder = builderFactory.apply(helper.exactOutputSizeIfKnown(spliterator));
             return (T_NODE) helper.wrapAndCopyInto(builder, spliterator).build();

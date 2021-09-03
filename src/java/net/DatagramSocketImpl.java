@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
@@ -46,26 +46,6 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      * The file descriptor object.
      */
     protected FileDescriptor fd;
-
-    int dataAvailable() {
-        // default impl returns zero, which disables the calling
-        // functionality
-        return 0;
-    }
-
-    /**
-     * The DatagramSocket or MulticastSocket
-     * that owns this impl
-     */
-    DatagramSocket socket;
-
-    void setDatagramSocket(DatagramSocket socket) {
-        this.socket = socket;
-    }
-
-    DatagramSocket getDatagramSocket() {
-        return socket;
-    }
 
     /**
      * Creates a datagram socket.
@@ -251,56 +231,6 @@ public abstract class DatagramSocketImpl implements SocketOptions {
      */
     protected int getLocalPort() {
         return localPort;
-    }
-
-    <T> void setOption(SocketOption<T> name, T value) throws IOException {
-        if (name == StandardSocketOptions.SO_SNDBUF) {
-            setOption(SocketOptions.SO_SNDBUF, value);
-        } else if (name == StandardSocketOptions.SO_RCVBUF) {
-            setOption(SocketOptions.SO_RCVBUF, value);
-        } else if (name == StandardSocketOptions.SO_REUSEADDR) {
-            setOption(SocketOptions.SO_REUSEADDR, value);
-        } else if (name == StandardSocketOptions.IP_TOS) {
-            setOption(SocketOptions.IP_TOS, value);
-        } else if (name == StandardSocketOptions.IP_MULTICAST_IF &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            setOption(SocketOptions.IP_MULTICAST_IF2, value);
-        } else if (name == StandardSocketOptions.IP_MULTICAST_TTL &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            if (! (value instanceof Integer)) {
-                throw new IllegalArgumentException("not an integer");
-            }
-            setTimeToLive((Integer)value);
-        } else if (name == StandardSocketOptions.IP_MULTICAST_LOOP &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            setOption(SocketOptions.IP_MULTICAST_LOOP, value);
-        } else {
-            throw new UnsupportedOperationException("unsupported option");
-        }
-    }
-
-    <T> T getOption(SocketOption<T> name) throws IOException {
-        if (name == StandardSocketOptions.SO_SNDBUF) {
-            return (T) getOption(SocketOptions.SO_SNDBUF);
-        } else if (name == StandardSocketOptions.SO_RCVBUF) {
-            return (T) getOption(SocketOptions.SO_RCVBUF);
-        } else if (name == StandardSocketOptions.SO_REUSEADDR) {
-            return (T) getOption(SocketOptions.SO_REUSEADDR);
-        } else if (name == StandardSocketOptions.IP_TOS) {
-            return (T) getOption(SocketOptions.IP_TOS);
-        } else if (name == StandardSocketOptions.IP_MULTICAST_IF &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            return (T) getOption(SocketOptions.IP_MULTICAST_IF2);
-        } else if (name == StandardSocketOptions.IP_MULTICAST_TTL &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            Integer ttl = getTimeToLive();
-            return (T)ttl;
-        } else if (name == StandardSocketOptions.IP_MULTICAST_LOOP &&
-            (getDatagramSocket() instanceof MulticastSocket)) {
-            return (T) getOption(SocketOptions.IP_MULTICAST_LOOP);
-        } else {
-            throw new UnsupportedOperationException("unsupported option");
-        }
     }
 
     /**

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -78,22 +78,24 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @param <E> the type of elements maintained by this set
- * @author Josh Bloch
- * @see Collection
- * @see Set
- * @see HashSet
- * @see Comparable
- * @see Comparator
- * @see TreeMap
- * @since 1.2
+ *
+ * @author  Josh Bloch
+ * @see     Collection
+ * @see     Set
+ * @see     HashSet
+ * @see     Comparable
+ * @see     Comparator
+ * @see     TreeMap
+ * @since   1.2
  */
 
 public class TreeSet<E> extends AbstractSet<E>
-        implements NavigableSet<E>, Cloneable, java.io.Serializable {
+    implements NavigableSet<E>, Cloneable, java.io.Serializable
+{
     /**
      * The backing map.
      */
-    private transient NavigableMap<E, Object> m;
+    private transient NavigableMap<E,Object> m;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
@@ -101,7 +103,7 @@ public class TreeSet<E> extends AbstractSet<E>
     /**
      * Constructs a set backed by the specified navigable map.
      */
-    TreeSet(NavigableMap<E, Object> m) {
+    TreeSet(NavigableMap<E,Object> m) {
         this.m = m;
     }
 
@@ -119,7 +121,7 @@ public class TreeSet<E> extends AbstractSet<E>
      * {@code ClassCastException}.
      */
     public TreeSet() {
-        this(new TreeMap<E, Object>());
+        this(new TreeMap<E,Object>());
     }
 
     /**
@@ -132,8 +134,8 @@ public class TreeSet<E> extends AbstractSet<E>
      * {@code add} call will throw a {@code ClassCastException}.
      *
      * @param comparator the comparator that will be used to order this set.
-     *                   If {@code null}, the {@linkplain Comparable natural
-     *                   ordering} of the elements will be used.
+     *        If {@code null}, the {@linkplain Comparable natural
+     *        ordering} of the elements will be used.
      */
     public TreeSet(Comparator<? super E> comparator) {
         this(new TreeMap<>(comparator));
@@ -149,8 +151,8 @@ public class TreeSet<E> extends AbstractSet<E>
      * {@code e2} in the set.
      *
      * @param c collection whose elements will comprise the new set
-     * @throws ClassCastException   if the elements in {@code c} are
-     *                              not {@link Comparable}, or are not mutually comparable
+     * @throws ClassCastException if the elements in {@code c} are
+     *         not {@link Comparable}, or are not mutually comparable
      * @throws NullPointerException if the specified collection is null
      */
     public TreeSet(Collection<? extends E> c) {
@@ -222,11 +224,11 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @param o object to be checked for containment in this set
      * @return {@code true} if this set contains the specified element
-     * @throws ClassCastException   if the specified object cannot be compared
-     *                              with the elements currently in the set
+     * @throws ClassCastException if the specified object cannot be compared
+     *         with the elements currently in the set
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
     public boolean contains(Object o) {
         return m.containsKey(o);
@@ -242,15 +244,15 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @param e element to be added to this set
      * @return {@code true} if this set did not already contain the specified
-     * element
-     * @throws ClassCastException   if the specified object cannot be compared
-     *                              with the elements currently in this set
+     *         element
+     * @throws ClassCastException if the specified object cannot be compared
+     *         with the elements currently in this set
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
     public boolean add(E e) {
-        return m.put(e, PRESENT) == null;
+        return m.put(e, PRESENT)==null;
     }
 
     /**
@@ -264,14 +266,14 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @param o object to be removed from this set, if present
      * @return {@code true} if this set contained the specified element
-     * @throws ClassCastException   if the specified object cannot be compared
-     *                              with the elements currently in this set
+     * @throws ClassCastException if the specified object cannot be compared
+     *         with the elements currently in this set
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      */
     public boolean remove(Object o) {
-        return m.remove(o) == PRESENT;
+        return m.remove(o)==PRESENT;
     }
 
     /**
@@ -287,22 +289,22 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @param c collection containing elements to be added to this set
      * @return {@code true} if this set changed as a result of the call
-     * @throws ClassCastException   if the elements provided cannot be compared
-     *                              with the elements currently in the set
+     * @throws ClassCastException if the elements provided cannot be compared
+     *         with the elements currently in the set
      * @throws NullPointerException if the specified collection is null or
-     *                              if any element is null and this set uses natural ordering, or
-     *                              its comparator does not permit null elements
+     *         if any element is null and this set uses natural ordering, or
+     *         its comparator does not permit null elements
      */
-    public boolean addAll(Collection<? extends E> c) {
+    public  boolean addAll(Collection<? extends E> c) {
         // Use linear-time version if applicable
-        if (m.size() == 0 && c.size() > 0 &&
-                c instanceof SortedSet &&
-                m instanceof TreeMap) {
+        if (m.size()==0 && c.size() > 0 &&
+            c instanceof SortedSet &&
+            m instanceof TreeMap) {
             SortedSet<? extends E> set = (SortedSet<? extends E>) c;
-            TreeMap<E, Object> map = (TreeMap<E, Object>) m;
+            TreeMap<E,Object> map = (TreeMap<E, Object>) m;
             Comparator<?> cc = set.comparator();
             Comparator<? super E> mc = map.comparator();
-            if (cc == mc || (cc != null && cc.equals(mc))) {
+            if (cc==mc || (cc != null && cc.equals(mc))) {
                 map.addAllForTreeSet(set, PRESENT);
                 return true;
             }
@@ -311,24 +313,24 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code fromElement} or {@code toElement}
-     *                                  is null and this set uses natural ordering, or its comparator
-     *                                  does not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} or {@code toElement}
+     *         is null and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
     public NavigableSet<E> subSet(E fromElement, boolean fromInclusive,
-                                  E toElement, boolean toInclusive) {
+                                  E toElement,   boolean toInclusive) {
         return new TreeSet<>(m.subMap(fromElement, fromInclusive,
-                toElement, toInclusive));
+                                       toElement,   toInclusive));
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code toElement} is null and
-     *                                  this set uses natural ordering, or its comparator does
-     *                                  not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code toElement} is null and
+     *         this set uses natural ordering, or its comparator does
+     *         not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
@@ -337,10 +339,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code fromElement} is null and
-     *                                  this set uses natural ordering, or its comparator does
-     *                                  not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} is null and
+     *         this set uses natural ordering, or its comparator does
+     *         not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      * @since 1.6
      */
@@ -349,10 +351,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code fromElement} or
-     *                                  {@code toElement} is null and this set uses natural ordering,
-     *                                  or its comparator does not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} or
+     *         {@code toElement} is null and this set uses natural ordering,
+     *         or its comparator does not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> subSet(E fromElement, E toElement) {
@@ -360,10 +362,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code toElement} is null
-     *                                  and this set uses natural ordering, or its comparator does
-     *                                  not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code toElement} is null
+     *         and this set uses natural ordering, or its comparator does
+     *         not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> headSet(E toElement) {
@@ -371,10 +373,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException     if {@code fromElement} is null
-     *                                  and this set uses natural ordering, or its comparator does
-     *                                  not permit null elements
+     * @throws ClassCastException {@inheritDoc}
+     * @throws NullPointerException if {@code fromElement} is null
+     *         and this set uses natural ordering, or its comparator does
+     *         not permit null elements
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public SortedSet<E> tailSet(E fromElement) {
@@ -402,10 +404,10 @@ public class TreeSet<E> extends AbstractSet<E>
     // NavigableSet API methods
 
     /**
-     * @throws ClassCastException   {@inheritDoc}
+     * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      * @since 1.6
      */
     public E lower(E e) {
@@ -413,10 +415,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException   {@inheritDoc}
+     * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      * @since 1.6
      */
     public E floor(E e) {
@@ -424,10 +426,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException   {@inheritDoc}
+     * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      * @since 1.6
      */
     public E ceiling(E e) {
@@ -435,10 +437,10 @@ public class TreeSet<E> extends AbstractSet<E>
     }
 
     /**
-     * @throws ClassCastException   {@inheritDoc}
+     * @throws ClassCastException {@inheritDoc}
      * @throws NullPointerException if the specified element is null
-     *                              and this set uses natural ordering, or its comparator
-     *                              does not permit null elements
+     *         and this set uses natural ordering, or its comparator
+     *         does not permit null elements
      * @since 1.6
      */
     public E higher(E e) {
@@ -449,7 +451,7 @@ public class TreeSet<E> extends AbstractSet<E>
      * @since 1.6
      */
     public E pollFirst() {
-        Map.Entry<E, ?> e = m.pollFirstEntry();
+        Map.Entry<E,?> e = m.pollFirstEntry();
         return (e == null) ? null : e.getKey();
     }
 
@@ -457,7 +459,7 @@ public class TreeSet<E> extends AbstractSet<E>
      * @since 1.6
      */
     public E pollLast() {
-        Map.Entry<E, ?> e = m.pollLastEntry();
+        Map.Entry<E,?> e = m.pollLastEntry();
         return (e == null) ? null : e.getKey();
     }
 
@@ -485,15 +487,15 @@ public class TreeSet<E> extends AbstractSet<E>
      * serialize it).
      *
      * @serialData Emits the comparator used to order this set, or
-     * {@code null} if it obeys its elements' natural ordering
-     * (Object), followed by the size of the set (the number of
-     * elements it contains) (int), followed by all of its
-     * elements (each an Object) in order (as determined by the
-     * set's Comparator, or by the elements' natural ordering if
-     * the set has no Comparator).
+     *             {@code null} if it obeys its elements' natural ordering
+     *             (Object), followed by the size of the set (the number of
+     *             elements it contains) (int), followed by all of its
+     *             elements (each an Object) in order (as determined by the
+     *             set's Comparator, or by the elements' natural ordering if
+     *             the set has no Comparator).
      */
     private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
+        throws java.io.IOException {
         // Write out any hidden stuff
         s.defaultWriteObject();
 
@@ -513,16 +515,16 @@ public class TreeSet<E> extends AbstractSet<E>
      * deserialize it).
      */
     private void readObject(java.io.ObjectInputStream s)
-            throws java.io.IOException, ClassNotFoundException {
+        throws java.io.IOException, ClassNotFoundException {
         // Read in any hidden stuff
         s.defaultReadObject();
 
         // Read in Comparator
         @SuppressWarnings("unchecked")
-        Comparator<? super E> c = (Comparator<? super E>) s.readObject();
+            Comparator<? super E> c = (Comparator<? super E>) s.readObject();
 
         // Create backing TreeMap
-        TreeMap<E, Object> tm = new TreeMap<>(c);
+        TreeMap<E,Object> tm = new TreeMap<>(c);
         m = tm;
 
         // Read in size

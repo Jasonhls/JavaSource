@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util;
 
@@ -73,11 +73,12 @@ public final class OptionalLong {
      * Returns an empty {@code OptionalLong} instance.  No value is present for this
      * OptionalLong.
      *
-     * @return an empty {@code OptionalLong}.
      * @apiNote Though it may be tempting to do so, avoid testing if an object
      * is empty by comparing with {@code ==} against instances returned by
      * {@code Option.empty()}. There is no guarantee that it is a singleton.
      * Instead, use {@link #isPresent()}.
+     *
+     *  @return an empty {@code OptionalLong}.
      */
     public static OptionalLong empty() {
         return EMPTY;
@@ -109,6 +110,7 @@ public final class OptionalLong {
      *
      * @return the value held by this {@code OptionalLong}
      * @throws NoSuchElementException if there is no value present
+     *
      * @see OptionalLong#isPresent()
      */
     public long getAsLong() {
@@ -133,7 +135,7 @@ public final class OptionalLong {
      *
      * @param consumer block to be executed if a value is present
      * @throws NullPointerException if value is present and {@code consumer} is
-     *                              null
+     * null
      */
     public void ifPresent(LongConsumer consumer) {
         if (isPresent)
@@ -155,10 +157,10 @@ public final class OptionalLong {
      * the result of that invocation.
      *
      * @param other a {@code LongSupplier} whose result is returned if no value
-     *              is present
+     * is present
      * @return the value if present otherwise the result of {@code other.getAsLong()}
      * @throws NullPointerException if value is not present and {@code other} is
-     *                              null
+     * null
      */
     public long orElseGet(LongSupplier other) {
         return isPresent ? value : other.getAsLong();
@@ -168,18 +170,19 @@ public final class OptionalLong {
      * Return the contained value, if present, otherwise throw an exception
      * to be created by the provided supplier.
      *
-     * @param <X>               Type of the exception to be thrown
-     * @param exceptionSupplier The supplier which will return the exception to
-     *                          be thrown
-     * @return the present value
-     * @throws X                    if there is no value present
-     * @throws NullPointerException if no value is present and
-     *                              {@code exceptionSupplier} is null
      * @apiNote A method reference to the exception constructor with an empty
      * argument list can be used as the supplier. For example,
      * {@code IllegalStateException::new}
+     *
+     * @param <X> Type of the exception to be thrown
+     * @param exceptionSupplier The supplier which will return the exception to
+     * be thrown
+     * @return the present value
+     * @throws X if there is no value present
+     * @throws NullPointerException if no value is present and
+     * {@code exceptionSupplier} is null
      */
-    public <X extends Throwable> long orElseThrow(Supplier<X> exceptionSupplier) throws X {
+    public<X extends Throwable> long orElseThrow(Supplier<X> exceptionSupplier) throws X {
         if (isPresent) {
             return value;
         } else {
@@ -229,15 +232,16 @@ public final class OptionalLong {
 
     /**
      * {@inheritDoc}
-     * <p>
+     *
      * Returns a non-empty string representation of this object suitable for
      * debugging. The exact presentation format is unspecified and may vary
      * between implementations and versions.
      *
-     * @return the string representation of this instance
      * @implSpec If a value is present the result must include its string
      * representation in the result. Empty and present instances must be
      * unambiguously differentiable.
+     *
+     * @return the string representation of this instance
      */
     @Override
     public String toString() {

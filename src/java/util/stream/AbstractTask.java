@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -37,12 +37,8 @@ import java.util.concurrent.ForkJoinPool;
  * the {@code Spliterator}) or internal nodes (which split the
  * {@code Spliterator} into multiple child tasks).
  *
- * @param <P_IN>  Type of elements input to the pipeline
- * @param <P_OUT> Type of elements output from the pipeline
- * @param <R>     Type of intermediate result, which may be different from operation
- *                result type
- * @param <K>     Type of parent, child and sibling tasks
- * @implNote <p>This class is based on {@link CountedCompleter}, a form of fork-join task
+ * @implNote
+ * <p>This class is based on {@link CountedCompleter}, a form of fork-join task
  * where each task has a semaphore-like count of uncompleted children, and the
  * task is implicitly completed and notified when its last child completes.
  * Internal node tasks will likely override the {@code onCompletion} method from
@@ -79,11 +75,17 @@ import java.util.concurrent.ForkJoinPool;
  *
  * <p>Serialization is not supported as there is no intention to serialize
  * tasks managed by stream ops.
+ *
+ * @param <P_IN> Type of elements input to the pipeline
+ * @param <P_OUT> Type of elements output from the pipeline
+ * @param <R> Type of intermediate result, which may be different from operation
+ *        result type
+ * @param <K> Type of parent, child and sibling tasks
  * @since 1.8
  */
 @SuppressWarnings("serial")
 abstract class AbstractTask<P_IN, P_OUT, R,
-        K extends AbstractTask<P_IN, P_OUT, R, K>>
+                            K extends AbstractTask<P_IN, P_OUT, R, K>>
         extends CountedCompleter<R> {
 
     /**
@@ -94,9 +96,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      */
     static final int LEAF_TARGET = ForkJoinPool.getCommonPoolParallelism() << 2;
 
-    /**
-     * The pipeline helper, common to all tasks in a computation
-     */
+    /** The pipeline helper, common to all tasks in a computation */
     protected final PipelineHelper<P_OUT> helper;
 
     /**
@@ -105,9 +105,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      */
     protected Spliterator<P_IN> spliterator;
 
-    /**
-     * Target leaf size, common to all tasks in a computation
-     */
+    /** Target leaf size, common to all tasks in a computation */
     protected long targetSize; // may be laziliy initialized
 
     /**
@@ -124,16 +122,14 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      */
     protected K rightChild;
 
-    /**
-     * The result of this node, if completed
-     */
+    /** The result of this node, if completed */
     private R localResult;
 
     /**
      * Constructor for root nodes.
      *
-     * @param helper      The {@code PipelineHelper} describing the stream pipeline
-     *                    up to this operation
+     * @param helper The {@code PipelineHelper} describing the stream pipeline
+     *               up to this operation
      * @param spliterator The {@code Spliterator} describing the source for this
      *                    pipeline
      */
@@ -148,9 +144,9 @@ abstract class AbstractTask<P_IN, P_OUT, R,
     /**
      * Constructor for non-root nodes.
      *
-     * @param parent      this node's parent task
+     * @param parent this node's parent task
      * @param spliterator {@code Spliterator} describing the subtree rooted at
-     *                    this node, obtained by splitting the parent {@code Spliterator}
+     *        this node, obtained by splitting the parent {@code Spliterator}
      */
     protected AbstractTask(K parent,
                            Spliterator<P_IN> spliterator) {
@@ -166,7 +162,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      * provided Spliterator.
      *
      * @param spliterator {@code Spliterator} describing the subtree rooted at
-     *                    this node, obtained by splitting the parent {@code Spliterator}
+     *        this node, obtained by splitting the parent {@code Spliterator}
      * @return newly constructed child node
      */
     protected abstract K makeChild(Spliterator<P_IN> spliterator);
@@ -218,8 +214,8 @@ abstract class AbstractTask<P_IN, P_OUT, R,
      * {@link #setLocalResult(Object)}} to manage results.
      *
      * @param result must be null, or an exception is thrown (this is a safety
-     *               tripwire to detect when {@code setRawResult()} is being used
-     *               instead of {@code setLocalResult()}
+     *        tripwire to detect when {@code setRawResult()} is being used
+     *        instead of {@code setLocalResult()}
      */
     @Override
     protected void setRawResult(R result) {
@@ -300,7 +296,7 @@ abstract class AbstractTask<P_IN, P_OUT, R,
         @SuppressWarnings("unchecked") K task = (K) this;
         while (sizeEstimate > sizeThreshold && (ls = rs.trySplit()) != null) {
             K leftChild, rightChild, taskToFork;
-            task.leftChild = leftChild = task.makeChild(ls);
+            task.leftChild  = leftChild = task.makeChild(ls);
             task.rightChild = rightChild = task.makeChild(rs);
             task.setPendingCount(1);
             if (forkRight) {
@@ -308,7 +304,8 @@ abstract class AbstractTask<P_IN, P_OUT, R,
                 rs = ls;
                 task = leftChild;
                 taskToFork = rightChild;
-            } else {
+            }
+            else {
                 forkRight = true;
                 task = rightChild;
                 taskToFork = leftChild;
@@ -323,7 +320,8 @@ abstract class AbstractTask<P_IN, P_OUT, R,
     /**
      * {@inheritDoc}
      *
-     * @implNote Clears spliterator and children fields.  Overriders MUST call
+     * @implNote
+     * Clears spliterator and children fields.  Overriders MUST call
      * {@code super.onCompletion} as the last thing they do if they want these
      * cleared.
      */

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util.regex;
@@ -33,7 +33,7 @@ package java.util.regex;
  * groups and group boundaries can be seen but not modified through
  * a <code>MatchResult</code>.
  *
- * @author Michael McCloskey
+ * @author  Michael McCloskey
  * @see Matcher
  * @since 1.5
  */
@@ -42,9 +42,11 @@ public interface MatchResult {
     /**
      * Returns the start index of the match.
      *
-     * @return The index of the first character matched
-     * @throws IllegalStateException If no match has yet been attempted,
-     *                               or if the previous match operation failed
+     * @return  The index of the first character matched
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
      */
     public int start();
 
@@ -57,23 +59,31 @@ public interface MatchResult {
      * the expression <i>m.</i><tt>start(0)</tt> is equivalent to
      * <i>m.</i><tt>start()</tt>.  </p>
      *
-     * @param group The index of a capturing group in this matcher's pattern
-     * @return The index of the first character captured by the group,
-     * or <tt>-1</tt> if the match was successful but the group
-     * itself did not match anything
-     * @throws IllegalStateException     If no match has yet been attempted,
-     *                                   or if the previous match operation failed
-     * @throws IndexOutOfBoundsException If there is no capturing group in the pattern
-     *                                   with the given index
+     * @param  group
+     *         The index of a capturing group in this matcher's pattern
+     *
+     * @return  The index of the first character captured by the group,
+     *          or <tt>-1</tt> if the match was successful but the group
+     *          itself did not match anything
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If there is no capturing group in the pattern
+     *          with the given index
      */
     public int start(int group);
 
     /**
      * Returns the offset after the last character matched.
      *
-     * @return The offset after the last character matched
-     * @throws IllegalStateException If no match has yet been attempted,
-     *                               or if the previous match operation failed
+     * @return  The offset after the last character matched
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
      */
     public int end();
 
@@ -86,14 +96,20 @@ public interface MatchResult {
      * the expression <i>m.</i><tt>end(0)</tt> is equivalent to
      * <i>m.</i><tt>end()</tt>.  </p>
      *
-     * @param group The index of a capturing group in this matcher's pattern
-     * @return The offset after the last character captured by the group,
-     * or <tt>-1</tt> if the match was successful
-     * but the group itself did not match anything
-     * @throws IllegalStateException     If no match has yet been attempted,
-     *                                   or if the previous match operation failed
-     * @throws IndexOutOfBoundsException If there is no capturing group in the pattern
-     *                                   with the given index
+     * @param  group
+     *         The index of a capturing group in this matcher's pattern
+     *
+     * @return  The offset after the last character captured by the group,
+     *          or <tt>-1</tt> if the match was successful
+     *          but the group itself did not match anything
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If there is no capturing group in the pattern
+     *          with the given index
      */
     public int end(int group);
 
@@ -110,9 +126,11 @@ public interface MatchResult {
      * successfully matches the empty string in the input.  </p>
      *
      * @return The (possibly empty) subsequence matched by the previous match,
-     * in string form
-     * @throws IllegalStateException If no match has yet been attempted,
-     *                               or if the previous match operation failed
+     *         in string form
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
      */
     public String group();
 
@@ -136,14 +154,20 @@ public interface MatchResult {
      * This method will return the empty string when such a group successfully
      * matches the empty string in the input.  </p>
      *
-     * @param group The index of a capturing group in this matcher's pattern
-     * @return The (possibly empty) subsequence captured by the group
-     * during the previous match, or <tt>null</tt> if the group
-     * failed to match part of the input
-     * @throws IllegalStateException     If no match has yet been attempted,
-     *                                   or if the previous match operation failed
-     * @throws IndexOutOfBoundsException If there is no capturing group in the pattern
-     *                                   with the given index
+     * @param  group
+     *         The index of a capturing group in this matcher's pattern
+     *
+     * @return  The (possibly empty) subsequence captured by the group
+     *          during the previous match, or <tt>null</tt> if the group
+     *          failed to match part of the input
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
+     *
+     * @throws  IndexOutOfBoundsException
+     *          If there is no capturing group in the pattern
+     *          with the given index
      */
     public String group(int group);
 

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util;
 
@@ -72,14 +72,15 @@ public final class Optional<T> {
      * Returns an empty {@code Optional} instance.  No value is present for this
      * Optional.
      *
-     * @param <T> Type of the non-existent value
-     * @return an empty {@code Optional}
      * @apiNote Though it may be tempting to do so, avoid testing if an object
      * is empty by comparing with {@code ==} against instances returned by
      * {@code Option.empty()}. There is no guarantee that it is a singleton.
      * Instead, use {@link #isPresent()}.
+     *
+     * @param <T> Type of the non-existent value
+     * @return an empty {@code Optional}
      */
-    public static <T> Optional<T> empty() {
+    public static<T> Optional<T> empty() {
         @SuppressWarnings("unchecked")
         Optional<T> t = (Optional<T>) EMPTY;
         return t;
@@ -98,7 +99,7 @@ public final class Optional<T> {
     /**
      * Returns an {@code Optional} with the specified present non-null value.
      *
-     * @param <T>   the class of the value
+     * @param <T> the class of the value
      * @param value the value to be present, which must be non-null
      * @return an {@code Optional} with the value present
      * @throws NullPointerException if value is null
@@ -111,7 +112,7 @@ public final class Optional<T> {
      * Returns an {@code Optional} describing the specified value, if non-null,
      * otherwise returns an empty {@code Optional}.
      *
-     * @param <T>   the class of the value
+     * @param <T> the class of the value
      * @param value the possibly-null value to describe
      * @return an {@code Optional} with a present value if the specified value
      * is non-null, otherwise an empty {@code Optional}
@@ -126,6 +127,7 @@ public final class Optional<T> {
      *
      * @return the non-null value held by this {@code Optional}
      * @throws NoSuchElementException if there is no value present
+     *
      * @see Optional#isPresent()
      */
     public T get() {
@@ -150,7 +152,7 @@ public final class Optional<T> {
      *
      * @param consumer block to be executed if a value is present
      * @throws NullPointerException if value is present and {@code consumer} is
-     *                              null
+     * null
      */
     public void ifPresent(Consumer<? super T> consumer) {
         if (value != null)
@@ -181,12 +183,6 @@ public final class Optional<T> {
      * and if the result is non-null, return an {@code Optional} describing the
      * result.  Otherwise return an empty {@code Optional}.
      *
-     * @param <U>    The type of the result of the mapping function
-     * @param mapper a mapping function to apply to the value, if present
-     * @return an {@code Optional} describing the result of applying a mapping
-     * function to the value of this {@code Optional}, if a value is present,
-     * otherwise an empty {@code Optional}
-     * @throws NullPointerException if the mapping function is null
      * @apiNote This method supports post-processing on optional values, without
      * the need to explicitly check for a return status.  For example, the
      * following code traverses a stream of file names, selects one that has
@@ -199,12 +195,19 @@ public final class Optional<T> {
      *                       .findFirst()
      *                       .map(name -> new FileInputStream(name));
      * }</pre>
-     * <p>
+     *
      * Here, {@code findFirst} returns an {@code Optional<String>}, and then
      * {@code map} returns an {@code Optional<FileInputStream>} for the desired
      * file if one exists.
+     *
+     * @param <U> The type of the result of the mapping function
+     * @param mapper a mapping function to apply to the value, if present
+     * @return an {@code Optional} describing the result of applying a mapping
+     * function to the value of this {@code Optional}, if a value is present,
+     * otherwise an empty {@code Optional}
+     * @throws NullPointerException if the mapping function is null
      */
-    public <U> Optional<U> map(Function<? super T, ? extends U> mapper) {
+    public<U> Optional<U> map(Function<? super T, ? extends U> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent())
             return empty();
@@ -221,16 +224,16 @@ public final class Optional<T> {
      * and if invoked, {@code flatMap} does not wrap it with an additional
      * {@code Optional}.
      *
-     * @param <U>    The type parameter to the {@code Optional} returned by
+     * @param <U> The type parameter to the {@code Optional} returned by
      * @param mapper a mapping function to apply to the value, if present
-     *               the mapping function
+     *           the mapping function
      * @return the result of applying an {@code Optional}-bearing mapping
      * function to the value of this {@code Optional}, if a value is present,
      * otherwise an empty {@code Optional}
      * @throws NullPointerException if the mapping function is null or returns
-     *                              a null result
+     * a null result
      */
-    public <U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) {
+    public<U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) {
         Objects.requireNonNull(mapper);
         if (!isPresent())
             return empty();
@@ -243,7 +246,7 @@ public final class Optional<T> {
      * Return the value if present, otherwise return {@code other}.
      *
      * @param other the value to be returned if there is no value present, may
-     *              be null
+     * be null
      * @return the value, if present, otherwise {@code other}
      */
     public T orElse(T other) {
@@ -255,10 +258,10 @@ public final class Optional<T> {
      * the result of that invocation.
      *
      * @param other a {@code Supplier} whose result is returned if no value
-     *              is present
+     * is present
      * @return the value if present otherwise the result of {@code other.get()}
      * @throws NullPointerException if value is not present and {@code other} is
-     *                              null
+     * null
      */
     public T orElseGet(Supplier<? extends T> other) {
         return value != null ? value : other.get();
@@ -268,16 +271,17 @@ public final class Optional<T> {
      * Return the contained value, if present, otherwise throw an exception
      * to be created by the provided supplier.
      *
-     * @param <X>               Type of the exception to be thrown
-     * @param exceptionSupplier The supplier which will return the exception to
-     *                          be thrown
-     * @return the present value
-     * @throws X                    if there is no value present
-     * @throws NullPointerException if no value is present and
-     *                              {@code exceptionSupplier} is null
      * @apiNote A method reference to the exception constructor with an empty
      * argument list can be used as the supplier. For example,
      * {@code IllegalStateException::new}
+     *
+     * @param <X> Type of the exception to be thrown
+     * @param exceptionSupplier The supplier which will return the exception to
+     * be thrown
+     * @return the present value
+     * @throws X if there is no value present
+     * @throws NullPointerException if no value is present and
+     * {@code exceptionSupplier} is null
      */
     public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
         if (value != null) {
@@ -330,15 +334,16 @@ public final class Optional<T> {
      * debugging. The exact presentation format is unspecified and may vary
      * between implementations and versions.
      *
-     * @return the string representation of this instance
      * @implSpec If a value is present the result must include its string
      * representation in the result. Empty and present Optionals must be
      * unambiguously differentiable.
+     *
+     * @return the string representation of this instance
      */
     @Override
     public String toString() {
         return value != null
-                ? String.format("Optional[%s]", value)
-                : "Optional.empty";
+            ? String.format("Optional[%s]", value)
+            : "Optional.empty";
     }
 }

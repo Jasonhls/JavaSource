@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.security;
@@ -30,8 +30,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
 import java.net.URL;
-
-import jdk.internal.event.EventHelper;
 import sun.security.util.Debug;
 import sun.security.util.PropertyExpander;
 
@@ -646,7 +644,7 @@ public final class Security {
             }
         }
 
-        if (candidates == null || candidates.isEmpty())
+        if ((candidates == null) || (candidates.isEmpty()))
             return null;
 
         Object[] candidatesArray = candidates.toArray();
@@ -794,11 +792,6 @@ public final class Security {
         check("setProperty."+key);
         props.put(key, datum);
         invalidateSMCache(key);  /* See below. */
-
-        // JFR code instrumentation may occur here
-        if (EventHelper.isLoggingSecurity()) {
-            EventHelper.logSecurityPropertyEvent(key, datum);
-        }
     }
 
     /*
@@ -1034,11 +1027,11 @@ public final class Security {
         String algName = null;
         String attrName = null;
 
-        if (filterValue.isEmpty()) {
+        if (filterValue.length() == 0) {
             // The filterValue is an empty string. So the filterKey
             // should be in the format of <crypto_service>.<algorithm_or_type>.
             algName = filterKey.substring(algIndex + 1).trim();
-            if (algName.isEmpty()) {
+            if (algName.length() == 0) {
                 // There must be a algorithm or type name.
                 throw new InvalidParameterException("Invalid filter");
             }
@@ -1053,7 +1046,7 @@ public final class Security {
                 throw new InvalidParameterException("Invalid filter");
             } else {
                 attrName = filterKey.substring(attrIndex + 1).trim();
-                if (attrName.isEmpty()) {
+                if (attrName.length() == 0) {
                     // There is no attribute name in the filter.
                     throw new InvalidParameterException("Invalid filter");
                 }
@@ -1099,7 +1092,7 @@ public final class Security {
      **/
     public static Set<String> getAlgorithms(String serviceName) {
 
-        if ((serviceName == null) || (serviceName.isEmpty()) ||
+        if ((serviceName == null) || (serviceName.length() == 0) ||
             (serviceName.endsWith("."))) {
             return Collections.emptySet();
         }

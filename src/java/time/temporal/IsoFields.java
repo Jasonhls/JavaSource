@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
@@ -535,17 +535,11 @@ public final class IsoFields {
                 if (isSupportedBy(temporal) == false) {
                     throw new UnsupportedTemporalTypeException("Unsupported field: WeekBasedYear");
                 }
-                int newWby = range().checkValidIntValue(newValue, WEEK_BASED_YEAR);  // strict check
+                int newVal = range().checkValidIntValue(newValue, WEEK_BASED_YEAR);  // strict check
                 LocalDate date = LocalDate.from(temporal);
-                int dow = date.get(DAY_OF_WEEK);
                 int week = getWeek(date);
-                if (week == 53 && getWeekRange(newWby) == 52) {
-                    week = 52;
-                }
-                LocalDate resolved = LocalDate.of(newWby, 1, 4);  // 4th is guaranteed to be in week one
-                int days = (dow - resolved.get(DAY_OF_WEEK)) + ((week - 1) * 7);
-                resolved = resolved.plusDays(days);
-                return (R) temporal.with(resolved);
+                date = date.withDayOfYear(180).withYear(newVal).with(WEEK_OF_WEEK_BASED_YEAR, week);
+                return (R) date.with(date);
             }
             @Override
             public String toString() {
@@ -583,16 +577,12 @@ public final class IsoFields {
 
         private static ValueRange getWeekRange(LocalDate date) {
             int wby = getWeekBasedYear(date);
-            return ValueRange.of(1, getWeekRange(wby));
-        }
-
-        private static int getWeekRange(int wby) {
-            LocalDate date = LocalDate.of(wby, 1, 1);
+            date = date.withDayOfYear(1).withYear(wby);
             // 53 weeks if standard year starts on Thursday, or Wed in a leap year
             if (date.getDayOfWeek() == THURSDAY || (date.getDayOfWeek() == WEDNESDAY && date.isLeapYear())) {
-                return 53;
+                return ValueRange.of(1, 53);
             }
-            return 52;
+            return ValueRange.of(1, 52);
         }
 
         private static int getWeek(LocalDate date) {
@@ -638,7 +628,7 @@ public final class IsoFields {
 
     //-----------------------------------------------------------------------
     /**
-     * Implementation of the unit.
+     * Implementation of the period unit.
      */
     private static enum Unit implements TemporalUnit {
 
@@ -692,8 +682,9 @@ public final class IsoFields {
                     return (R) temporal.with(WEEK_BASED_YEAR,
                             Math.addExact(temporal.get(WEEK_BASED_YEAR), amount));
                 case QUARTER_YEARS:
-                    return (R) temporal.plus(amount / 4, YEARS)
-                            .plus((amount % 4) * 3, MONTHS);
+                    // no overflow (256 is multiple of 4)
+                    return (R) temporal.plus(amount / 256, YEARS)
+                            .plus((amount % 256) * 3, MONTHS);
                 default:
                     throw new IllegalStateException("Unreachable");
             }

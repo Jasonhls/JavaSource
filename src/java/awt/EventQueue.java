@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2014, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.awt;
@@ -182,14 +182,7 @@ public class EventQueue {
 
     private FwDispatcher fwDispatcher;
 
-    private static volatile PlatformLogger eventLog;
-
-    private static final PlatformLogger getEventLog() {
-        if(eventLog == null) {
-            eventLog = PlatformLogger.getLogger("java.awt.event.EventQueue");
-        }
-        return eventLog;
-    }
+    private static final PlatformLogger eventLog = PlatformLogger.getLogger("java.awt.event.EventQueue");
 
     static {
         AWTAccessor.setEventQueueAccessor(
@@ -220,11 +213,6 @@ public class EventQueue {
                 public void setFwDispatcher(EventQueue eventQueue,
                                             FwDispatcher dispatcher) {
                     eventQueue.setFwDispatcher(dispatcher);
-                }
-
-                @Override
-                public long getMostRecentEventTime(EventQueue eventQueue) {
-                    return eventQueue.getMostRecentEventTimeImpl();
                 }
             });
     }
@@ -711,9 +699,7 @@ public class EventQueue {
                     fwDispatcher.scheduleDispatch(new Runnable() {
                         @Override
                         public void run() {
-                            if (dispatchThread.filterAndCheckEvent(event)) {
-                                dispatchEventImpl(event, src);
-                            }
+                            dispatchEventImpl(event, src);
                         }
                     });
                 }
@@ -768,8 +754,8 @@ public class EventQueue {
                 dispatchThread.stopDispatching();
             }
         } else {
-            if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
-                getEventLog().fine("Unable to dispatch event: " + event);
+            if (eventLog.isLoggable(PlatformLogger.Level.FINE)) {
+                eventLog.fine("Unable to dispatch event: " + event);
             }
         }
     }
@@ -866,8 +852,8 @@ public class EventQueue {
      * @since           1.2
      */
     public void push(EventQueue newEventQueue) {
-        if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
-            getEventLog().fine("EventQueue.push(" + newEventQueue + ")");
+        if (eventLog.isLoggable(PlatformLogger.Level.FINE)) {
+            eventLog.fine("EventQueue.push(" + newEventQueue + ")");
         }
 
         pushPopLock.lock();
@@ -892,19 +878,17 @@ public class EventQueue {
                     // Use getNextEventPrivate() as it doesn't call flushPendingEvents()
                     newEventQueue.postEventPrivate(topQueue.getNextEventPrivate());
                 } catch (InterruptedException ie) {
-                    if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
-                        getEventLog().fine("Interrupted push", ie);
+                    if (eventLog.isLoggable(PlatformLogger.Level.FINE)) {
+                        eventLog.fine("Interrupted push", ie);
                     }
                 }
             }
 
-            if (topQueue.dispatchThread != null) {
-                // Wake up EDT waiting in getNextEvent(), so it can
-                // pick up a new EventQueue. Post the waking event before
-                // topQueue.nextQueue is assigned, otherwise the event would
-                // go newEventQueue
-                topQueue.postEventPrivate(new InvocationEvent(topQueue, dummyRunnable));
-            }
+            // Wake up EDT waiting in getNextEvent(), so it can
+            // pick up a new EventQueue. Post the waking event before
+            // topQueue.nextQueue is assigned, otherwise the event would
+            // go newEventQueue
+            topQueue.postEventPrivate(new InvocationEvent(topQueue, dummyRunnable));
 
             newEventQueue.previousQueue = topQueue;
             topQueue.nextQueue = newEventQueue;
@@ -933,8 +917,8 @@ public class EventQueue {
      * @since           1.2
      */
     protected void pop() throws EmptyStackException {
-        if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
-            getEventLog().fine("EventQueue.pop(" + this + ")");
+        if (eventLog.isLoggable(PlatformLogger.Level.FINE)) {
+            eventLog.fine("EventQueue.pop(" + this + ")");
         }
 
         pushPopLock.lock();
@@ -956,8 +940,8 @@ public class EventQueue {
                 try {
                     prevQueue.postEventPrivate(topQueue.getNextEventPrivate());
                 } catch (InterruptedException ie) {
-                    if (getEventLog().isLoggable(PlatformLogger.Level.FINE)) {
-                        getEventLog().fine("Interrupted pop", ie);
+                    if (eventLog.isLoggable(PlatformLogger.Level.FINE)) {
+                        eventLog.fine("Interrupted pop", ie);
                     }
                 }
             }
@@ -1002,32 +986,6 @@ public class EventQueue {
         return createSecondaryLoop(null, null, 0);
     }
 
-    private class FwSecondaryLoopWrapper implements SecondaryLoop {
-        final private SecondaryLoop loop;
-        final private EventFilter filter;
-
-        public FwSecondaryLoopWrapper(SecondaryLoop loop, EventFilter filter) {
-            this.loop = loop;
-            this.filter = filter;
-        }
-
-        @Override
-        public boolean enter() {
-            if (filter != null) {
-                dispatchThread.addEventFilter(filter);
-            }
-            return loop.enter();
-        }
-
-        @Override
-        public boolean exit() {
-            if (filter != null) {
-                dispatchThread.removeEventFilter(filter);
-            }
-            return loop.exit();
-        }
-    }
-
     SecondaryLoop createSecondaryLoop(Conditional cond, EventFilter filter, long interval) {
         pushPopLock.lock();
         try {
@@ -1036,7 +994,7 @@ public class EventQueue {
                 return nextQueue.createSecondaryLoop(cond, filter, interval);
             }
             if (fwDispatcher != null) {
-                return new FwSecondaryLoopWrapper(fwDispatcher.createSecondaryLoop(), filter);
+                return fwDispatcher.createSecondaryLoop();
             }
             if (dispatchThread == null) {
                 initDispatchThread();
@@ -1104,11 +1062,11 @@ public class EventQueue {
                             t.setContextClassLoader(classLoader);
                             t.setPriority(Thread.NORM_PRIORITY + 1);
                             t.setDaemon(false);
-                            AWTAutoShutdown.getInstance().notifyThreadBusy(t);
                             return t;
                         }
                     }
                 );
+                AWTAutoShutdown.getInstance().notifyThreadBusy(dispatchThread);
                 dispatchThread.start();
             }
         } finally {
@@ -1135,13 +1093,6 @@ public class EventQueue {
                 dispatchThread = null;
             }
             AWTAutoShutdown.getInstance().notifyThreadFree(edt);
-            /*
-             * Event was posted after EDT events pumping had stopped, so start
-             * another EDT to handle this event
-             */
-            if (peekEvent() != null) {
-                initDispatchThread();
-            }
         } finally {
             pushPopLock.unlock();
         }

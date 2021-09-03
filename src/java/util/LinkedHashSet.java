@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -76,7 +76,7 @@ package java.util;
  * one of the threads modifies the set, it <em>must</em> be synchronized
  * externally.  This is typically accomplished by synchronizing on some
  * object that naturally encapsulates the set.
- * <p>
+ *
  * If no such object exists, the set should be "wrapped" using the
  * {@link Collections#synchronizedSet Collections.synchronizedSet}
  * method.  This is best done at creation time, to prevent accidental
@@ -104,19 +104,20 @@ package java.util;
  * Java Collections Framework</a>.
  *
  * @param <E> the type of elements maintained by this set
- * @author Josh Bloch
- * @see Object#hashCode()
- * @see Collection
- * @see Set
- * @see HashSet
- * @see TreeSet
- * @see Hashtable
- * @since 1.4
+ *
+ * @author  Josh Bloch
+ * @see     Object#hashCode()
+ * @see     Collection
+ * @see     Set
+ * @see     HashSet
+ * @see     TreeSet
+ * @see     Hashtable
+ * @since   1.4
  */
 
 public class LinkedHashSet<E>
-        extends HashSet<E>
-        implements Set<E>, Cloneable, java.io.Serializable {
+    extends HashSet<E>
+    implements Set<E>, Cloneable, java.io.Serializable {
 
     private static final long serialVersionUID = -2851667679971038690L;
 
@@ -124,10 +125,10 @@ public class LinkedHashSet<E>
      * Constructs a new, empty linked hash set with the specified initial
      * capacity and load factor.
      *
-     * @param initialCapacity the initial capacity of the linked hash set
-     * @param loadFactor      the load factor of the linked hash set
-     * @throws IllegalArgumentException if the initial capacity is less
-     *                                  than zero, or if the load factor is nonpositive
+     * @param      initialCapacity the initial capacity of the linked hash set
+     * @param      loadFactor      the load factor of the linked hash set
+     * @throws     IllegalArgumentException  if the initial capacity is less
+     *               than zero, or if the load factor is nonpositive
      */
     public LinkedHashSet(int initialCapacity, float loadFactor) {
         super(initialCapacity, loadFactor, true);
@@ -137,9 +138,9 @@ public class LinkedHashSet<E>
      * Constructs a new, empty linked hash set with the specified initial
      * capacity and the default load factor (0.75).
      *
-     * @param initialCapacity the initial capacity of the LinkedHashSet
-     * @throws IllegalArgumentException if the initial capacity is less
-     *                                  than zero
+     * @param   initialCapacity   the initial capacity of the LinkedHashSet
+     * @throws  IllegalArgumentException if the initial capacity is less
+     *              than zero
      */
     public LinkedHashSet(int initialCapacity) {
         super(initialCapacity, .75f, true);
@@ -159,12 +160,12 @@ public class LinkedHashSet<E>
      * capacity sufficient to hold the elements in the specified collection
      * and the default load factor (0.75).
      *
-     * @param c the collection whose elements are to be placed into
-     *          this set
+     * @param c  the collection whose elements are to be placed into
+     *           this set
      * @throws NullPointerException if the specified collection is null
      */
     public LinkedHashSet(Collection<? extends E> c) {
-        super(Math.max(2 * c.size(), 11), .75f, true);
+        super(Math.max(2*c.size(), 11), .75f, true);
         addAll(c);
     }
 
@@ -176,13 +177,15 @@ public class LinkedHashSet<E>
      * {@link Spliterator#DISTINCT}, and {@code ORDERED}.  Implementations
      * should document the reporting of additional characteristic values.
      *
-     * @return a {@code Spliterator} over the elements in this set
-     * @implNote The implementation creates a
+     * @implNote
+     * The implementation creates a
      * <em><a href="Spliterator.html#binding">late-binding</a></em> spliterator
      * from the set's {@code Iterator}.  The spliterator inherits the
      * <em>fail-fast</em> properties of the set's iterator.
      * The created {@code Spliterator} additionally reports
      * {@link Spliterator#SUBSIZED}.
+     *
+     * @return a {@code Spliterator} over the elements in this set
      * @since 1.8
      */
     @Override

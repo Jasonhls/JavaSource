@@ -1,33 +1,33 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2011-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -344,13 +344,10 @@ public final class ValueRange implements Serializable {
     /**
      * Restore the state of an ValueRange from the stream.
      * Check that the values are valid.
-     *
-     * @param s the stream to read
      * @throws InvalidObjectException if
      *     the smallest minimum is greater than the smallest maximum,
      *  or the smallest maximum is greater than the largest maximum
      *  or the largest minimum is greater than the largest maximum
-     * @throws ClassNotFoundException if a class cannot be resolved
      */
     private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException, InvalidObjectException
@@ -385,7 +382,7 @@ public final class ValueRange implements Serializable {
         }
         if (obj instanceof ValueRange) {
             ValueRange other = (ValueRange) obj;
-            return minSmallest == other.minSmallest && minLargest == other.minLargest &&
+           return minSmallest == other.minSmallest && minLargest == other.minLargest &&
                    maxSmallest == other.maxSmallest && maxLargest == other.maxLargest;
         }
         return false;
@@ -398,9 +395,8 @@ public final class ValueRange implements Serializable {
      */
     @Override
     public int hashCode() {
-        long hash = minSmallest + (minLargest << 16) + (minLargest >> 48) +
-                (maxSmallest << 32) + (maxSmallest >> 32) + (maxLargest << 48) +
-                (maxLargest >> 16);
+        long hash = minSmallest + minLargest << 16 + minLargest >> 48 + maxSmallest << 32 +
+            maxSmallest >> 32 + maxLargest << 48 + maxLargest >> 16;
         return (int) (hash ^ (hash >>> 32));
     }
 

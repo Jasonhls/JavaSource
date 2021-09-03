@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.lang.management;
@@ -52,7 +52,6 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import javax.management.JMX;
 import sun.management.ManagementFactoryHelper;
-import sun.management.ExtendedPlatformComponent;
 
 /**
  * The {@code ManagementFactory} class is a factory class for getting
@@ -490,12 +489,6 @@ public class ManagementFactory {
             for (Map.Entry<ObjectName, DynamicMBean> e : dynmbeans.entrySet()) {
                 addDynamicMBean(platformMBeanServer, e.getValue(), e.getKey());
             }
-            for (final PlatformManagedObject o :
-                                       ExtendedPlatformComponent.getMXBeans()) {
-                if (!platformMBeanServer.isRegistered(o.getObjectName())) {
-                    addMXBean(platformMBeanServer, o);
-                }
-            }
         }
         return platformMBeanServer;
     }
@@ -662,14 +655,9 @@ public class ManagementFactory {
     public static <T extends PlatformManagedObject>
             T getPlatformMXBean(Class<T> mxbeanInterface) {
         PlatformComponent pc = PlatformComponent.getPlatformComponent(mxbeanInterface);
-        if (pc == null) {
-            T mbean = ExtendedPlatformComponent.getMXBean(mxbeanInterface);
-            if (mbean != null) {
-                return mbean;
-            }
+        if (pc == null)
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " is not a platform management interface");
-        }
         if (!pc.isSingleton())
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " can have zero or more than one instances");
@@ -702,14 +690,9 @@ public class ManagementFactory {
     public static <T extends PlatformManagedObject> List<T>
             getPlatformMXBeans(Class<T> mxbeanInterface) {
         PlatformComponent pc = PlatformComponent.getPlatformComponent(mxbeanInterface);
-        if (pc == null) {
-            T mbean = ExtendedPlatformComponent.getMXBean(mxbeanInterface);
-            if (mbean != null) {
-                return Collections.singletonList(mbean);
-            }
+        if (pc == null)
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " is not a platform management interface");
-        }
         return Collections.unmodifiableList(pc.getMXBeans(mxbeanInterface));
     }
 
@@ -754,17 +737,9 @@ public class ManagementFactory {
         throws java.io.IOException
     {
         PlatformComponent pc = PlatformComponent.getPlatformComponent(mxbeanInterface);
-        if (pc == null) {
-            T mbean = ExtendedPlatformComponent.getMXBean(mxbeanInterface);
-            if (mbean != null) {
-                ObjectName on = mbean.getObjectName();
-                return ManagementFactory.newPlatformMXBeanProxy(connection,
-                                                                on.getCanonicalName(),
-                                                                mxbeanInterface);
-            }
+        if (pc == null)
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " is not a platform management interface");
-        }
         if (!pc.isSingleton())
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " can have zero or more than one instances");
@@ -806,13 +781,6 @@ public class ManagementFactory {
     {
         PlatformComponent pc = PlatformComponent.getPlatformComponent(mxbeanInterface);
         if (pc == null) {
-            T mbean = ExtendedPlatformComponent.getMXBean(mxbeanInterface);
-            if (mbean != null) {
-                ObjectName on = mbean.getObjectName();
-                T proxy = ManagementFactory.newPlatformMXBeanProxy(connection,
-                            on.getCanonicalName(), mxbeanInterface);
-                return Collections.singletonList(proxy);
-            }
             throw new IllegalArgumentException(mxbeanInterface.getName() +
                 " is not a platform management interface");
         }

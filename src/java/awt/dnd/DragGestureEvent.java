@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -36,7 +36,6 @@ import java.awt.event.InputEvent;
 
 import java.awt.datatransfer.Transferable;
 
-import java.io.InvalidObjectException;
 import java.util.EventObject;
 
 import java.util.Collections;
@@ -330,50 +329,22 @@ public class DragGestureEvent extends EventObject {
     {
         ObjectInputStream.GetField f = s.readFields();
 
-        DragSource newDragSource = (DragSource)f.get("dragSource", null);
-        if (newDragSource == null) {
-            throw new InvalidObjectException("null DragSource");
-        }
-        dragSource = newDragSource;
-
-        Component newComponent = (Component)f.get("component", null);
-        if (newComponent == null) {
-            throw new InvalidObjectException("null component");
-        }
-        component = newComponent;
-
-        Point newOrigin = (Point)f.get("origin", null);
-        if (newOrigin == null) {
-            throw new InvalidObjectException("null origin");
-        }
-        origin = newOrigin;
-
-        int newAction = f.get("action", 0);
-        if (newAction != DnDConstants.ACTION_COPY &&
-                newAction != DnDConstants.ACTION_MOVE &&
-                newAction != DnDConstants.ACTION_LINK) {
-            throw new InvalidObjectException("bad action");
-        }
-        action = newAction;
-
+        dragSource = (DragSource)f.get("dragSource", null);
+        component = (Component)f.get("component", null);
+        origin = (Point)f.get("origin", null);
+        action = f.get("action", 0);
         // Pre-1.4 support. 'events' was previously non-transient
-        List newEvents;
         try {
-            newEvents = (List)f.get("events", null);
+            events = (List)f.get("events", null);
         } catch (IllegalArgumentException e) {
             // 1.4-compatible byte stream. 'events' was written explicitly
-            newEvents = (List)s.readObject();
+            events = (List)s.readObject();
         }
 
         // Implementation assumes 'events' is never null.
-        if (newEvents != null && newEvents.isEmpty()) {
-            // Constructor treats empty events list as invalid value
-            // Throw exception if serialized list is empty
-            throw new InvalidObjectException("empty list of events");
-        } else if (newEvents == null) {
-            newEvents = Collections.emptyList();
+        if (events == null) {
+            events = Collections.EMPTY_LIST;
         }
-        events = newEvents;
     }
 
     /*

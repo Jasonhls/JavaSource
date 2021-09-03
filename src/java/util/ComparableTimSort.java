@@ -1,27 +1,27 @@
 /*
  * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
  * Copyright 2009 Google Inc.  All Rights Reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util;
@@ -44,13 +44,13 @@ class ComparableTimSort {
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
      * array is less than this length, no merges will be performed.
-     * <p>
+     *
      * This constant should be a power of two.  It was 64 in Tim Peter's C
      * implementation, but 32 was empirically determined to work better in
      * this implementation.  In the unlikely event that you set this constant
      * to be a number that's not a power of two, you'll need to change the
      * {@link #minRunLength} computation.
-     * <p>
+     *
      * If you decrease this constant, you must change the stackLen
      * computation in the TimSort constructor, or you risk an
      * ArrayOutOfBounds exception.  See listsort.txt for a discussion
@@ -68,7 +68,7 @@ class ComparableTimSort {
      * When we get into galloping mode, we stay there until both runs win less
      * often than MIN_GALLOP consecutive times.
      */
-    private static final int MIN_GALLOP = 7;
+    private static final int  MIN_GALLOP = 7;
 
     /**
      * This controls when we get *into* galloping mode.  It is initialized
@@ -80,7 +80,7 @@ class ComparableTimSort {
     /**
      * Maximum initial size of tmp array, which is used for merging.  The array
      * can grow to accommodate demand.
-     * <p>
+     *
      * Unlike Tim's original C version, we do not allocate this much storage
      * when sorting smaller arrays.  This change was required for performance.
      */
@@ -99,9 +99,9 @@ class ComparableTimSort {
      * A stack of pending runs yet to be merged.  Run i starts at
      * address base[i] and extends for len[i] elements.  It's always
      * true (so long as the indices are in bounds) that:
-     * <p>
-     * runBase[i] + runLen[i] == runBase[i + 1]
-     * <p>
+     *
+     *     runBase[i] + runLen[i] == runBase[i + 1]
+     *
      * so we could cut the storage for this, but it's a minor amount,
      * and keeping all the info explicit simplifies the code.
      */
@@ -112,10 +112,10 @@ class ComparableTimSort {
     /**
      * Creates a TimSort instance to maintain the state of an ongoing sort.
      *
-     * @param a        the array to be sorted
-     * @param work     a workspace array (slice)
+     * @param a the array to be sorted
+     * @param work a workspace array (slice)
      * @param workBase origin of usable space in work array
-     * @param workLen  usable size of work array
+     * @param workLen usable size of work array
      */
     private ComparableTimSort(Object[] a, Object[] work, int workBase, int workLen) {
         this.a = a;
@@ -123,12 +123,13 @@ class ComparableTimSort {
         // Allocate temp storage (which may be increased later if necessary)
         int len = a.length;
         int tlen = (len < 2 * INITIAL_TMP_STORAGE_LENGTH) ?
-                len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
+            len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
         if (work == null || workLen < tlen || workBase + tlen > work.length) {
             tmp = new Object[tlen];
             tmpBase = 0;
             tmpLen = tlen;
-        } else {
+        }
+        else {
             tmp = work;
             tmpBase = workBase;
             tmpLen = workLen;
@@ -143,14 +144,10 @@ class ComparableTimSort {
          * large) stack lengths for smaller arrays.  The "magic numbers" in the
          * computation below must be changed if MIN_MERGE is decreased.  See
          * the MIN_MERGE declaration above for more information.
-         * The maximum value of 49 allows for an array up to length
-         * Integer.MAX_VALUE-4, if array is filled by the worst case stack size
-         * increasing scenario. More explanations are given in section 4 of:
-         * http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf
          */
-        int stackLen = (len < 120 ? 5 :
-                len < 1542 ? 10 :
-                        len < 119151 ? 24 : 49);
+        int stackLen = (len <    120  ?  5 :
+                        len <   1542  ? 10 :
+                        len < 119151  ? 24 : 40);
         runBase = new int[stackLen];
         runLen = new int[stackLen];
     }
@@ -167,18 +164,18 @@ class ComparableTimSort {
      * any necessary array bounds checks and expanding parameters into
      * the required forms.
      *
-     * @param a        the array to be sorted
-     * @param lo       the index of the first element, inclusive, to be sorted
-     * @param hi       the index of the last element, exclusive, to be sorted
-     * @param work     a workspace array (slice)
+     * @param a the array to be sorted
+     * @param lo the index of the first element, inclusive, to be sorted
+     * @param hi the index of the last element, exclusive, to be sorted
+     * @param work a workspace array (slice)
      * @param workBase origin of usable space in work array
-     * @param workLen  usable size of work array
+     * @param workLen usable size of work array
      * @since 1.8
      */
     static void sort(Object[] a, int lo, int hi, Object[] work, int workBase, int workLen) {
         assert a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
-        int nRemaining = hi - lo;
+        int nRemaining  = hi - lo;
         if (nRemaining < 2)
             return;  // Arrays of size 0 and 1 are always sorted
 
@@ -227,24 +224,24 @@ class ComparableTimSort {
      * insertion sort.  This is the best method for sorting small numbers
      * of elements.  It requires O(n log n) compares, but O(n^2) data
      * movement (worst case).
-     * <p>
+     *
      * If the initial part of the specified range is already sorted,
      * this method can take advantage of it: the method assumes that the
      * elements from index {@code lo}, inclusive, to {@code start},
      * exclusive are already sorted.
      *
-     * @param a     the array in which a range is to be sorted
-     * @param lo    the index of the first element in the range to be sorted
-     * @param hi    the index after the last element in the range to be sorted
+     * @param a the array in which a range is to be sorted
+     * @param lo the index of the first element in the range to be sorted
+     * @param hi the index after the last element in the range to be sorted
      * @param start the index of the first element in the range that is
-     *              not already known to be sorted ({@code lo <= start <= hi})
+     *        not already known to be sorted ({@code lo <= start <= hi})
      */
     @SuppressWarnings({"fallthrough", "rawtypes", "unchecked"})
     private static void binarySort(Object[] a, int lo, int hi, int start) {
         assert lo <= start && start <= hi;
         if (start == lo)
             start++;
-        for (; start < hi; start++) {
+        for ( ; start < hi; start++) {
             Comparable pivot = (Comparable) a[start];
 
             // Set left (and right) to the index where a[start] (pivot) belongs
@@ -275,13 +272,10 @@ class ComparableTimSort {
             int n = start - left;  // The number of elements to move
             // Switch is just an optimization for arraycopy in default case
             switch (n) {
-                case 2:
-                    a[left + 2] = a[left + 1];
-                case 1:
-                    a[left + 1] = a[left];
-                    break;
-                default:
-                    System.arraycopy(a, left, a, left + 1, n);
+                case 2:  a[left + 2] = a[left + 1];
+                case 1:  a[left + 1] = a[left];
+                         break;
+                default: System.arraycopy(a, left, a, left + 1, n);
             }
             a[left] = pivot;
         }
@@ -291,25 +285,25 @@ class ComparableTimSort {
      * Returns the length of the run beginning at the specified position in
      * the specified array and reverses the run if it is descending (ensuring
      * that the run will always be ascending when the method returns).
-     * <p>
+     *
      * A run is the longest ascending sequence with:
-     * <p>
-     * a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
-     * <p>
+     *
+     *    a[lo] <= a[lo + 1] <= a[lo + 2] <= ...
+     *
      * or the longest descending sequence with:
-     * <p>
-     * a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
-     * <p>
+     *
+     *    a[lo] >  a[lo + 1] >  a[lo + 2] >  ...
+     *
      * For its intended use in a stable mergesort, the strictness of the
      * definition of "descending" is needed so that the call can safely
      * reverse a descending sequence without violating stability.
      *
-     * @param a  the array in which a run is to be counted and possibly reversed
+     * @param a the array in which a run is to be counted and possibly reversed
      * @param lo index of the first element in the run
      * @param hi index after the last element that may be contained in the run.
-     *           It is required that {@code lo < hi}.
-     * @return the length of the run beginning at the specified position in
-     * the specified array
+              It is required that {@code lo < hi}.
+     * @return  the length of the run beginning at the specified position in
+     *          the specified array
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static int countRunAndMakeAscending(Object[] a, int lo, int hi) {
@@ -334,7 +328,7 @@ class ComparableTimSort {
     /**
      * Reverse the specified range of the specified array.
      *
-     * @param a  the array in which a range is to be reversed
+     * @param a the array in which a range is to be reversed
      * @param lo the index of the first element in the range to be reversed
      * @param hi the index after the last element in the range to be reversed
      */
@@ -351,14 +345,14 @@ class ComparableTimSort {
      * Returns the minimum acceptable run length for an array of the specified
      * length. Natural runs shorter than this will be extended with
      * {@link #binarySort}.
-     * <p>
+     *
      * Roughly speaking, the computation is:
-     * <p>
-     * If n < MIN_MERGE, return n (it's too small to bother with fancy stuff).
-     * Else if n is an exact power of 2, return MIN_MERGE/2.
-     * Else return an int k, MIN_MERGE/2 <= k <= MIN_MERGE, such that n/k
-     * is close to, but strictly less than, an exact power of 2.
-     * <p>
+     *
+     *  If n < MIN_MERGE, return n (it's too small to bother with fancy stuff).
+     *  Else if n is an exact power of 2, return MIN_MERGE/2.
+     *  Else return an int k, MIN_MERGE/2 <= k <= MIN_MERGE, such that n/k
+     *   is close to, but strictly less than, an exact power of 2.
+     *
      * For the rationale, see listsort.txt.
      *
      * @param n the length of the array to be sorted
@@ -389,10 +383,10 @@ class ComparableTimSort {
     /**
      * Examines the stack of runs waiting to be merged and merges adjacent runs
      * until the stack invariants are reestablished:
-     * <p>
-     * 1. runLen[i - 3] > runLen[i - 2] + runLen[i - 1]
-     * 2. runLen[i - 2] > runLen[i - 1]
-     * <p>
+     *
+     *     1. runLen[i - 3] > runLen[i - 2] + runLen[i - 1]
+     *     2. runLen[i - 2] > runLen[i - 1]
+     *
      * This method is called each time a new run is pushed onto the stack,
      * so the invariants are guaranteed to hold for i < stackSize upon
      * entry to the method.
@@ -400,7 +394,7 @@ class ComparableTimSort {
     private void mergeCollapse() {
         while (stackSize > 1) {
             int n = stackSize - 2;
-            if (n > 0 && runLen[n - 1] <= runLen[n] + runLen[n + 1]) {
+            if (n > 0 && runLen[n-1] <= runLen[n] + runLen[n+1]) {
                 if (runLen[n - 1] < runLen[n + 1])
                     n--;
                 mergeAt(n);
@@ -490,20 +484,20 @@ class ComparableTimSort {
      * specified sorted range; if the range contains an element equal to key,
      * returns the index of the leftmost equal element.
      *
-     * @param key  the key whose insertion point to search for
-     * @param a    the array in which to search
+     * @param key the key whose insertion point to search for
+     * @param a the array in which to search
      * @param base the index of the first element in the range
-     * @param len  the length of the range; must be > 0
+     * @param len the length of the range; must be > 0
      * @param hint the index at which to begin the search, 0 <= hint < n.
-     *             The closer hint is to the result, the faster this method will run.
+     *     The closer hint is to the result, the faster this method will run.
      * @return the int k,  0 <= k <= n such that a[b + k - 1] < key <= a[b + k],
-     * pretending that a[b - 1] is minus infinity and a[b + n] is infinity.
-     * In other words, key belongs at index b + k; or in other words,
-     * the first k elements of a should precede key, and the last n - k
-     * should follow it.
+     *    pretending that a[b - 1] is minus infinity and a[b + n] is infinity.
+     *    In other words, key belongs at index b + k; or in other words,
+     *    the first k elements of a should precede key, and the last n - k
+     *    should follow it.
      */
     private static int gallopLeft(Comparable<Object> key, Object[] a,
-                                  int base, int len, int hint) {
+            int base, int len, int hint) {
         assert len > 0 && hint >= 0 && hint < len;
 
         int lastOfs = 0;
@@ -564,16 +558,16 @@ class ComparableTimSort {
      * Like gallopLeft, except that if the range contains an element equal to
      * key, gallopRight returns the index after the rightmost equal element.
      *
-     * @param key  the key whose insertion point to search for
-     * @param a    the array in which to search
+     * @param key the key whose insertion point to search for
+     * @param a the array in which to search
      * @param base the index of the first element in the range
-     * @param len  the length of the range; must be > 0
+     * @param len the length of the range; must be > 0
      * @param hint the index at which to begin the search, 0 <= hint < n.
-     *             The closer hint is to the result, the faster this method will run.
+     *     The closer hint is to the result, the faster this method will run.
      * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
      */
     private static int gallopRight(Comparable<Object> key, Object[] a,
-                                   int base, int len, int hint) {
+            int base, int len, int hint) {
         assert len > 0 && hint >= 0 && hint < len;
 
         int ofs = 1;
@@ -635,7 +629,7 @@ class ComparableTimSort {
      * element of the first run must be greater than the first element of the
      * second run (a[base1] > a[base2]), and the last element of the first run
      * (a[base1 + len1-1]) must be greater than all elements of the second run.
-     * <p>
+     *
      * For performance, this method should be called only when len1 <= len2;
      * its twin, mergeHi should be called if len1 >= len2.  (Either method
      * may be called if len1 == len2.)
@@ -643,7 +637,7 @@ class ComparableTimSort {
      * @param base1 index of first element in first run to be merged
      * @param len1  length of first run to be merged (must be > 0)
      * @param base2 index of first element in second run to be merged
-     *              (must be aBase + aLen)
+     *        (must be aBase + aLen)
      * @param len2  length of second run to be merged (must be > 0)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -672,7 +666,7 @@ class ComparableTimSort {
         }
 
         int minGallop = this.minGallop;  // Use local variable for performance
-        outer:
+    outer:
         while (true) {
             int count1 = 0; // Number of times in a row that first run won
             int count2 = 0; // Number of times in a row that second run won
@@ -744,7 +738,7 @@ class ComparableTimSort {
             a[dest + len2] = tmp[cursor1]; //  Last elt of run 1 to end of merge
         } else if (len1 == 0) {
             throw new IllegalArgumentException(
-                    "Comparison method violates its general contract!");
+                "Comparison method violates its general contract!");
         } else {
             assert len2 == 0;
             assert len1 > 1;
@@ -760,7 +754,7 @@ class ComparableTimSort {
      * @param base1 index of first element in first run to be merged
      * @param len1  length of first run to be merged (must be > 0)
      * @param base2 index of first element in second run to be merged
-     *              (must be aBase + aLen)
+     *        (must be aBase + aLen)
      * @param len2  length of second run to be merged (must be > 0)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -792,7 +786,7 @@ class ComparableTimSort {
         }
 
         int minGallop = this.minGallop;  // Use local variable for performance
-        outer:
+    outer:
         while (true) {
             int count1 = 0; // Number of times in a row that first run won
             int count2 = 0; // Number of times in a row that second run won
@@ -866,7 +860,7 @@ class ComparableTimSort {
             a[dest] = tmp[cursor2];  // Move first elt of run2 to front of merge
         } else if (len2 == 0) {
             throw new IllegalArgumentException(
-                    "Comparison method violates its general contract!");
+                "Comparison method violates its general contract!");
         } else {
             assert len1 == 0;
             assert len2 > 0;
@@ -882,7 +876,7 @@ class ComparableTimSort {
      * @param minCapacity the minimum required capacity of the tmp array
      * @return tmp, whether or not it grew
      */
-    private Object[] ensureCapacity(int minCapacity) {
+    private Object[]  ensureCapacity(int minCapacity) {
         if (tmpLen < minCapacity) {
             // Compute smallest power of 2 > minCapacity
             int newSize = minCapacity;

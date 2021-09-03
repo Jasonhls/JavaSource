@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -50,8 +50,8 @@ import java.util.function.LongConsumer;
  * the initial state, where it can be re-used.  Data-accepting methods (such as
  * {@code accept()} are only valid in the active state.
  *
- * @param <T> type of elements for value streams
- * @apiNote A stream pipeline consists of a source, zero or more intermediate stages
+ * @apiNote
+ * A stream pipeline consists of a source, zero or more intermediate stages
  * (such as filtering or mapping), and a terminal stage, such as reduction or
  * for-each.  For concreteness, consider the pipeline:
  *
@@ -110,6 +110,8 @@ import java.util.function.LongConsumer;
  * must call the {@code accept(int)} method when emitting values to the downstream.
  * The {@code accept()} method applies the mapping function from {@code U} to
  * {@code int} and passes the resulting value to the downstream {@code Sink}.
+ *
+ * @param <T> type of elements for value streams
  * @since 1.8
  */
 interface Sink<T> extends Consumer<T> {
@@ -117,15 +119,13 @@ interface Sink<T> extends Consumer<T> {
      * Resets the sink state to receive a fresh data set.  This must be called
      * before sending any data to the sink.  After calling {@link #end()},
      * you may call this method to reset the sink for another calculation.
-     *
      * @param size The exact size of the data to be pushed downstream, if
-     *             known or {@code -1} if unknown or infinite.
+     * known or {@code -1} if unknown or infinite.
      *
-     *             <p>Prior to this call, the sink must be in the initial state, and after
-     *             this call it is in the active state.
+     * <p>Prior to this call, the sink must be in the initial state, and after
+     * this call it is in the active state.
      */
-    default void begin(long size) {
-    }
+    default void begin(long size) {}
 
     /**
      * Indicates that all elements have been pushed.  If the {@code Sink} is
@@ -135,14 +135,14 @@ interface Sink<T> extends Consumer<T> {
      * <p>Prior to this call, the sink must be in the active state, and after
      * this call it is returned to the initial state.
      */
-    default void end() {
-    }
+    default void end() {}
 
     /**
      * Indicates that this {@code Sink} does not wish to receive any more data.
      *
-     * @return true if cancellation is requested
      * @implSpec The default implementation always returns false.
+     *
+     * @return true if cancellation is requested
      */
     default boolean cancellationRequested() {
         return false;
@@ -151,8 +151,9 @@ interface Sink<T> extends Consumer<T> {
     /**
      * Accepts an int value.
      *
-     * @throws IllegalStateException if this sink does not accept int values
      * @implSpec The default implementation throws IllegalStateException.
+     *
+     * @throws IllegalStateException if this sink does not accept int values
      */
     default void accept(int value) {
         throw new IllegalStateException("called wrong accept method");
@@ -161,8 +162,9 @@ interface Sink<T> extends Consumer<T> {
     /**
      * Accepts a long value.
      *
-     * @throws IllegalStateException if this sink does not accept long values
      * @implSpec The default implementation throws IllegalStateException.
+     *
+     * @throws IllegalStateException if this sink does not accept long values
      */
     default void accept(long value) {
         throw new IllegalStateException("called wrong accept method");
@@ -171,8 +173,9 @@ interface Sink<T> extends Consumer<T> {
     /**
      * Accepts a double value.
      *
-     * @throws IllegalStateException if this sink does not accept double values
      * @implSpec The default implementation throws IllegalStateException.
+     *
+     * @throws IllegalStateException if this sink does not accept double values
      */
     default void accept(double value) {
         throw new IllegalStateException("called wrong accept method");

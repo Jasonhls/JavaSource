@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1994, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.io;
@@ -498,9 +498,6 @@ public class File
     public File getParentFile() {
         String p = this.getParent();
         if (p == null) return null;
-        if (getClass() != File.class) {
-            p = fs.normalize(p);
-        }
         return new File(p, this.prefixLength);
     }
 
@@ -573,9 +570,6 @@ public class File
      */
     public File getAbsoluteFile() {
         String absPath = getAbsolutePath();
-        if (getClass() != File.class) {
-            absPath = fs.normalize(absPath);
-        }
         return new File(absPath, fs.prefixLength(absPath));
     }
 
@@ -647,9 +641,6 @@ public class File
      */
     public File getCanonicalFile() throws IOException {
         String canonPath = getCanonicalPath();
-        if (getClass() != File.class) {
-            canonPath = fs.normalize(canonPath);
-        }
         return new File(canonPath, fs.prefixLength(canonPath));
     }
 
@@ -1090,41 +1081,6 @@ public class File
 
     /**
      * Returns an array of strings naming the files and directories in the
-     * directory denoted by this abstract pathname.  The strings are
-     * ensured to represent normalized paths.
-     *
-     * @return  An array of strings naming the files and directories in the
-     *          directory denoted by this abstract pathname.  The array will be
-     *          empty if the directory is empty.  Returns {@code null} if
-     *          this abstract pathname does not denote a directory, or if an
-     *          I/O error occurs.
-     *
-     * @throws  SecurityException
-     *          If a security manager exists and its {@link
-     *          SecurityManager#checkRead(String)} method denies read access to
-     *          the directory
-     */
-    private final String[] normalizedList() {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null) {
-            security.checkRead(path);
-        }
-        if (isInvalid()) {
-            return null;
-        }
-        String[] s = fs.list(this);
-        if (s != null && getClass() != File.class) {
-            String[] normalized = new String[s.length];
-            for (int i = 0; i < s.length; i++) {
-                normalized[i] = fs.normalize(s[i]);
-            }
-            s = normalized;
-        }
-        return s;
-    }
-
-    /**
-     * Returns an array of strings naming the files and directories in the
      * directory denoted by this abstract pathname.
      *
      * <p> If this abstract pathname does not denote a directory, then this
@@ -1156,7 +1112,14 @@ public class File
      *          the directory
      */
     public String[] list() {
-        return normalizedList();
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkRead(path);
+        }
+        if (isInvalid()) {
+            return null;
+        }
+        return fs.list(this);
     }
 
     /**
@@ -1189,7 +1152,7 @@ public class File
      * @see java.nio.file.Files#newDirectoryStream(Path,String)
      */
     public String[] list(FilenameFilter filter) {
-        String names[] = normalizedList();
+        String names[] = list();
         if ((names == null) || (filter == null)) {
             return names;
         }
@@ -1241,7 +1204,7 @@ public class File
      * @since  1.2
      */
     public File[] listFiles() {
-        String[] ss = normalizedList();
+        String[] ss = list();
         if (ss == null) return null;
         int n = ss.length;
         File[] fs = new File[n];
@@ -1282,7 +1245,7 @@ public class File
      * @see java.nio.file.Files#newDirectoryStream(Path,String)
      */
     public File[] listFiles(FilenameFilter filter) {
-        String ss[] = normalizedList();
+        String ss[] = list();
         if (ss == null) return null;
         ArrayList<File> files = new ArrayList<>();
         for (String s : ss)
@@ -1320,7 +1283,7 @@ public class File
      * @see java.nio.file.Files#newDirectoryStream(Path,java.nio.file.DirectoryStream.Filter)
      */
     public File[] listFiles(FileFilter filter) {
-        String ss[] = normalizedList();
+        String ss[] = list();
         if (ss == null) return null;
         ArrayList<File> files = new ArrayList<>();
         for (String s : ss) {

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1999, 2014, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.awt;
@@ -71,6 +71,9 @@ public class Robot {
     private boolean isAutoWaitForIdle = false;
     private int autoDelay = 0;
     private static int LEGAL_BUTTON_MASK = 0;
+
+    // location of robot's GC, used in mouseMove(), getPixelColor() and captureScreenImage()
+    private Point gdLoc;
 
     private DirectColorModel screenCapCM = null;
 
@@ -129,6 +132,7 @@ public class Robot {
 
     private void init(GraphicsDevice screen) throws AWTException {
         checkRobotAllowed();
+        gdLoc = screen.getDefaultConfiguration().getBounds().getLocation();
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         if (toolkit instanceof ComponentFactory) {
             peer = ((ComponentFactory)toolkit).createRobot(this, screen);
@@ -196,7 +200,7 @@ public class Robot {
      * @param y         Y position
      */
     public synchronized void mouseMove(int x, int y) {
-        peer.mouseMove(x, y);
+        peer.mouseMove(gdLoc.x + x, gdLoc.y + y);
         afterEvent();
     }
 
@@ -391,8 +395,7 @@ public class Robot {
      * @return  Color of the pixel
      */
     public synchronized Color getPixelColor(int x, int y) {
-        checkScreenCaptureAllowed();
-        Color color = new Color(peer.getRGBPixel(x, y));
+        Color color = new Color(peer.getRGBPixel(gdLoc.x + x, gdLoc.y + y));
         return color;
     }
 
@@ -409,7 +412,10 @@ public class Robot {
     public synchronized BufferedImage createScreenCapture(Rectangle screenRect) {
         checkScreenCaptureAllowed();
 
-        checkValidRect(screenRect);
+        // according to the spec, screenRect is relative to robot's GD
+        Rectangle translatedRect = new Rectangle(screenRect);
+        translatedRect.translate(gdLoc.x, gdLoc.y);
+        checkValidRect(translatedRect);
 
         BufferedImage image;
         DataBufferInt buffer;
@@ -435,14 +441,14 @@ public class Robot {
         int pixels[];
         int[] bandmasks = new int[3];
 
-        pixels = peer.getRGBPixels(screenRect);
+        pixels = peer.getRGBPixels(translatedRect);
         buffer = new DataBufferInt(pixels, pixels.length);
 
         bandmasks[0] = screenCapCM.getRedMask();
         bandmasks[1] = screenCapCM.getGreenMask();
         bandmasks[2] = screenCapCM.getBlueMask();
 
-        raster = Raster.createPackedRaster(buffer, screenRect.width, screenRect.height, screenRect.width, bandmasks, null);
+        raster = Raster.createPackedRaster(buffer, translatedRect.width, translatedRect.height, translatedRect.width, bandmasks, null);
         SunWritableRaster.makeTrackable(buffer);
 
         image = new BufferedImage(screenCapCM, raster, false, null);

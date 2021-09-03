@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -32,7 +32,6 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
-import java.util.function.IntFunction;
 import java.util.function.LongConsumer;
 
 /**
@@ -55,17 +54,16 @@ import java.util.function.LongConsumer;
  */
 final class ForEachOps {
 
-    private ForEachOps() {
-    }
+    private ForEachOps() { }
 
     /**
      * Constructs a {@code TerminalOp} that perform an action for every element
      * of a stream.
      *
-     * @param action  the {@code Consumer} that receives all elements of a
-     *                stream
+     * @param action the {@code Consumer} that receives all elements of a
+     *        stream
      * @param ordered whether an ordered traversal is requested
-     * @param <T>     the type of the stream elements
+     * @param <T> the type of the stream elements
      * @return the {@code TerminalOp} instance
      */
     public static <T> TerminalOp<T, Void> makeRef(Consumer<? super T> action,
@@ -78,8 +76,8 @@ final class ForEachOps {
      * Constructs a {@code TerminalOp} that perform an action for every element
      * of an {@code IntStream}.
      *
-     * @param action  the {@code IntConsumer} that receives all elements of a
-     *                stream
+     * @param action the {@code IntConsumer} that receives all elements of a
+     *        stream
      * @param ordered whether an ordered traversal is requested
      * @return the {@code TerminalOp} instance
      */
@@ -93,8 +91,8 @@ final class ForEachOps {
      * Constructs a {@code TerminalOp} that perform an action for every element
      * of a {@code LongStream}.
      *
-     * @param action  the {@code LongConsumer} that receives all elements of a
-     *                stream
+     * @param action the {@code LongConsumer} that receives all elements of a
+     *        stream
      * @param ordered whether an ordered traversal is requested
      * @return the {@code TerminalOp} instance
      */
@@ -108,8 +106,8 @@ final class ForEachOps {
      * Constructs a {@code TerminalOp} that perform an action for every element
      * of a {@code DoubleStream}.
      *
-     * @param action  the {@code DoubleConsumer} that receives all elements of
-     *                a stream
+     * @param action the {@code DoubleConsumer} that receives all elements of
+     *        a stream
      * @param ordered whether an ordered traversal is requested
      * @return the {@code TerminalOp} instance
      */
@@ -171,9 +169,7 @@ final class ForEachOps {
 
         // Implementations
 
-        /**
-         * Implementation class for reference streams
-         */
+        /** Implementation class for reference streams */
         static final class OfRef<T> extends ForEachOp<T> {
             final Consumer<? super T> consumer;
 
@@ -188,9 +184,7 @@ final class ForEachOps {
             }
         }
 
-        /**
-         * Implementation class for {@code IntStream}
-         */
+        /** Implementation class for {@code IntStream} */
         static final class OfInt extends ForEachOp<Integer>
                 implements Sink.OfInt {
             final IntConsumer consumer;
@@ -211,9 +205,7 @@ final class ForEachOps {
             }
         }
 
-        /**
-         * Implementation class for {@code LongStream}
-         */
+        /** Implementation class for {@code LongStream} */
         static final class OfLong extends ForEachOp<Long>
                 implements Sink.OfLong {
             final LongConsumer consumer;
@@ -234,9 +226,7 @@ final class ForEachOps {
             }
         }
 
-        /**
-         * Implementation class for {@code DoubleStream}
-         */
+        /** Implementation class for {@code DoubleStream} */
         static final class OfDouble extends ForEachOp<Double>
                 implements Sink.OfDouble {
             final DoubleConsumer consumer;
@@ -258,9 +248,7 @@ final class ForEachOps {
         }
     }
 
-    /**
-     * A {@code ForkJoinTask} for performing a parallel for-each operation
-     */
+    /** A {@code ForkJoinTask} for performing a parallel for-each operation */
     @SuppressWarnings("serial")
     static final class ForEachTask<S, T> extends CountedCompleter<Void> {
         private Spliterator<S> spliterator;
@@ -298,7 +286,7 @@ final class ForEachOps {
             ForEachTask<S, T> task = this;
             while (!isShortCircuit || !taskSink.cancellationRequested()) {
                 if (sizeEstimate <= sizeThreshold ||
-                        (leftSplit = rightSplit.trySplit()) == null) {
+                    (leftSplit = rightSplit.trySplit()) == null) {
                     task.helper.copyInto(taskSink, rightSplit);
                     break;
                 }
@@ -310,7 +298,8 @@ final class ForEachOps {
                     rightSplit = leftSplit;
                     taskToFork = task;
                     task = leftTask;
-                } else {
+                }
+                else {
                     forkRight = true;
                     taskToFork = leftTask;
                 }
@@ -328,55 +317,12 @@ final class ForEachOps {
      */
     @SuppressWarnings("serial")
     static final class ForEachOrderedTask<S, T> extends CountedCompleter<Void> {
-        /*
-         * Our goal is to ensure that the elements associated with a task are
-         * processed according to an in-order traversal of the computation tree.
-         * We use completion counts for representing these dependencies, so that
-         * a task does not complete until all the tasks preceding it in this
-         * order complete.  We use the "completion map" to associate the next
-         * task in this order for any left child.  We increase the pending count
-         * of any node on the right side of such a mapping by one to indicate
-         * its dependency, and when a node on the left side of such a mapping
-         * completes, it decrements the pending count of its corresponding right
-         * side.  As the computation tree is expanded by splitting, we must
-         * atomically update the mappings to maintain the invariant that the
-         * completion map maps left children to the next node in the in-order
-         * traversal.
-         *
-         * Take, for example, the following computation tree of tasks:
-         *
-         *       a
-         *      / \
-         *     b   c
-         *    / \ / \
-         *   d  e f  g
-         *
-         * The complete map will contain (not necessarily all at the same time)
-         * the following associations:
-         *
-         *   d -> e
-         *   b -> f
-         *   f -> g
-         *
-         * Tasks e, f, g will have their pending counts increased by 1.
-         *
-         * The following relationships hold:
-         *
-         *   - completion of d "happens-before" e;
-         *   - completion of d and e "happens-before b;
-         *   - completion of b "happens-before" f; and
-         *   - completion of f "happens-before" g
-         *
-         * Thus overall the "happens-before" relationship holds for the
-         * reporting of elements, covered by tasks d, e, f and g, as specified
-         * by the forEachOrdered operation.
-         */
-
         private final PipelineHelper<T> helper;
         private Spliterator<S> spliterator;
         private final long targetSize;
         private final ConcurrentHashMap<ForEachOrderedTask<S, T>, ForEachOrderedTask<S, T>> completionMap;
         private final Sink<T> action;
+        private final Object lock;
         private final ForEachOrderedTask<S, T> leftPredecessor;
         private Node<T> node;
 
@@ -387,9 +333,9 @@ final class ForEachOps {
             this.helper = helper;
             this.spliterator = spliterator;
             this.targetSize = AbstractTask.suggestTargetSize(spliterator.estimateSize());
-            // Size map to avoid concurrent re-sizes
-            this.completionMap = new ConcurrentHashMap<>(Math.max(16, AbstractTask.LEAF_TARGET << 1));
+            this.completionMap = new ConcurrentHashMap<>();
             this.action = action;
+            this.lock = new Object();
             this.leftPredecessor = null;
         }
 
@@ -402,6 +348,7 @@ final class ForEachOps {
             this.targetSize = parent.targetSize;
             this.completionMap = parent.completionMap;
             this.action = parent.action;
+            this.lock = parent.lock;
             this.leftPredecessor = leftPredecessor;
         }
 
@@ -415,102 +362,60 @@ final class ForEachOps {
             long sizeThreshold = task.targetSize;
             boolean forkRight = false;
             while (rightSplit.estimateSize() > sizeThreshold &&
-                    (leftSplit = rightSplit.trySplit()) != null) {
+                   (leftSplit = rightSplit.trySplit()) != null) {
                 ForEachOrderedTask<S, T> leftChild =
-                        new ForEachOrderedTask<>(task, leftSplit, task.leftPredecessor);
+                    new ForEachOrderedTask<>(task, leftSplit, task.leftPredecessor);
                 ForEachOrderedTask<S, T> rightChild =
-                        new ForEachOrderedTask<>(task, rightSplit, leftChild);
-
-                // Fork the parent task
-                // Completion of the left and right children "happens-before"
-                // completion of the parent
-                task.addToPendingCount(1);
-                // Completion of the left child "happens-before" completion of
-                // the right child
-                rightChild.addToPendingCount(1);
+                    new ForEachOrderedTask<>(task, rightSplit, leftChild);
                 task.completionMap.put(leftChild, rightChild);
-
-                // If task is not on the left spine
+                task.addToPendingCount(1); // forking
+                rightChild.addToPendingCount(1); // right pending on left child
                 if (task.leftPredecessor != null) {
-                    /*
-                     * Completion of left-predecessor, or left subtree,
-                     * "happens-before" completion of left-most leaf node of
-                     * right subtree.
-                     * The left child's pending count needs to be updated before
-                     * it is associated in the completion map, otherwise the
-                     * left child can complete prematurely and violate the
-                     * "happens-before" constraint.
-                     */
-                    leftChild.addToPendingCount(1);
-                    // Update association of left-predecessor to left-most
-                    // leaf node of right subtree
-                    if (task.completionMap.replace(task.leftPredecessor, task, leftChild)) {
-                        // If replaced, adjust the pending count of the parent
-                        // to complete when its children complete
-                        task.addToPendingCount(-1);
-                    } else {
-                        // Left-predecessor has already completed, parent's
-                        // pending count is adjusted by left-predecessor;
-                        // left child is ready to complete
-                        leftChild.addToPendingCount(-1);
-                    }
+                    leftChild.addToPendingCount(1); // left pending on previous subtree, except left spine
+                    if (task.completionMap.replace(task.leftPredecessor, task, leftChild))
+                        task.addToPendingCount(-1); // transfer my "right child" count to my left child
+                    else
+                        leftChild.addToPendingCount(-1); // left child is ready to go when ready
                 }
-
                 ForEachOrderedTask<S, T> taskToFork;
                 if (forkRight) {
                     forkRight = false;
                     rightSplit = leftSplit;
                     task = leftChild;
                     taskToFork = rightChild;
-                } else {
+                }
+                else {
                     forkRight = true;
                     task = rightChild;
                     taskToFork = leftChild;
                 }
                 taskToFork.fork();
             }
-
-            /*
-             * Task's pending count is either 0 or 1.  If 1 then the completion
-             * map will contain a value that is task, and two calls to
-             * tryComplete are required for completion, one below and one
-             * triggered by the completion of task's left-predecessor in
-             * onCompletion.  Therefore there is no data race within the if
-             * block.
-             */
-            if (task.getPendingCount() > 0) {
-                // Cannot complete just yet so buffer elements into a Node
-                // for use when completion occurs
-                @SuppressWarnings("unchecked")
-                IntFunction<T[]> generator = size -> (T[]) new Object[size];
+            if (task.getPendingCount() == 0) {
+                task.helper.wrapAndCopyInto(task.action, rightSplit);
+            }
+            else {
                 Node.Builder<T> nb = task.helper.makeNodeBuilder(
-                        task.helper.exactOutputSizeIfKnown(rightSplit),
-                        generator);
+                  task.helper.exactOutputSizeIfKnown(rightSplit),
+                  size -> (T[]) new Object[size]);
                 task.node = task.helper.wrapAndCopyInto(nb, rightSplit).build();
-                task.spliterator = null;
             }
             task.tryComplete();
         }
 
         @Override
         public void onCompletion(CountedCompleter<?> caller) {
+            spliterator = null;
             if (node != null) {
-                // Dump buffered elements from this leaf into the sink
-                node.forEach(action);
+                // Dump any data from this leaf into the sink
+                synchronized (lock) {
+                    node.forEach(action);
+                }
                 node = null;
-            } else if (spliterator != null) {
-                // Dump elements output from this leaf's pipeline into the sink
-                helper.wrapAndCopyInto(action, spliterator);
-                spliterator = null;
             }
-
-            // The completion of this task *and* the dumping of elements
-            // "happens-before" completion of the associated left-most leaf task
-            // of right subtree (if any, which can be this task's right sibling)
-            //
-            ForEachOrderedTask<S, T> leftDescendant = completionMap.remove(this);
-            if (leftDescendant != null)
-                leftDescendant.tryComplete();
+            ForEachOrderedTask<S, T> victim = completionMap.remove(this);
+            if (victim != null)
+                victim.tryComplete();
         }
     }
 }

@@ -1,31 +1,29 @@
 /*
- * Copyright (c) 1995, 2019, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
-
-import sun.security.util.SecurityConstants;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -143,7 +141,7 @@ class Socket implements java.io.Closeable {
         } else {
             if (p == Proxy.NO_PROXY) {
                 if (factory == null) {
-                    impl = new PlainSocketImpl(false);
+                    impl = new PlainSocketImpl();
                     impl.setSocket(this);
                 } else
                     setImpl();
@@ -164,26 +162,11 @@ class Socket implements java.io.Closeable {
      * @since   JDK1.1
      */
     protected Socket(SocketImpl impl) throws SocketException {
-        this(checkPermission(impl), impl);
-    }
-
-    private Socket(Void ignore, SocketImpl impl) {
+        this.impl = impl;
         if (impl != null) {
-            this.impl = impl;
             checkOldImpl();
-            impl.setSocket(this);
+            this.impl.setSocket(this);
         }
-    }
-
-    private static Void checkPermission(SocketImpl impl) {
-        if (impl == null) {
-            return null;
-        }
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(SecurityConstants.SET_SOCKETIMPL_PERMISSION);
-        }
-        return null;
     }
 
     /**
@@ -1395,14 +1378,7 @@ class Socket implements java.io.Closeable {
 
         if (isClosed())
             throw new SocketException("Socket is closed");
-        try {
-            getImpl().setOption(SocketOptions.IP_TOS, tc);
-        } catch (SocketException se) {
-            // not supported if socket already connected
-            // Solaris returns error in such cases
-            if(!isConnected())
-                throw se;
-        }
+        getImpl().setOption(SocketOptions.IP_TOS, new Integer(tc));
     }
 
     /**

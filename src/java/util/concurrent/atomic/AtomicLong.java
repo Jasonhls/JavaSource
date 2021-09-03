@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -34,10 +34,8 @@
  */
 
 package java.util.concurrent.atomic;
-
 import java.util.function.LongUnaryOperator;
 import java.util.function.LongBinaryOperator;
-
 import sun.misc.Unsafe;
 
 /**
@@ -50,8 +48,8 @@ import sun.misc.Unsafe;
  * {@code Number} to allow uniform access by tools and utilities that
  * deal with numerically-based classes.
  *
- * @author Doug Lea
  * @since 1.5
+ * @author Doug Lea
  */
 public class AtomicLong extends Number implements java.io.Serializable {
     private static final long serialVersionUID = 1927816293512124184L;
@@ -77,10 +75,8 @@ public class AtomicLong extends Number implements java.io.Serializable {
     static {
         try {
             valueOffset = unsafe.objectFieldOffset
-                    (AtomicLong.class.getDeclaredField("value"));
-        } catch (Exception ex) {
-            throw new Error(ex);
-        }
+                (AtomicLong.class.getDeclaredField("value"));
+        } catch (Exception ex) { throw new Error(ex); }
     }
 
     private volatile long value;
@@ -270,7 +266,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * is applied with the current value as its first argument,
      * and the given update as the second argument.
      *
-     * @param x                   the update value
+     * @param x the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the previous value
      * @since 1.8
@@ -294,7 +290,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * is applied with the current value as its first argument,
      * and the given update as the second argument.
      *
-     * @param x                   the update value
+     * @param x the update value
      * @param accumulatorFunction a side-effect-free function of two arguments
      * @return the updated value
      * @since 1.8
@@ -311,7 +307,6 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Returns the String representation of the current value.
-     *
      * @return the String representation of the current value
      */
     public String toString() {
@@ -321,11 +316,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
     /**
      * Returns the value of this {@code AtomicLong} as an {@code int}
      * after a narrowing primitive conversion.
-     *
      * @jls 5.1.3 Narrowing Primitive Conversions
      */
     public int intValue() {
-        return (int) get();
+        return (int)get();
     }
 
     /**
@@ -338,21 +332,19 @@ public class AtomicLong extends Number implements java.io.Serializable {
     /**
      * Returns the value of this {@code AtomicLong} as a {@code float}
      * after a widening primitive conversion.
-     *
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public float floatValue() {
-        return (float) get();
+        return (float)get();
     }
 
     /**
      * Returns the value of this {@code AtomicLong} as a {@code double}
      * after a widening primitive conversion.
-     *
      * @jls 5.1.2 Widening Primitive Conversions
      */
     public double doubleValue() {
-        return (double) get();
+        return (double)get();
     }
 
 }

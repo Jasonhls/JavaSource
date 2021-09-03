@@ -1,33 +1,33 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2011-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -344,11 +344,8 @@ public final class WeekFields implements Serializable {
     /**
      * Restore the state of a WeekFields from the stream.
      * Check that the values are valid.
-     *
-     * @param s the stream to read
      * @throws InvalidObjectException if the serialized object has an invalid
      *     value for firstDayOfWeek or minimalDays.
-     * @throws ClassNotFoundException if a class cannot be resolved
      */
     private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException, InvalidObjectException
@@ -700,7 +697,7 @@ public final class WeekFields implements Serializable {
          * @see WeekFields#weekOfWeekBasedYear()
          */
         static ComputedDayOfField ofWeekOfWeekBasedYearField(WeekFields weekDef) {
-            return new ComputedDayOfField("WeekOfWeekBasedYear", weekDef, WEEKS, IsoFields.WEEK_BASED_YEARS, WEEK_OF_WEEK_BASED_YEAR_RANGE);
+            return new ComputedDayOfField("WeekOfWeekBasedYear", weekDef, WEEKS, IsoFields.WEEK_BASED_YEARS, WEEK_OF_YEAR_RANGE);
         }
 
         /**
@@ -753,7 +750,6 @@ public final class WeekFields implements Serializable {
         private static final ValueRange DAY_OF_WEEK_RANGE = ValueRange.of(1, 7);
         private static final ValueRange WEEK_OF_MONTH_RANGE = ValueRange.of(0, 1, 4, 6);
         private static final ValueRange WEEK_OF_YEAR_RANGE = ValueRange.of(0, 1, 52, 54);
-        private static final ValueRange WEEK_OF_WEEK_BASED_YEAR_RANGE = ValueRange.of(1, 52, 53);
 
         @Override
         public long getFrom(TemporalAccessor temporal) {

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1995, 2017, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.awt;
 
@@ -348,7 +348,7 @@ public class Window extends Container implements Accessible {
      * @see #getOpacity()
      * @since 1.7
      */
-    private volatile float opacity = 1.0f;
+    private float opacity = 1.0f;
 
     /**
      * The shape assigned to this window. This field is set to {@code null} if
@@ -1040,7 +1040,9 @@ public class Window extends Container implements Accessible {
             closeSplashScreen();
             Dialog.checkShouldBeBlocked(this);
             super.show();
-            locationByPlatform = false;
+            synchronized (getTreeLock()) {
+                this.locationByPlatform = false;
+            }
             for (int i = 0; i < ownedWindowList.size(); i++) {
                 Window child = ownedWindowList.elementAt(i).get();
                 if ((child != null) && child.showWithParent) {
@@ -1113,7 +1115,9 @@ public class Window extends Container implements Accessible {
             modalBlocker.unblockWindow(this);
         }
         super.hide();
-        locationByPlatform = false;
+        synchronized (getTreeLock()) {
+            this.locationByPlatform = false;
+        }
     }
 
     final void clearMostRecentFocusOwnerOnHide() {
@@ -2243,18 +2247,7 @@ public class Window extends Container implements Accessible {
             }
             firePropertyChange("alwaysOnTop", oldAlwaysOnTop, alwaysOnTop);
         }
-        setOwnedWindowsAlwaysOnTop(alwaysOnTop);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private void setOwnedWindowsAlwaysOnTop(boolean alwaysOnTop) {
-        WeakReference<Window>[] ownedWindowArray;
-        synchronized (ownedWindowList) {
-            ownedWindowArray = new WeakReference[ownedWindowList.size()];
-            ownedWindowList.copyInto(ownedWindowArray);
-        }
-
-        for (WeakReference<Window> ref : ownedWindowArray) {
+        for (WeakReference<Window> ref : ownedWindowList) {
             Window window = ref.get();
             if (window != null) {
                 try {
@@ -2786,9 +2779,7 @@ public class Window extends Container implements Accessible {
      */
     @Deprecated
     public void applyResourceBundle(String rbName) {
-        applyResourceBundle(ResourceBundle.getBundle(rbName,
-                                Locale.getDefault(),
-                                ClassLoader.getSystemClassLoader()));
+        applyResourceBundle(ResourceBundle.getBundle(rbName));
     }
 
    /*
@@ -3396,7 +3387,7 @@ public class Window extends Container implements Accessible {
         return super.canContainFocusOwner(focusOwnerCandidate) && isFocusableWindow();
     }
 
-    private volatile boolean locationByPlatform = locationByPlatformProp;
+    private boolean locationByPlatform = locationByPlatformProp;
 
 
     /**
@@ -3467,7 +3458,9 @@ public class Window extends Container implements Accessible {
      * @since 1.5
      */
     public boolean isLocationByPlatform() {
-        return locationByPlatform;
+        synchronized (getTreeLock()) {
+            return locationByPlatform;
+        }
     }
 
     /**
@@ -3556,7 +3549,9 @@ public class Window extends Container implements Accessible {
      * @since 1.7
      */
     public float getOpacity() {
-        return opacity;
+        synchronized (getTreeLock()) {
+            return opacity;
+        }
     }
 
     /**
@@ -4101,10 +4096,6 @@ public class Window extends Container implements Accessible {
 
             public void setTrayIconWindow(Window w, boolean isTrayIconWindow) {
                 w.isTrayIconWindow = isTrayIconWindow;
-            }
-
-            public Window[] getOwnedWindows(Window w) {
-                return w.getOwnedWindows_NoClientCode();
             }
         }); // WindowAccessor
     } // static

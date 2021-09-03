@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2009, 2011, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util.zip;
@@ -34,7 +34,6 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
-
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
 
@@ -46,7 +45,7 @@ final class ZipCoder {
 
     String toString(byte[] ba, int length) {
         CharsetDecoder cd = decoder().reset();
-        int len = (int) (length * cd.maxCharsPerByte());
+        int len = (int)(length * cd.maxCharsPerByte());
         char[] ca = new char[len];
         if (len == 0)
             return new String(ca);
@@ -54,7 +53,7 @@ final class ZipCoder {
         // CodingErrorAction.REPLACE mode. ZipCoder uses
         // REPORT mode.
         if (isUTF8 && cd instanceof ArrayDecoder) {
-            int clen = ((ArrayDecoder) cd).decode(ba, 0, length, ca);
+            int clen = ((ArrayDecoder)cd).decode(ba, 0, length, ca);
             if (clen == -1)    // malformed
                 throw new IllegalArgumentException("MALFORMED");
             return new String(ca, 0, clen);
@@ -77,14 +76,14 @@ final class ZipCoder {
     byte[] getBytes(String s) {
         CharsetEncoder ce = encoder().reset();
         char[] ca = s.toCharArray();
-        int len = (int) (ca.length * ce.maxBytesPerChar());
+        int len = (int)(ca.length * ce.maxBytesPerChar());
         byte[] ba = new byte[len];
         if (len == 0)
             return ba;
         // UTF-8 only for now. Other ArrayDeocder only handles
         // CodingErrorAction.REPLACE mode.
         if (isUTF8 && ce instanceof ArrayEncoder) {
-            int blen = ((ArrayEncoder) ce).encode(ca, 0, ca.length, ba);
+            int blen = ((ArrayEncoder)ce).encode(ca, 0, ca.length, ba);
             if (blen == -1)    // malformed
                 throw new IllegalArgumentException("MALFORMED");
             return Arrays.copyOf(ba, blen);
@@ -143,8 +142,8 @@ final class ZipCoder {
     private CharsetDecoder decoder() {
         if (dec == null) {
             dec = cs.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+              .onMalformedInput(CodingErrorAction.REPORT)
+              .onUnmappableCharacter(CodingErrorAction.REPORT);
         }
         return dec;
     }
@@ -152,8 +151,8 @@ final class ZipCoder {
     private CharsetEncoder encoder() {
         if (enc == null) {
             enc = cs.newEncoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+              .onMalformedInput(CodingErrorAction.REPORT)
+              .onUnmappableCharacter(CodingErrorAction.REPORT);
         }
         return enc;
     }

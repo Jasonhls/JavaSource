@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
@@ -161,9 +161,9 @@ public abstract class URLStreamHandler {
             (spec.charAt(start + 1) == '/')) {
             start += 2;
             i = spec.indexOf('/', start);
-            if (i < 0 || i > limit) {
+            if (i < 0) {
                 i = spec.indexOf('?', start);
-                if (i < 0 || i > limit)
+                if (i < 0)
                     i = limit;
             }
 
@@ -171,14 +171,8 @@ public abstract class URLStreamHandler {
 
             int ind = authority.indexOf('@');
             if (ind != -1) {
-                if (ind != authority.lastIndexOf('@')) {
-                    // more than one '@' in authority. This is not server based
-                    userInfo = null;
-                    host = null;
-                } else {
-                    userInfo = authority.substring(0, ind);
-                    host = authority.substring(ind+1);
-                }
+                userInfo = authority.substring(0, ind);
+                host = authority.substring(ind+1);
             } else {
                 userInfo = null;
             }
@@ -233,7 +227,7 @@ public abstract class URLStreamHandler {
             start = i;
             // If the authority is defined then the path is defined by the
             // spec only; See RFC 2396 Section 5.2.4.
-            if (authority != null && !authority.isEmpty())
+            if (authority != null && authority.length() > 0)
                 path = "";
         }
 
@@ -245,7 +239,7 @@ public abstract class URLStreamHandler {
         if (start < limit) {
             if (spec.charAt(start) == '/') {
                 path = spec.substring(start, limit);
-            } else if (path != null && !path.isEmpty()) {
+            } else if (path != null && path.length() > 0) {
                 isRelPath = true;
                 int ind = path.lastIndexOf('/');
                 String seperator = "";
@@ -430,8 +424,23 @@ public abstract class URLStreamHandler {
      * IP address.
      * @since 1.3
      */
-    protected InetAddress getHostAddress(URL u) {
-        return u.getHostAddress();
+    protected synchronized InetAddress getHostAddress(URL u) {
+        if (u.hostAddress != null)
+            return u.hostAddress;
+
+        String host = u.getHost();
+        if (host == null || host.equals("")) {
+            return null;
+        } else {
+            try {
+                u.hostAddress = InetAddress.getByName(host);
+            } catch (UnknownHostException ex) {
+                return null;
+            } catch (SecurityException se) {
+                return null;
+            }
+        }
+        return u.hostAddress;
     }
 
     /**
@@ -466,7 +475,7 @@ public abstract class URLStreamHandler {
 
         // pre-compute length of StringBuffer
         int len = u.getProtocol().length() + 1;
-        if (u.getAuthority() != null && !u.getAuthority().isEmpty())
+        if (u.getAuthority() != null && u.getAuthority().length() > 0)
             len += 2 + u.getAuthority().length();
         if (u.getPath() != null) {
             len += u.getPath().length();
@@ -480,7 +489,7 @@ public abstract class URLStreamHandler {
         StringBuffer result = new StringBuffer(len);
         result.append(u.getProtocol());
         result.append(":");
-        if (u.getAuthority() != null && !u.getAuthority().isEmpty()) {
+        if (u.getAuthority() != null && u.getAuthority().length() > 0) {
             result.append("//");
             result.append(u.getAuthority());
         }
@@ -517,15 +526,12 @@ public abstract class URLStreamHandler {
      * @see     java.net.URL#set(java.lang.String, java.lang.String, int, java.lang.String, java.lang.String)
      * @since 1.3
      */
-    protected void setURL(URL u, String protocol, String host, int port,
+       protected void setURL(URL u, String protocol, String host, int port,
                              String authority, String userInfo, String path,
                              String query, String ref) {
         if (this != u.handler) {
             throw new SecurityException("handler for url different from " +
                                         "this handler");
-        } else if (host != null && u.isBuiltinStreamHandler(this)) {
-            String s = IPAddressUtil.checkHostString(host);
-            if (s != null) throw new IllegalArgumentException(s);
         }
         // ensure that no one can reset the protocol on a given URL.
         u.set(u.getProtocol(), host, port, authority, userInfo, path, query, ref);
@@ -556,7 +562,7 @@ public abstract class URLStreamHandler {
          */
         String authority = null;
         String userInfo = null;
-        if (host != null && !host.isEmpty()) {
+        if (host != null && host.length() != 0) {
             authority = (port == -1) ? host : host + ":" + port;
             int at = host.lastIndexOf('@');
             if (at != -1) {

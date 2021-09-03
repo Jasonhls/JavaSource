@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -46,29 +46,29 @@ package java.util;
  * specifically for use with capacity-restricted {@code Queue}
  * implementations; in most implementations, insert operations cannot
  * fail.
- * <p>
+ *
  * <table BORDER CELLPADDING=3 CELLSPACING=1>
  * <caption>Summary of Queue methods</caption>
- * <tr>
- * <td></td>
- * <td ALIGN=CENTER><em>Throws exception</em></td>
- * <td ALIGN=CENTER><em>Returns special value</em></td>
- * </tr>
- * <tr>
- * <td><b>Insert</b></td>
- * <td>{@link Queue#add add(e)}</td>
- * <td>{@link Queue#offer offer(e)}</td>
- * </tr>
- * <tr>
- * <td><b>Remove</b></td>
- * <td>{@link Queue#remove remove()}</td>
- * <td>{@link Queue#poll poll()}</td>
- * </tr>
- * <tr>
- * <td><b>Examine</b></td>
- * <td>{@link Queue#element element()}</td>
- * <td>{@link Queue#peek peek()}</td>
- * </tr>
+ *  <tr>
+ *    <td></td>
+ *    <td ALIGN=CENTER><em>Throws exception</em></td>
+ *    <td ALIGN=CENTER><em>Returns special value</em></td>
+ *  </tr>
+ *  <tr>
+ *    <td><b>Insert</b></td>
+ *    <td>{@link Queue#add add(e)}</td>
+ *    <td>{@link Queue#offer offer(e)}</td>
+ *  </tr>
+ *  <tr>
+ *    <td><b>Remove</b></td>
+ *    <td>{@link Queue#remove remove()}</td>
+ *    <td>{@link Queue#poll poll()}</td>
+ *  </tr>
+ *  <tr>
+ *    <td><b>Examine</b></td>
+ *    <td>{@link Queue#element element()}</td>
+ *    <td>{@link Queue#peek peek()}</td>
+ *  </tr>
  * </table>
  *
  * <p>Queues typically, but do not necessarily, order elements in a
@@ -129,8 +129,6 @@ package java.util;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @param <E> the type of elements held in this collection
- * @author Doug Lea
  * @see java.util.Collection
  * @see LinkedList
  * @see PriorityQueue
@@ -140,6 +138,8 @@ package java.util;
  * @see java.util.concurrent.LinkedBlockingQueue
  * @see java.util.concurrent.PriorityBlockingQueue
  * @since 1.5
+ * @author Doug Lea
+ * @param <E> the type of elements held in this collection
  */
 public interface Queue<E> extends Collection<E> {
     /**
@@ -150,14 +150,14 @@ public interface Queue<E> extends Collection<E> {
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Collection#add})
-     * @throws IllegalStateException    if the element cannot be added at this
-     *                                  time due to capacity restrictions
-     * @throws ClassCastException       if the class of the specified element
-     *                                  prevents it from being added to this queue
-     * @throws NullPointerException     if the specified element is null and
-     *                                  this queue does not permit null elements
+     * @throws IllegalStateException if the element cannot be added at this
+     *         time due to capacity restrictions
+     * @throws ClassCastException if the class of the specified element
+     *         prevents it from being added to this queue
+     * @throws NullPointerException if the specified element is null and
+     *         this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
-     *                                  prevents it from being added to this queue
+     *         prevents it from being added to this queue
      */
     boolean add(E e);
 
@@ -170,13 +170,13 @@ public interface Queue<E> extends Collection<E> {
      *
      * @param e the element to add
      * @return {@code true} if the element was added to this queue, else
-     * {@code false}
-     * @throws ClassCastException       if the class of the specified element
-     *                                  prevents it from being added to this queue
-     * @throws NullPointerException     if the specified element is null and
-     *                                  this queue does not permit null elements
+     *         {@code false}
+     * @throws ClassCastException if the class of the specified element
+     *         prevents it from being added to this queue
+     * @throws NullPointerException if the specified element is null and
+     *         this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
-     *                                  prevents it from being added to this queue
+     *         prevents it from being added to this queue
      */
     boolean offer(E e);
 

@@ -1,31 +1,30 @@
 /*
- * Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.awt;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import sun.awt.AWTAccessor;
 import sun.awt.AppContext;
@@ -55,7 +54,6 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
     private final AWTEvent nested;
     private AppContext appContext;
     private boolean disposed;
-    private final LinkedList<AWTEvent> pendingEvents = new LinkedList<>();
 
     static {
         AWTAccessor.setSequencedEventAccessor(new AWTAccessor.SequencedEventAccessor() {
@@ -66,35 +64,6 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
                 return event instanceof SequencedEvent;
             }
         });
-    }
-
-    private static final class SequencedEventsFilter implements EventFilter {
-        private final SequencedEvent currentSequencedEvent;
-        private SequencedEventsFilter(SequencedEvent currentSequencedEvent) {
-            this.currentSequencedEvent = currentSequencedEvent;
-        }
-        @Override
-        public FilterAction acceptEvent(AWTEvent ev) {
-            if (ev.getID() == ID) {
-                // Move forward dispatching only if the event is previous
-                // in SequencedEvent.list. Otherwise, hold it for reposting later.
-                synchronized (SequencedEvent.class) {
-                    Iterator<SequencedEvent> it = list.iterator();
-                    while (it.hasNext()) {
-                        SequencedEvent iev = it.next();
-                        if (iev.equals(currentSequencedEvent)) {
-                            break;
-                        } else if (iev.equals(ev)) {
-                            return FilterAction.ACCEPT;
-                        }
-                    }
-                }
-            } else if (ev.getID() == SentEvent.ID) {
-                return FilterAction.ACCEPT;
-            }
-            currentSequencedEvent.pendingEvents.add(ev);
-            return FilterAction.REJECT;
-        }
     }
 
     /**
@@ -135,8 +104,11 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
                 if (EventQueue.isDispatchThread()) {
                     EventDispatchThread edt = (EventDispatchThread)
                         Thread.currentThread();
-                    edt.pumpEventsForFilter(() -> !SequencedEvent.this.isFirstOrDisposed(),
-                            new SequencedEventsFilter(this));
+                    edt.pumpEvents(SentEvent.ID, new Conditional() {
+                        public boolean evaluate() {
+                            return !SequencedEvent.this.isFirstOrDisposed();
+                        }
+                    });
                 } else {
                     while(!isFirstOrDisposed()) {
                         synchronized (SequencedEvent.class) {
@@ -225,6 +197,10 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
             }
             disposed = true;
         }
+        // Wake myself up
+        if (appContext != null) {
+            SunToolkit.postEvent(appContext, new SentEvent());
+        }
 
         SequencedEvent next = null;
 
@@ -244,10 +220,6 @@ class SequencedEvent extends AWTEvent implements ActiveEvent {
         // Wake up waiting threads
         if (next != null && next.appContext != null) {
             SunToolkit.postEvent(next.appContext, new SentEvent());
-        }
-
-        for(AWTEvent e : pendingEvents) {
-            SunToolkit.postEvent(appContext, e);
         }
     }
 }

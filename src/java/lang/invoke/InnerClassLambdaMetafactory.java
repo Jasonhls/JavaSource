@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.lang.invoke;
@@ -193,10 +193,10 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
     CallSite buildCallSite() throws LambdaConversionException {
         final Class<?> innerClass = spinInnerClass();
         if (invokedType.parameterCount() == 0) {
-            final Constructor<?>[] ctrs = AccessController.doPrivileged(
-                    new PrivilegedAction<Constructor<?>[]>() {
+            final Constructor[] ctrs = AccessController.doPrivileged(
+                    new PrivilegedAction<Constructor[]>() {
                 @Override
-                public Constructor<?>[] run() {
+                public Constructor[] run() {
                     Constructor<?>[] ctrs = innerClass.getDeclaredConstructors();
                     if (ctrs.length == 1) {
                         // The lambda implementing inner class constructor is private, set
@@ -285,7 +285,6 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
         // Forward the SAM method
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, samMethodName,
                                           samMethodType.toMethodDescriptorString(), null, null);
-        mv.visitAnnotation("Ljava/lang/invoke/LambdaForm$Hidden;", true);
         new ForwardingMethodGenerator(mv).generate(samMethodType);
 
         // Forward the bridges
@@ -293,7 +292,6 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
             for (MethodType mt : additionalBridges) {
                 mv = cw.visitMethod(ACC_PUBLIC|ACC_BRIDGE, samMethodName,
                                     mt.toMethodDescriptorString(), null, null);
-                mv.visitAnnotation("Ljava/lang/invoke/LambdaForm$Hidden;", true);
                 new ForwardingMethodGenerator(mv).generate(mt);
             }
         }
@@ -340,7 +338,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
             m.visitVarInsn(getLoadOpcode(argType), varIndex);
             varIndex += getParameterSize(argType);
         }
-        m.visitMethodInsn(INVOKESPECIAL, lambdaClassName, NAME_CTOR, constructorType.toMethodDescriptorString(), false);
+        m.visitMethodInsn(INVOKESPECIAL, lambdaClassName, NAME_CTOR, constructorType.toMethodDescriptorString());
         m.visitInsn(ARETURN);
         m.visitMaxs(-1, -1);
         m.visitEnd();
@@ -356,7 +354,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
         ctor.visitCode();
         ctor.visitVarInsn(ALOAD, 0);
         ctor.visitMethodInsn(INVOKESPECIAL, JAVA_LANG_OBJECT, NAME_CTOR,
-                             METHOD_DESCRIPTOR_VOID, false);
+                             METHOD_DESCRIPTOR_VOID);
         int parameterCount = invokedType.parameterCount();
         for (int i = 0, lvIndex = 0; i < parameterCount; i++) {
             ctor.visitVarInsn(ALOAD, 0);
@@ -404,7 +402,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
             mv.visitInsn(AASTORE);
         }
         mv.visitMethodInsn(INVOKESPECIAL, NAME_SERIALIZED_LAMBDA, NAME_CTOR,
-                DESCR_CTOR_SERIALIZED_LAMBDA, false);
+                DESCR_CTOR_SERIALIZED_LAMBDA);
         mv.visitInsn(ARETURN);
         // Maxs computed by ClassWriter.COMPUTE_MAXS, these arguments ignored
         mv.visitMaxs(-1, -1);
@@ -423,7 +421,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
         mv.visitInsn(DUP);
         mv.visitLdcInsn("Non-serializable lambda");
         mv.visitMethodInsn(INVOKESPECIAL, NAME_NOT_SERIALIZABLE_EXCEPTION, NAME_CTOR,
-                           DESCR_CTOR_NOT_SERIALIZABLE_EXCEPTION, false);
+                           DESCR_CTOR_NOT_SERIALIZABLE_EXCEPTION);
         mv.visitInsn(ATHROW);
         mv.visitMaxs(-1, -1);
         mv.visitEnd();
@@ -436,7 +434,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
         mv.visitInsn(DUP);
         mv.visitLdcInsn("Non-serializable lambda");
         mv.visitMethodInsn(INVOKESPECIAL, NAME_NOT_SERIALIZABLE_EXCEPTION, NAME_CTOR,
-                           DESCR_CTOR_NOT_SERIALIZABLE_EXCEPTION, false);
+                           DESCR_CTOR_NOT_SERIALIZABLE_EXCEPTION);
         mv.visitInsn(ATHROW);
         mv.visitMaxs(-1, -1);
         mv.visitEnd();

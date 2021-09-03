@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -41,27 +41,20 @@ import java.util.function.Supplier;
  */
 final class MatchOps {
 
-    private MatchOps() {
-    }
+    private MatchOps() { }
 
     /**
      * Enum describing quantified match options -- all match, any match, none
      * match.
      */
     enum MatchKind {
-        /**
-         * Do all elements match the predicate?
-         */
+        /** Do all elements match the predicate? */
         ANY(true, true),
 
-        /**
-         * Do any elements match the predicate?
-         */
+        /** Do any elements match the predicate? */
         ALL(false, false),
 
-        /**
-         * Do no elements match the predicate?
-         */
+        /** Do no elements match the predicate? */
         NONE(true, false);
 
         private final boolean stopOnPredicateMatches;
@@ -77,14 +70,14 @@ final class MatchOps {
     /**
      * Constructs a quantified predicate matcher for a Stream.
      *
-     * @param <T>       the type of stream elements
+     * @param <T> the type of stream elements
      * @param predicate the {@code Predicate} to apply to stream elements
      * @param matchKind the kind of quantified match (all, any, none)
      * @return a {@code TerminalOp} implementing the desired quantified match
-     * criteria
+     *         criteria
      */
     public static <T> TerminalOp<T, Boolean> makeRef(Predicate<? super T> predicate,
-                                                     MatchKind matchKind) {
+            MatchKind matchKind) {
         Objects.requireNonNull(predicate);
         Objects.requireNonNull(matchKind);
         class MatchSink extends BooleanTerminalSink<T> {
@@ -110,7 +103,7 @@ final class MatchOps {
      * @param predicate the {@code Predicate} to apply to stream elements
      * @param matchKind the kind of quantified match (all, any, none)
      * @return a {@code TerminalOp} implementing the desired quantified match
-     * criteria
+     *         criteria
      */
     public static TerminalOp<Integer, Boolean> makeInt(IntPredicate predicate,
                                                        MatchKind matchKind) {
@@ -139,7 +132,7 @@ final class MatchOps {
      * @param predicate the {@code Predicate} to apply to stream elements
      * @param matchKind the kind of quantified match (all, any, none)
      * @return a {@code TerminalOp} implementing the desired quantified match
-     * criteria
+     *         criteria
      */
     public static TerminalOp<Long, Boolean> makeLong(LongPredicate predicate,
                                                      MatchKind matchKind) {
@@ -169,7 +162,7 @@ final class MatchOps {
      * @param predicate the {@code Predicate} to apply to stream elements
      * @param matchKind the kind of quantified match (all, any, none)
      * @return a {@code TerminalOp} implementing the desired quantified match
-     * criteria
+     *         criteria
      */
     public static TerminalOp<Double, Boolean> makeDouble(DoublePredicate predicate,
                                                          MatchKind matchKind) {
@@ -208,10 +201,10 @@ final class MatchOps {
         /**
          * Constructs a {@code MatchOp}.
          *
-         * @param shape        the output shape of the stream pipeline
-         * @param matchKind    the kind of quantified match (all, any, none)
+         * @param shape the output shape of the stream pipeline
+         * @param matchKind the kind of quantified match (all, any, none)
          * @param sinkSupplier {@code Supplier} for a {@code Sink} of the
-         *                     appropriate shape which implements the matching operation
+         *        appropriate shape which implements the matching operation
          */
         MatchOp(StreamShape shape,
                 MatchKind matchKind,
@@ -278,7 +271,7 @@ final class MatchOps {
      * ForkJoinTask implementation to implement a parallel short-circuiting
      * quantified match
      *
-     * @param <P_IN>  the type of source elements for the pipeline
+     * @param <P_IN> the type of source elements for the pipeline
      * @param <P_OUT> the type of output elements for the pipeline
      */
     @SuppressWarnings("serial")

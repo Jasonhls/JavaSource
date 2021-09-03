@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -34,7 +34,6 @@
  */
 
 package java.util.concurrent.locks;
-
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,7 +77,7 @@ import java.util.concurrent.TimeUnit;
  * methods and statements. In most cases, the following idiom
  * should be used:
  *
- * <pre> {@code
+ *  <pre> {@code
  * Lock l = ...;
  * l.lock();
  * try {
@@ -86,7 +85,7 @@ import java.util.concurrent.TimeUnit;
  * } finally {
  *   l.unlock();
  * }}</pre>
- * <p>
+ *
  * When locking and unlocking occur in different scopes, care must be
  * taken to ensure that all code that is executed while the lock is
  * held is protected by try-finally or try-catch to ensure that the
@@ -122,7 +121,7 @@ import java.util.concurrent.TimeUnit;
  * <p>All {@code Lock} implementations <em>must</em> enforce the same
  * memory synchronization semantics as provided by the built-in monitor
  * lock, as described in
- * <a href="https://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html#jls-17.4">
+ * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html#jls-17.4">
  * The Java Language Specification (17.4 Memory Model)</a>:
  * <ul>
  * <li>A successful {@code lock} operation has the same memory
@@ -130,7 +129,7 @@ import java.util.concurrent.TimeUnit;
  * <li>A successful {@code unlock} operation has the same
  * memory synchronization effects as a successful <em>Unlock</em> action.
  * </ul>
- * <p>
+ *
  * Unsuccessful locking and unlocking operations, and reentrant
  * locking/unlocking operations, do not require any memory
  * synchronization effects.
@@ -158,11 +157,12 @@ import java.util.concurrent.TimeUnit;
  * shown that the interrupt occurred after another action may have unblocked
  * the thread. An implementation should document this behavior.
  *
- * @author Doug Lea
  * @see ReentrantLock
  * @see Condition
  * @see ReadWriteLock
+ *
  * @since 1.5
+ * @author Doug Lea
  */
 public interface Lock {
 
@@ -226,8 +226,8 @@ public interface Lock {
      * be documented by that {@code Lock} implementation.
      *
      * @throws InterruptedException if the current thread is
-     *                              interrupted while acquiring the lock (and interruption
-     *                              of lock acquisition is supported)
+     *         interrupted while acquiring the lock (and interruption
+     *         of lock acquisition is supported)
      */
     void lockInterruptibly() throws InterruptedException;
 
@@ -240,7 +240,7 @@ public interface Lock {
      * immediately with the value {@code false}.
      *
      * <p>A typical usage idiom for this method would be:
-     * <pre> {@code
+     *  <pre> {@code
      * Lock lock = ...;
      * if (lock.tryLock()) {
      *   try {
@@ -251,12 +251,12 @@ public interface Lock {
      * } else {
      *   // perform alternative actions
      * }}</pre>
-     * <p>
+     *
      * This usage ensures that the lock is unlocked if it was acquired, and
      * doesn't try to unlock if the lock was not acquired.
      *
      * @return {@code true} if the lock was acquired and
-     * {@code false} otherwise
+     *         {@code false} otherwise
      */
     boolean tryLock();
 
@@ -312,10 +312,11 @@ public interface Lock {
      * @param time the maximum time to wait for the lock
      * @param unit the time unit of the {@code time} argument
      * @return {@code true} if the lock was acquired and {@code false}
-     * if the waiting time elapsed before the lock was acquired
+     *         if the waiting time elapsed before the lock was acquired
+     *
      * @throws InterruptedException if the current thread is interrupted
-     *                              while acquiring the lock (and interruption of lock
-     *                              acquisition is supported)
+     *         while acquiring the lock (and interruption of lock
+     *         acquisition is supported)
      */
     boolean tryLock(long time, TimeUnit unit) throws InterruptedException;
 
@@ -350,7 +351,7 @@ public interface Lock {
      *
      * @return A new {@link Condition} instance for this {@code Lock} instance
      * @throws UnsupportedOperationException if this {@code Lock}
-     *                                       implementation does not support conditions
+     *         implementation does not support conditions
      */
     Condition newCondition();
 }

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2003, 2019, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.rmi.server;
 
@@ -29,10 +29,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.rmi.Remote;
-import java.rmi.RemoteException;
 import java.rmi.UnexpectedException;
 import java.rmi.activation.Activatable;
-import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.WeakHashMap;
 import sun.rmi.server.Util;
@@ -57,25 +55,6 @@ public class RemoteObjectInvocationHandler
     implements InvocationHandler
 {
     private static final long serialVersionUID = 2L;
-
-    // set to true if invocation handler allows finalize method (legacy behavior)
-    private static final boolean allowFinalizeInvocation;
-
-    static {
-        String propName = "sun.rmi.server.invocationhandler.allowFinalizeInvocation";
-        String allowProp = java.security.AccessController.doPrivileged(
-            new PrivilegedAction<String>() {
-                @Override
-                public String run() {
-                    return System.getProperty(propName);
-                }
-            });
-        if ("".equals(allowProp)) {
-            allowFinalizeInvocation = true;
-        } else {
-            allowFinalizeInvocation = Boolean.parseBoolean(allowProp);
-        }
-    }
 
     /**
      * A weak hash map, mapping classes to weak hash maps that map
@@ -163,19 +142,8 @@ public class RemoteObjectInvocationHandler
     public Object invoke(Object proxy, Method method, Object[] args)
         throws Throwable
     {
-        if (! Proxy.isProxyClass(proxy.getClass())) {
-            throw new IllegalArgumentException("not a proxy");
-        }
-
-        if (Proxy.getInvocationHandler(proxy) != this) {
-            throw new IllegalArgumentException("handler mismatch");
-        }
-
         if (method.getDeclaringClass() == Object.class) {
             return invokeObjectMethod(proxy, method, args);
-        } else if ("finalize".equals(method.getName()) && method.getParameterCount() == 0 &&
-            !allowFinalizeInvocation) {
-            return null; // ignore
         } else {
             return invokeRemoteMethod(proxy, method, args);
         }
@@ -195,13 +163,11 @@ public class RemoteObjectInvocationHandler
 
         } else if (name.equals("equals")) {
             Object obj = args[0];
-            InvocationHandler hdlr;
             return
                 proxy == obj ||
                 (obj != null &&
                  Proxy.isProxyClass(obj.getClass()) &&
-                 (hdlr = Proxy.getInvocationHandler(obj)) instanceof RemoteObjectInvocationHandler &&
-                 this.equals(hdlr));
+                 equals(Proxy.getInvocationHandler(obj)));
 
         } else if (name.equals("toString")) {
             return proxyToString(proxy);
@@ -225,13 +191,6 @@ public class RemoteObjectInvocationHandler
                 throw new IllegalArgumentException(
                     "proxy not Remote instance");
             }
-
-            // Verify that the method is declared on an interface that extends Remote
-            Class<?> decl = method.getDeclaringClass();
-            if (!Remote.class.isAssignableFrom(decl)) {
-                throw new RemoteException("Method is not Remote: " + decl + "::" + method);
-            }
-
             return ref.invoke((Remote) proxy, method, args,
                               getMethodHash(method));
         } catch (Exception e) {

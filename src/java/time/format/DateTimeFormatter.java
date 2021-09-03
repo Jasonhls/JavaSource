@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2008-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -117,9 +117,8 @@ import java.util.Set;
  * {@code parse(CharSequence text, DateTimeFormatter formatter)}.
  * <p>For example:
  * <blockquote><pre>
- *  LocalDate date = LocalDate.now();
- *  String text = date.format(formatter);
- *  LocalDate parsedDate = LocalDate.parse(text, formatter);
+ *  String text = date.toString(formatter);
+ *  LocalDate date = LocalDate.parse(text, formatter);
  * </pre></blockquote>
  * <p>
  * In addition to the format, formatters can be created with desired Locale,
@@ -266,10 +265,9 @@ import java.util.Set;
  * <p>
  * For example:
  * <blockquote><pre>
- *  LocalDate date = LocalDate.now();
  *  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy MM dd");
- *  String text = date.format(formatter);
- *  LocalDate parsedDate = LocalDate.parse(text, formatter);
+ *  String text = date.toString(formatter);
+ *  LocalDate date = LocalDate.parse(text, formatter);
  * </pre></blockquote>
  * <p>
  * All letters 'A' to 'Z' and 'a' to 'z' are reserved as pattern letters. The
@@ -346,7 +344,10 @@ import java.util.Set;
  * <b>Fraction</b>: Outputs the nano-of-second field as a fraction-of-second.
  * The nano-of-second value has nine digits, thus the count of pattern letters
  * is from 1 to 9. If it is less than 9, then the nano-of-second value is
- * truncated, with only the most significant digits being output.
+ * truncated, with only the most significant digits being output. When parsing
+ * in strict mode, the number of parsed digits must match the count of pattern
+ * letters. When parsing in lenient mode, the number of parsed digits must be at
+ * least the count of pattern letters, up to 9 digits.
  * <p>
  * <b>Year</b>: The count of letters determines the minimum field width below
  * which padding is used. If the count of letters is two, then a
@@ -1333,8 +1334,8 @@ public final class DateTimeFormatter {
      * If the time '23:59:60' is received, then a simple conversion is applied,
      * replacing the second-of-minute of 60 with 59. This query can be used
      * on the parse result to determine if the leap-second adjustment was made.
-     * The query will return {@code true} if it did adjust to remove the
-     * leap-second, and {@code false} if not. Note that applying a leap-second
+     * The query will return one second of excess if it did adjust to remove
+     * the leap-second, and zero if not. Note that applying a leap-second
      * smoothing mechanism, such as UTC-SLS, is the responsibility of the
      * application, as follows:
      * <pre>
@@ -1646,13 +1647,12 @@ public final class DateTimeFormatter {
      * @return a formatter based on this formatter with the requested resolver style, not null
      */
     public DateTimeFormatter withResolverFields(TemporalField... resolverFields) {
-        Set<TemporalField> fields = null;
-        if (resolverFields != null) {
-            fields = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(resolverFields)));
-        }
+        Objects.requireNonNull(resolverFields, "resolverFields");
+        Set<TemporalField> fields = new HashSet<>(Arrays.asList(resolverFields));
         if (Objects.equals(this.resolverFields, fields)) {
             return this;
         }
+        fields = Collections.unmodifiableSet(fields);
         return new DateTimeFormatter(printerParser, locale, decimalStyle, resolverStyle, fields, chrono, zone);
     }
 
@@ -1696,12 +1696,11 @@ public final class DateTimeFormatter {
      * @return a formatter based on this formatter with the requested resolver style, not null
      */
     public DateTimeFormatter withResolverFields(Set<TemporalField> resolverFields) {
+        Objects.requireNonNull(resolverFields, "resolverFields");
         if (Objects.equals(this.resolverFields, resolverFields)) {
             return this;
         }
-        if (resolverFields != null) {
-            resolverFields = Collections.unmodifiableSet(new HashSet<>(resolverFields));
-        }
+        resolverFields = Collections.unmodifiableSet(new HashSet<>(resolverFields));
         return new DateTimeFormatter(printerParser, locale, decimalStyle, resolverStyle, resolverFields, chrono, zone);
     }
 
@@ -1936,8 +1935,8 @@ public final class DateTimeFormatter {
      */
     private TemporalAccessor parseResolved0(final CharSequence text, final ParsePosition position) {
         ParsePosition pos = (position != null ? position : new ParsePosition(0));
-        DateTimeParseContext context = parseUnresolved0(text, pos);
-        if (context == null || pos.getErrorIndex() >= 0 || (position == null && pos.getIndex() < text.length())) {
+        Parsed unresolved = parseUnresolved0(text, pos);
+        if (unresolved == null || pos.getErrorIndex() >= 0 || (position == null && pos.getIndex() < text.length())) {
             String abbr;
             if (text.length() > 64) {
                 abbr = text.subSequence(0, 64).toString() + "...";
@@ -1952,7 +1951,7 @@ public final class DateTimeFormatter {
                         pos.getIndex(), text, pos.getIndex());
             }
         }
-        return context.toResolved(resolverStyle, resolverFields);
+        return unresolved.resolve(resolverStyle, resolverFields);
     }
 
     /**
@@ -1978,7 +1977,7 @@ public final class DateTimeFormatter {
      * Errors are returned using the error index field of the {@code ParsePosition}
      * instead of {@code DateTimeParseException}.
      * The returned error index will be set to an index indicative of the error.
-     * Callers must check for errors before using the result.
+     * Callers must check for errors before using the context.
      * <p>
      * If the formatter parses the same field more than once with different values,
      * the result will be an error.
@@ -1995,14 +1994,10 @@ public final class DateTimeFormatter {
      * @throws IndexOutOfBoundsException if the position is invalid
      */
     public TemporalAccessor parseUnresolved(CharSequence text, ParsePosition position) {
-        DateTimeParseContext context = parseUnresolved0(text, position);
-        if (context == null) {
-            return null;
-        }
-        return context.toUnresolved();
+        return parseUnresolved0(text, position);
     }
 
-    private DateTimeParseContext parseUnresolved0(CharSequence text, ParsePosition position) {
+    private Parsed parseUnresolved0(CharSequence text, ParsePosition position) {
         Objects.requireNonNull(text, "text");
         Objects.requireNonNull(position, "position");
         DateTimeParseContext context = new DateTimeParseContext(this);
@@ -2013,7 +2008,7 @@ public final class DateTimeFormatter {
             return null;
         }
         position.setIndex(pos);  // errorIndex not updated from input
-        return context;
+        return context.toParsed();
     }
 
     //-----------------------------------------------------------------------
@@ -2134,23 +2129,23 @@ public final class DateTimeFormatter {
         @Override
         public Object parseObject(String text, ParsePosition pos) {
             Objects.requireNonNull(text, "text");
-            DateTimeParseContext context;
+            Parsed unresolved;
             try {
-                context = formatter.parseUnresolved0(text, pos);
+                unresolved = formatter.parseUnresolved0(text, pos);
             } catch (IndexOutOfBoundsException ex) {
                 if (pos.getErrorIndex() < 0) {
                     pos.setErrorIndex(0);
                 }
                 return null;
             }
-            if (context == null) {
+            if (unresolved == null) {
                 if (pos.getErrorIndex() < 0) {
                     pos.setErrorIndex(0);
                 }
                 return null;
             }
             try {
-                TemporalAccessor resolved = context.toResolved(formatter.resolverStyle, formatter.resolverFields);
+                TemporalAccessor resolved = unresolved.resolve(formatter.resolverStyle, formatter.resolverFields);
                 if (parseType == null) {
                     return resolved;
                 }

@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -71,11 +71,11 @@ package java.util.concurrent;
  *     } catch (ExecutionException ex) { cleanup(); return; }
  *   }
  * }}</pre>
- * <p>
+ *
  * The {@link FutureTask} class is an implementation of {@code Future} that
  * implements {@code Runnable}, and so may be executed by an {@code Executor}.
  * For example, the above construction with {@code submit} could be replaced by:
- * <pre> {@code
+ *  <pre> {@code
  * FutureTask<String> future =
  *   new FutureTask<String>(new Callable<String>() {
  *     public String call() {
@@ -87,11 +87,11 @@ package java.util.concurrent;
  * <a href="package-summary.html#MemoryVisibility"> <i>happen-before</i></a>
  * actions following the corresponding {@code Future.get()} in another thread.
  *
- * @param <V> The result type returned by this Future's {@code get} method
- * @author Doug Lea
  * @see FutureTask
  * @see Executor
  * @since 1.5
+ * @author Doug Lea
+ * @param <V> The result type returned by this Future's {@code get} method
  */
 public interface Future<V> {
 
@@ -110,8 +110,8 @@ public interface Future<V> {
      * will always return {@code true} if this method returned {@code true}.
      *
      * @param mayInterruptIfRunning {@code true} if the thread executing this
-     *                              task should be interrupted; otherwise, in-progress tasks are allowed
-     *                              to complete
+     * task should be interrupted; otherwise, in-progress tasks are allowed
+     * to complete
      * @return {@code false} if the task could not be cancelled,
      * typically because it has already completed normally;
      * {@code true} otherwise
@@ -128,7 +128,7 @@ public interface Future<V> {
 
     /**
      * Returns {@code true} if this task completed.
-     * <p>
+     *
      * Completion may be due to normal termination, an exception, or
      * cancellation -- in all of these cases, this method will return
      * {@code true}.
@@ -143,10 +143,10 @@ public interface Future<V> {
      *
      * @return the computed result
      * @throws CancellationException if the computation was cancelled
-     * @throws ExecutionException    if the computation threw an
-     *                               exception
-     * @throws InterruptedException  if the current thread was interrupted
-     *                               while waiting
+     * @throws ExecutionException if the computation threw an
+     * exception
+     * @throws InterruptedException if the current thread was interrupted
+     * while waiting
      */
     V get() throws InterruptedException, ExecutionException;
 
@@ -155,15 +155,15 @@ public interface Future<V> {
      * to complete, and then retrieves its result, if available.
      *
      * @param timeout the maximum time to wait
-     * @param unit    the time unit of the timeout argument
+     * @param unit the time unit of the timeout argument
      * @return the computed result
      * @throws CancellationException if the computation was cancelled
-     * @throws ExecutionException    if the computation threw an
-     *                               exception
-     * @throws InterruptedException  if the current thread was interrupted
-     *                               while waiting
-     * @throws TimeoutException      if the wait timed out
+     * @throws ExecutionException if the computation threw an
+     * exception
+     * @throws InterruptedException if the current thread was interrupted
+     * while waiting
+     * @throws TimeoutException if the wait timed out
      */
     V get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException;
+        throws InterruptedException, ExecutionException, TimeoutException;
 }

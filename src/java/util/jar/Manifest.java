@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2018, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util.jar;
@@ -42,25 +42,21 @@ import java.util.Iterator;
  * <a href="../../../../technotes/guides/jar/jar.html">
  * Manifest format specification</a>.
  *
- * @author David Connelly
- * @see Attributes
- * @since 1.2
+ * @author  David Connelly
+ * @see     Attributes
+ * @since   1.2
  */
 public class Manifest implements Cloneable {
     // manifest main attributes
-    private final Attributes attr = new Attributes();
+    private Attributes attr = new Attributes();
 
     // manifest entries
-    private final Map<String, Attributes> entries = new HashMap<>();
-
-    // associated JarVerifier, not null when called by JarFile::getManifest.
-    private final JarVerifier jv;
+    private Map<String, Attributes> entries = new HashMap<>();
 
     /**
      * Constructs a new, empty Manifest.
      */
     public Manifest() {
-        jv = null;
     }
 
     /**
@@ -70,16 +66,7 @@ public class Manifest implements Cloneable {
      * @throws IOException if an I/O error has occurred
      */
     public Manifest(InputStream is) throws IOException {
-        this(null, is);
-    }
-
-    /**
-     * Constructs a new Manifest from the specified input stream
-     * and associates it with a JarVerifier.
-     */
-    Manifest(JarVerifier jv, InputStream is) throws IOException {
         read(is);
-        this.jv = jv;
     }
 
     /**
@@ -90,12 +77,10 @@ public class Manifest implements Cloneable {
     public Manifest(Manifest man) {
         attr.putAll(man.getMainAttributes());
         entries.putAll(man.getEntries());
-        jv = man.jv;
     }
 
     /**
      * Returns the main Attributes for the Manifest.
-     *
      * @return the main Attributes for the Manifest
      */
     public Attributes getMainAttributes() {
@@ -111,7 +96,7 @@ public class Manifest implements Cloneable {
      *
      * @return a Map of the entries contained in this Manifest
      */
-    public Map<String, Attributes> getEntries() {
+    public Map<String,Attributes> getEntries() {
         return entries;
     }
 
@@ -142,27 +127,6 @@ public class Manifest implements Cloneable {
     }
 
     /**
-     * Returns the Attributes for the specified entry name, if trusted.
-     *
-     * @param name entry name
-     * @return returns the same result as {@link #getAttributes(String)}
-     * @throws SecurityException if the associated jar is signed but this entry
-     *                           has been modified after signing (i.e. the section in the manifest
-     *                           does not exist in SF files of all signers).
-     */
-    Attributes getTrustedAttributes(String name) {
-        // Note: Before the verification of MANIFEST.MF/.SF/.RSA files is done,
-        // jv.isTrustedManifestEntry() isn't able to detect MANIFEST.MF change.
-        // Users of this method should call SharedSecrets.javaUtilJarAccess()
-        // .ensureInitialization() first.
-        Attributes result = getAttributes(name);
-        if (result != null && jv != null && !jv.isTrustedManifestEntry(name)) {
-            throw new SecurityException("Untrusted manifest entry: " + name);
-        }
-        return result;
-    }
-
-    /**
      * Clears the main Attributes as well as the entries in this Manifest.
      */
     public void clear() {
@@ -176,7 +140,7 @@ public class Manifest implements Cloneable {
      * MainAttributes prior to invoking this method.
      *
      * @param out the output stream
-     * @throws IOException if an I/O error has occurred
+     * @exception IOException if an I/O error has occurred
      * @see #getMainAttributes
      */
     public void write(OutputStream out) throws IOException {
@@ -224,7 +188,7 @@ public class Manifest implements Cloneable {
      * manifest entries.
      *
      * @param is the input stream
-     * @throws IOException if an I/O error has occurred
+     * @exception IOException if an I/O error has occurred
      */
     public void read(InputStream is) throws IOException {
         // Buffered input stream for reading manifest data
@@ -247,7 +211,7 @@ public class Manifest implements Cloneable {
             if (lbuf[--len] != '\n') {
                 throw new IOException("manifest line too long");
             }
-            if (len > 0 && lbuf[len - 1] == '\r') {
+            if (len > 0 && lbuf[len-1] == '\r') {
                 --len;
             }
             if (len == 0 && skipEmptyLines) {
@@ -299,11 +263,12 @@ public class Manifest implements Cloneable {
 
     private String parseName(byte[] lbuf, int len) {
         if (toLower(lbuf[0]) == 'n' && toLower(lbuf[1]) == 'a' &&
-                toLower(lbuf[2]) == 'm' && toLower(lbuf[3]) == 'e' &&
-                lbuf[4] == ':' && lbuf[5] == ' ') {
+            toLower(lbuf[2]) == 'm' && toLower(lbuf[3]) == 'e' &&
+            lbuf[4] == ':' && lbuf[5] == ' ') {
             try {
                 return new String(lbuf, 6, len - 6, "UTF8");
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
             }
         }
         return null;
@@ -323,9 +288,9 @@ public class Manifest implements Cloneable {
      */
     public boolean equals(Object o) {
         if (o instanceof Manifest) {
-            Manifest m = (Manifest) o;
+            Manifest m = (Manifest)o;
             return attr.equals(m.getMainAttributes()) &&
-                    entries.equals(m.getEntries());
+                   entries.equals(m.getEntries());
         } else {
             return false;
         }
@@ -344,7 +309,6 @@ public class Manifest implements Cloneable {
      * <pre>
      *     public Object clone() { return new Manifest(this); }
      * </pre>
-     *
      * @return a shallow copy of this Manifest
      */
     public Object clone() {
@@ -426,7 +390,7 @@ public class Manifest implements Cloneable {
                 off += n;
                 total += n;
                 pos = tpos;
-                if (tbuf[tpos - 1] == '\n') {
+                if (tbuf[tpos-1] == '\n') {
                     break;
                 }
             }

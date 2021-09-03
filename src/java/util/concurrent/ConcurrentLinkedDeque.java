@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea and Martin Buchholz with assistance from members of
  * JCP JSR-166 Expert Group and released to the public domain, as explained
@@ -84,14 +84,14 @@ import java.util.function.Consumer;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @param <E> the type of elements held in this collection
+ * @since 1.7
  * @author Doug Lea
  * @author Martin Buchholz
- * @since 1.7
+ * @param <E> the type of elements held in this collection
  */
 public class ConcurrentLinkedDeque<E>
-        extends AbstractCollection<E>
-        implements Deque<E>, java.io.Serializable {
+    extends AbstractCollection<E>
+    implements Deque<E>, java.io.Serializable {
 
     /*
      * This is an implementation of a concurrent lock-free deque
@@ -335,11 +335,11 @@ public class ConcurrentLinkedDeque<E>
                 UNSAFE = sun.misc.Unsafe.getUnsafe();
                 Class<?> k = Node.class;
                 prevOffset = UNSAFE.objectFieldOffset
-                        (k.getDeclaredField("prev"));
+                    (k.getDeclaredField("prev"));
                 itemOffset = UNSAFE.objectFieldOffset
-                        (k.getDeclaredField("item"));
+                    (k.getDeclaredField("item"));
                 nextOffset = UNSAFE.objectFieldOffset
-                        (k.getDeclaredField("next"));
+                    (k.getDeclaredField("next"));
             } catch (Exception e) {
                 throw new Error(e);
             }
@@ -354,10 +354,10 @@ public class ConcurrentLinkedDeque<E>
         final Node<E> newNode = new Node<E>(e);
 
         restartFromHead:
-        for (; ; )
-            for (Node<E> h = head, p = h, q; ; ) {
+        for (;;)
+            for (Node<E> h = head, p = h, q;;) {
                 if ((q = p.prev) != null &&
-                        (q = (p = q).prev) != null)
+                    (q = (p = q).prev) != null)
                     // Check for head updates every other hop.
                     // If p == q, we are sure to follow head instead.
                     p = (h != (h = head)) ? h : q;
@@ -387,10 +387,10 @@ public class ConcurrentLinkedDeque<E>
         final Node<E> newNode = new Node<E>(e);
 
         restartFromTail:
-        for (; ; )
-            for (Node<E> t = tail, p = t, q; ; ) {
+        for (;;)
+            for (Node<E> t = tail, p = t, q;;) {
                 if ((q = p.next) != null &&
-                        (q = (p = q).next) != null)
+                    (q = (p = q).next) != null)
                     // Check for tail updates every other hop.
                     // If p == q, we are sure to follow tail instead.
                     p = (t != (t = tail)) ? t : q;
@@ -467,7 +467,8 @@ public class ConcurrentLinkedDeque<E>
                     activePred = p;
                     isFirst = true;
                     break;
-                } else if (p == q)
+                }
+                else if (p == q)
                     return;
                 else
                     p = q;
@@ -487,7 +488,8 @@ public class ConcurrentLinkedDeque<E>
                     activeSucc = p;
                     isLast = true;
                     break;
-                } else if (p == q)
+                }
+                else if (p == q)
                     return;
                 else
                     p = q;
@@ -495,8 +497,8 @@ public class ConcurrentLinkedDeque<E>
 
             // TODO: better HOP heuristics
             if (hops < HOPS
-                    // always squeeze out interior deleted nodes
-                    && (isFirst | isLast))
+                // always squeeze out interior deleted nodes
+                && (isFirst | isLast))
                 return;
 
             // Squeeze out deleted nodes between activePred and
@@ -507,18 +509,18 @@ public class ConcurrentLinkedDeque<E>
             // Try to gc-unlink, if possible
             if ((isFirst | isLast) &&
 
-                    // Recheck expected state of predecessor and successor
-                    (activePred.next == activeSucc) &&
-                    (activeSucc.prev == activePred) &&
-                    (isFirst ? activePred.prev == null : activePred.item != null) &&
-                    (isLast ? activeSucc.next == null : activeSucc.item != null)) {
+                // Recheck expected state of predecessor and successor
+                (activePred.next == activeSucc) &&
+                (activeSucc.prev == activePred) &&
+                (isFirst ? activePred.prev == null : activePred.item != null) &&
+                (isLast  ? activeSucc.next == null : activeSucc.item != null)) {
 
                 updateHead(); // Ensure x is not reachable from head
                 updateTail(); // Ensure x is not reachable from tail
 
                 // Finally, actually gc-unlink
                 x.lazySetPrev(isFirst ? prevTerminator() : x);
-                x.lazySetNext(isLast ? nextTerminator() : x);
+                x.lazySetNext(isLast  ? nextTerminator() : x);
             }
         }
     }
@@ -530,13 +532,13 @@ public class ConcurrentLinkedDeque<E>
         // assert first != null;
         // assert next != null;
         // assert first.item == null;
-        for (Node<E> o = null, p = next, q; ; ) {
+        for (Node<E> o = null, p = next, q;;) {
             if (p.item != null || (q = p.next) == null) {
                 if (o != null && p.prev != p && first.casNext(next, p)) {
                     skipDeletedPredecessors(p);
                     if (first.prev == null &&
-                            (p.next == null || p.item != null) &&
-                            p.prev == first) {
+                        (p.next == null || p.item != null) &&
+                        p.prev == first) {
 
                         updateHead(); // Ensure o is not reachable from head
                         updateTail(); // Ensure o is not reachable from tail
@@ -547,7 +549,8 @@ public class ConcurrentLinkedDeque<E>
                     }
                 }
                 return;
-            } else if (p == q)
+            }
+            else if (p == q)
                 return;
             else {
                 o = p;
@@ -563,13 +566,13 @@ public class ConcurrentLinkedDeque<E>
         // assert last != null;
         // assert prev != null;
         // assert last.item == null;
-        for (Node<E> o = null, p = prev, q; ; ) {
+        for (Node<E> o = null, p = prev, q;;) {
             if (p.item != null || (q = p.prev) == null) {
                 if (o != null && p.next != p && last.casPrev(prev, p)) {
                     skipDeletedSuccessors(p);
                     if (last.next == null &&
-                            (p.prev == null || p.item != null) &&
-                            p.next == last) {
+                        (p.prev == null || p.item != null) &&
+                        p.next == last) {
 
                         updateHead(); // Ensure o is not reachable from head
                         updateTail(); // Ensure o is not reachable from tail
@@ -580,7 +583,8 @@ public class ConcurrentLinkedDeque<E>
                     }
                 }
                 return;
-            } else if (p == q)
+            }
+            else if (p == q)
                 return;
             else {
                 o = p;
@@ -601,16 +605,17 @@ public class ConcurrentLinkedDeque<E>
         Node<E> h, p, q;
         restartFromHead:
         while ((h = head).item == null && (p = h.prev) != null) {
-            for (; ; ) {
+            for (;;) {
                 if ((q = p.prev) == null ||
-                        (q = (p = q).prev) == null) {
+                    (q = (p = q).prev) == null) {
                     // It is possible that p is PREV_TERMINATOR,
                     // but if so, the CAS is guaranteed to fail.
                     if (casHead(h, p))
                         return;
                     else
                         continue restartFromHead;
-                } else if (h != head)
+                }
+                else if (h != head)
                     continue restartFromHead;
                 else
                     p = q;
@@ -630,16 +635,17 @@ public class ConcurrentLinkedDeque<E>
         Node<E> t, p, q;
         restartFromTail:
         while ((t = tail).item == null && (p = t.next) != null) {
-            for (; ; ) {
+            for (;;) {
                 if ((q = p.next) == null ||
-                        (q = (p = q).next) == null) {
+                    (q = (p = q).next) == null) {
                     // It is possible that p is NEXT_TERMINATOR,
                     // but if so, the CAS is guaranteed to fail.
                     if (casTail(t, p))
                         return;
                     else
                         continue restartFromTail;
-                } else if (t != tail)
+                }
+                else if (t != tail)
                     continue restartFromTail;
                 else
                     p = q;
@@ -656,7 +662,7 @@ public class ConcurrentLinkedDeque<E>
             // assert x != PREV_TERMINATOR;
             Node<E> p = prev;
             findActive:
-            for (; ; ) {
+            for (;;) {
                 if (p.item != null)
                     break findActive;
                 Node<E> q = p.prev;
@@ -664,7 +670,8 @@ public class ConcurrentLinkedDeque<E>
                     if (p.next == p)
                         continue whileActive;
                     break findActive;
-                } else if (p == q)
+                }
+                else if (p == q)
                     continue whileActive;
                 else
                     p = q;
@@ -686,7 +693,7 @@ public class ConcurrentLinkedDeque<E>
             // assert x != PREV_TERMINATOR;
             Node<E> p = next;
             findActive:
-            for (; ; ) {
+            for (;;) {
                 if (p.item != null)
                     break findActive;
                 Node<E> q = p.next;
@@ -694,7 +701,8 @@ public class ConcurrentLinkedDeque<E>
                     if (p.prev == p)
                         continue whileActive;
                     break findActive;
-                } else if (p == q)
+                }
+                else if (p == q)
                     continue whileActive;
                 else
                     p = q;
@@ -730,23 +738,23 @@ public class ConcurrentLinkedDeque<E>
 
     /**
      * Returns the first node, the unique node p for which:
-     * p.prev == null && p.next != p
+     *     p.prev == null && p.next != p
      * The returned node may or may not be logically deleted.
      * Guarantees that head is set to the returned node.
      */
     Node<E> first() {
         restartFromHead:
-        for (; ; )
-            for (Node<E> h = head, p = h, q; ; ) {
+        for (;;)
+            for (Node<E> h = head, p = h, q;;) {
                 if ((q = p.prev) != null &&
-                        (q = (p = q).prev) != null)
+                    (q = (p = q).prev) != null)
                     // Check for head updates every other hop.
                     // If p == q, we are sure to follow head instead.
                     p = (h != (h = head)) ? h : q;
                 else if (p == h
-                        // It is possible that p is PREV_TERMINATOR,
-                        // but if so, the CAS is guaranteed to fail.
-                        || casHead(h, p))
+                         // It is possible that p is PREV_TERMINATOR,
+                         // but if so, the CAS is guaranteed to fail.
+                         || casHead(h, p))
                     return p;
                 else
                     continue restartFromHead;
@@ -755,23 +763,23 @@ public class ConcurrentLinkedDeque<E>
 
     /**
      * Returns the last node, the unique node p for which:
-     * p.next == null && p.prev != p
+     *     p.next == null && p.prev != p
      * The returned node may or may not be logically deleted.
      * Guarantees that tail is set to the returned node.
      */
     Node<E> last() {
         restartFromTail:
-        for (; ; )
-            for (Node<E> t = tail, p = t, q; ; ) {
+        for (;;)
+            for (Node<E> t = tail, p = t, q;;) {
                 if ((q = p.next) != null &&
-                        (q = (p = q).next) != null)
+                    (q = (p = q).next) != null)
                     // Check for tail updates every other hop.
                     // If p == q, we are sure to follow tail instead.
                     p = (t != (t = tail)) ? t : q;
                 else if (p == t
-                        // It is possible that p is NEXT_TERMINATOR,
-                        // but if so, the CAS is guaranteed to fail.
-                        || casTail(t, p))
+                         // It is possible that p is NEXT_TERMINATOR,
+                         // but if so, the CAS is guaranteed to fail.
+                         || casTail(t, p))
                     return p;
                 else
                     continue restartFromTail;
@@ -833,7 +841,7 @@ public class ConcurrentLinkedDeque<E>
      *
      * @param c the collection of elements to initially contain
      * @throws NullPointerException if the specified collection or any
-     *                              of its elements are null
+     *         of its elements are null
      */
     public ConcurrentLinkedDeque(Collection<? extends E> c) {
         // Copy c into a private chain of Nodes
@@ -1014,41 +1022,28 @@ public class ConcurrentLinkedDeque<E>
         return offerLast(e);
     }
 
-    public E poll() {
-        return pollFirst();
-    }
-
-    public E peek() {
-        return peekFirst();
-    }
+    public E poll()           { return pollFirst(); }
+    public E peek()           { return peekFirst(); }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
-    public E remove() {
-        return removeFirst();
-    }
+    public E remove()         { return removeFirst(); }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
-    public E pop() {
-        return removeFirst();
-    }
+    public E pop()            { return removeFirst(); }
 
     /**
      * @throws NoSuchElementException {@inheritDoc}
      */
-    public E element() {
-        return getFirst();
-    }
+    public E element()        { return getFirst(); }
 
     /**
      * @throws NullPointerException {@inheritDoc}
      */
-    public void push(E e) {
-        addFirst(e);
-    }
+    public void push(E e)     { addFirst(e); }
 
     /**
      * Removes the first element {@code e} such that
@@ -1165,8 +1160,8 @@ public class ConcurrentLinkedDeque<E>
      *
      * @param c the elements to be inserted into this deque
      * @return {@code true} if this deque changed as a result of the call
-     * @throws NullPointerException     if the specified collection or any
-     *                                  of its elements are null
+     * @throws NullPointerException if the specified collection or any
+     *         of its elements are null
      * @throws IllegalArgumentException if the collection is this deque
      */
     public boolean addAll(Collection<? extends E> c) {
@@ -1192,10 +1187,10 @@ public class ConcurrentLinkedDeque<E>
 
         // Atomically append the chain at the tail of this collection
         restartFromTail:
-        for (; ; )
-            for (Node<E> t = tail, p = t, q; ; ) {
+        for (;;)
+            for (Node<E> t = tail, p = t, q;;) {
                 if ((q = p.next) != null &&
-                        (q = (p = q).next) != null)
+                    (q = (p = q).next) != null)
                     // Check for tail updates every other hop.
                     // If p == q, we are sure to follow tail instead.
                     p = (t != (t = tail)) ? t : q;
@@ -1269,8 +1264,8 @@ public class ConcurrentLinkedDeque<E>
      * The following code can be used to dump the deque into a newly
      * allocated array of {@code String}:
      *
-     * <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
-     * <p>
+     *  <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
+     *
      * Note that {@code toArray(new Object[0])} is identical in function to
      * {@code toArray()}.
      *
@@ -1278,9 +1273,9 @@ public class ConcurrentLinkedDeque<E>
      *          be stored, if it is big enough; otherwise, a new array of the
      *          same runtime type is allocated for this purpose
      * @return an array containing all of the elements in this deque
-     * @throws ArrayStoreException  if the runtime type of the specified array
-     *                              is not a supertype of the runtime type of every element in
-     *                              this deque
+     * @throws ArrayStoreException if the runtime type of the specified array
+     *         is not a supertype of the runtime type of every element in
+     *         this deque
      * @throws NullPointerException if the specified array is null
      */
     public <T> T[] toArray(T[] a) {
@@ -1335,7 +1330,6 @@ public class ConcurrentLinkedDeque<E>
         private Node<E> lastRet;
 
         abstract Node<E> startNode();
-
         abstract Node<E> nextNode(Node<E> p);
 
         AbstractItr() {
@@ -1350,7 +1344,7 @@ public class ConcurrentLinkedDeque<E>
             lastRet = nextNode;
 
             Node<E> p = (nextNode == null) ? startNode() : nextNode(nextNode);
-            for (; ; p = nextNode(p)) {
+            for (;; p = nextNode(p)) {
                 if (p == null) {
                     // p might be active end or TERMINATOR node; both are OK
                     nextNode = null;
@@ -1386,42 +1380,25 @@ public class ConcurrentLinkedDeque<E>
         }
     }
 
-    /**
-     * Forward iterator
-     */
+    /** Forward iterator */
     private class Itr extends AbstractItr {
-        Node<E> startNode() {
-            return first();
-        }
-
-        Node<E> nextNode(Node<E> p) {
-            return succ(p);
-        }
+        Node<E> startNode() { return first(); }
+        Node<E> nextNode(Node<E> p) { return succ(p); }
     }
 
-    /**
-     * Descending iterator
-     */
+    /** Descending iterator */
     private class DescendingItr extends AbstractItr {
-        Node<E> startNode() {
-            return last();
-        }
-
-        Node<E> nextNode(Node<E> p) {
-            return pred(p);
-        }
+        Node<E> startNode() { return last(); }
+        Node<E> nextNode(Node<E> p) { return pred(p); }
     }
 
-    /**
-     * A customized variant of Spliterators.IteratorSpliterator
-     */
+    /** A customized variant of Spliterators.IteratorSpliterator */
     static final class CLDSpliterator<E> implements Spliterator<E> {
         static final int MAX_BATCH = 1 << 25;  // max batch array size;
         final ConcurrentLinkedDeque<E> queue;
         Node<E> current;    // current node; null until initialized
         int batch;          // batch size for splits
         boolean exhausted;  // true when no more nodes
-
         CLDSpliterator(ConcurrentLinkedDeque<E> queue) {
             this.queue = queue;
         }
@@ -1432,7 +1409,7 @@ public class ConcurrentLinkedDeque<E>
             int b = batch;
             int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
             if (!exhausted &&
-                    ((p = current) != null || (p = q.first()) != null)) {
+                ((p = current) != null || (p = q.first()) != null)) {
                 if (p.item == null && p == (p = p.next))
                     current = p = q.first();
                 if (p != null && p.next != null) {
@@ -1449,8 +1426,8 @@ public class ConcurrentLinkedDeque<E>
                     if (i > 0) {
                         batch = i;
                         return Spliterators.spliterator
-                                (a, 0, i, Spliterator.ORDERED | Spliterator.NONNULL |
-                                        Spliterator.CONCURRENT);
+                            (a, 0, i, Spliterator.ORDERED | Spliterator.NONNULL |
+                             Spliterator.CONCURRENT);
                     }
                 }
             }
@@ -1462,7 +1439,7 @@ public class ConcurrentLinkedDeque<E>
             if (action == null) throw new NullPointerException();
             final ConcurrentLinkedDeque<E> q = this.queue;
             if (!exhausted &&
-                    ((p = current) != null || (p = q.first()) != null)) {
+                ((p = current) != null || (p = q.first()) != null)) {
                 exhausted = true;
                 do {
                     E e = p.item;
@@ -1479,7 +1456,7 @@ public class ConcurrentLinkedDeque<E>
             if (action == null) throw new NullPointerException();
             final ConcurrentLinkedDeque<E> q = this.queue;
             if (!exhausted &&
-                    ((p = current) != null || (p = q.first()) != null)) {
+                ((p = current) != null || (p = q.first()) != null)) {
                 E e;
                 do {
                     e = p.item;
@@ -1496,13 +1473,11 @@ public class ConcurrentLinkedDeque<E>
             return false;
         }
 
-        public long estimateSize() {
-            return Long.MAX_VALUE;
-        }
+        public long estimateSize() { return Long.MAX_VALUE; }
 
         public int characteristics() {
             return Spliterator.ORDERED | Spliterator.NONNULL |
-                    Spliterator.CONCURRENT;
+                Spliterator.CONCURRENT;
         }
     }
 
@@ -1515,9 +1490,11 @@ public class ConcurrentLinkedDeque<E>
      * <p>The {@code Spliterator} reports {@link Spliterator#CONCURRENT},
      * {@link Spliterator#ORDERED}, and {@link Spliterator#NONNULL}.
      *
-     * @return a {@code Spliterator} over the elements in this deque
-     * @implNote The {@code Spliterator} implements {@code trySplit} to permit limited
+     * @implNote
+     * The {@code Spliterator} implements {@code trySplit} to permit limited
      * parallelism.
+     *
+     * @return a {@code Spliterator} over the elements in this deque
      * @since 1.8
      */
     public Spliterator<E> spliterator() {
@@ -1533,7 +1510,7 @@ public class ConcurrentLinkedDeque<E>
      * the proper order, followed by a null
      */
     private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
+        throws java.io.IOException {
 
         // Write out any hidden stuff
         s.defaultWriteObject();
@@ -1551,14 +1528,13 @@ public class ConcurrentLinkedDeque<E>
 
     /**
      * Reconstitutes this deque from a stream (that is, deserializes it).
-     *
      * @param s the stream
      * @throws ClassNotFoundException if the class of a serialized object
-     *                                could not be found
-     * @throws java.io.IOException    if an I/O error occurs
+     *         could not be found
+     * @throws java.io.IOException if an I/O error occurs
      */
     private void readObject(java.io.ObjectInputStream s)
-            throws java.io.IOException, ClassNotFoundException {
+        throws java.io.IOException, ClassNotFoundException {
         s.defaultReadObject();
 
         // Read in elements until trailing null sentinel found
@@ -1591,7 +1567,6 @@ public class ConcurrentLinkedDeque<E>
     private static final sun.misc.Unsafe UNSAFE;
     private static final long headOffset;
     private static final long tailOffset;
-
     static {
         PREV_TERMINATOR = new Node<Object>();
         PREV_TERMINATOR.next = PREV_TERMINATOR;
@@ -1601,9 +1576,9 @@ public class ConcurrentLinkedDeque<E>
             UNSAFE = sun.misc.Unsafe.getUnsafe();
             Class<?> k = ConcurrentLinkedDeque.class;
             headOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("head"));
+                (k.getDeclaredField("head"));
             tailOffset = UNSAFE.objectFieldOffset
-                    (k.getDeclaredField("tail"));
+                (k.getDeclaredField("tail"));
         } catch (Exception e) {
             throw new Error(e);
         }

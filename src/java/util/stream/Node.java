@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -44,8 +44,8 @@ import java.util.function.LongConsumer;
  * <em>internal</em> node.  The size of an internal node is the sum of sizes of
  * its children.
  *
- * @param <T> the type of elements.
- * @apiNote <p>A {@code Node} typically does not store the elements directly, but instead
+ * @apiNote
+ * <p>A {@code Node} typically does not store the elements directly, but instead
  * mediates access to one or more existing (effectively immutable) data
  * structures such as a {@code Collection}, array, or a set of other
  * {@code Node}s.  Commonly {@code Node}s are formed into a tree whose shape
@@ -53,6 +53,8 @@ import java.util.function.LongConsumer;
  * contained in the leaf nodes.  The use of {@code Node} within the stream
  * framework is largely to avoid copying data unnecessarily during parallel
  * operations.
+ *
+ * @param <T> the type of elements.
  * @since 1.8
  */
 interface Node<T> {
@@ -62,7 +64,7 @@ interface Node<T> {
      * {@code Node}.
      *
      * @return a {@code Spliterator} describing the elements contained in this
-     * {@code Node}
+     *         {@code Node}
      */
     Spliterator<T> spliterator();
 
@@ -72,15 +74,16 @@ interface Node<T> {
      * order if the source for the {@code Node} has a defined encounter order.
      *
      * @param consumer a {@code Consumer} that is to be invoked with each
-     *                 element in this {@code Node}
+     *        element in this {@code Node}
      */
     void forEach(Consumer<? super T> consumer);
 
     /**
      * Returns the number of child nodes of this node.
      *
-     * @return the number of child nodes
      * @implSpec The default implementation returns zero.
+     *
+     * @return the number of child nodes
      */
     default int getChildCount() {
         return 0;
@@ -89,12 +92,13 @@ interface Node<T> {
     /**
      * Retrieves the child {@code Node} at a given index.
      *
+     * @implSpec The default implementation always throws
+     * {@code IndexOutOfBoundsException}.
+     *
      * @param i the index to the child node
      * @return the child node
      * @throws IndexOutOfBoundsException if the index is less than 0 or greater
-     *                                   than or equal to the number of child nodes
-     * @implSpec The default implementation always throws
-     * {@code IndexOutOfBoundsException}.
+     *         than or equal to the number of child nodes
      */
     default Node<T> getChild(int i) {
         throw new IndexOutOfBoundsException();
@@ -105,10 +109,10 @@ interface Node<T> {
      * starting at the given inclusive start offset and ending at the given
      * exclusive end offset.
      *
-     * @param from      The (inclusive) starting offset of elements to include, must
-     *                  be in range 0..count().
-     * @param to        The (exclusive) end offset of elements to include, must be
-     *                  in range 0..count().
+     * @param from The (inclusive) starting offset of elements to include, must
+     *             be in range 0..count().
+     * @param to The (exclusive) end offset of elements to include, must be
+     *           in range 0..count().
      * @param generator A function to be used to create a new array, if needed,
      *                  for reference nodes.
      * @return the truncated node
@@ -120,11 +124,8 @@ interface Node<T> {
         long size = to - from;
         Node.Builder<T> nodeBuilder = Nodes.builder(size, generator);
         nodeBuilder.begin(size);
-        for (int i = 0; i < from && spliterator.tryAdvance(e -> {
-        }); i++) {
-        }
-        for (int i = 0; (i < size) && spliterator.tryAdvance(nodeBuilder); i++) {
-        }
+        for (int i = 0; i < from && spliterator.tryAdvance(e -> { }); i++) { }
+        for (int i = 0; (i < size) && spliterator.tryAdvance(nodeBuilder); i++) { }
         nodeBuilder.end();
         return nodeBuilder.build();
     }
@@ -139,8 +140,8 @@ interface Node<T> {
      * array needs to be created.
      *
      * @param generator a factory function which takes an integer parameter and
-     *                  returns a new, empty array of that size and of the appropriate
-     *                  array type
+     *        returns a new, empty array of that size and of the appropriate
+     *        array type
      * @return an array containing the contents of this {@code Node}
      */
     T[] asArray(IntFunction<T[]> generator);
@@ -152,21 +153,22 @@ interface Node<T> {
      * will occur if the array length is less than the number of elements
      * contained in this node.
      *
-     * @param array  the array into which to copy the contents of this
-     *               {@code Node}
+     * @param array the array into which to copy the contents of this
+     *       {@code Node}
      * @param offset the starting offset within the array
      * @throws IndexOutOfBoundsException if copying would cause access of data
-     *                                   outside array bounds
-     * @throws NullPointerException      if {@code array} is {@code null}
+     *         outside array bounds
+     * @throws NullPointerException if {@code array} is {@code null}
      */
     void copyInto(T[] array, int offset);
 
     /**
      * Gets the {@code StreamShape} associated with this {@code Node}.
      *
-     * @return the stream shape associated with this node
      * @implSpec The default in {@code Node} returns
      * {@code StreamShape.REFERENCE}
+     *
+     * @return the stream shape associated with this node
      */
     default StreamShape getShape() {
         return StreamShape.REFERENCE;
@@ -219,15 +221,15 @@ interface Node<T> {
     }
 
     public interface OfPrimitive<T, T_CONS, T_ARR,
-            T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
-            T_NODE extends OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, T_NODE>>
+                                 T_SPLITR extends Spliterator.OfPrimitive<T, T_CONS, T_SPLITR>,
+                                 T_NODE extends OfPrimitive<T, T_CONS, T_ARR, T_SPLITR, T_NODE>>
             extends Node<T> {
 
         /**
          * {@inheritDoc}
          *
          * @return a {@link Spliterator.OfPrimitive} describing the elements of
-         * this node
+         *         this node
          */
         @Override
         T_SPLITR spliterator();
@@ -237,7 +239,7 @@ interface Node<T> {
          * {@code action} with each element.
          *
          * @param action a consumer that is to be invoked with each
-         *               element in this {@code Node.OfPrimitive}
+         *        element in this {@code Node.OfPrimitive}
          */
         @SuppressWarnings("overloads")
         void forEach(T_CONS action);
@@ -295,12 +297,12 @@ interface Node<T> {
          * starting at a given offset into the array.  It is the caller's
          * responsibility to ensure there is sufficient room in the array.
          *
-         * @param array  the array into which to copy the contents of this
-         *               {@code Node}
+         * @param array the array into which to copy the contents of this
+         *              {@code Node}
          * @param offset the starting offset within the array
          * @throws IndexOutOfBoundsException if copying would cause access of
-         *                                   data outside array bounds
-         * @throws NullPointerException      if {@code array} is {@code null}
+         *         data outside array bounds
+         * @throws NullPointerException if {@code array} is {@code null}
          */
         void copyInto(T_ARR array, int offset);
     }
@@ -314,15 +316,16 @@ interface Node<T> {
          * {@inheritDoc}
          *
          * @param consumer a {@code Consumer} that is to be invoked with each
-         *                 element in this {@code Node}.  If this is an
-         *                 {@code IntConsumer}, it is cast to {@code IntConsumer} so the
-         *                 elements may be processed without boxing.
+         *        element in this {@code Node}.  If this is an
+         *        {@code IntConsumer}, it is cast to {@code IntConsumer} so the
+         *        elements may be processed without boxing.
          */
         @Override
         default void forEach(Consumer<? super Integer> consumer) {
             if (consumer instanceof IntConsumer) {
                 forEach((IntConsumer) consumer);
-            } else {
+            }
+            else {
                 if (Tripwire.ENABLED)
                     Tripwire.trip(getClass(), "{0} calling Node.OfInt.forEachRemaining(Consumer)");
                 spliterator().forEachRemaining(consumer);
@@ -356,11 +359,8 @@ interface Node<T> {
             Spliterator.OfInt spliterator = spliterator();
             Node.Builder.OfInt nodeBuilder = Nodes.intBuilder(size);
             nodeBuilder.begin(size);
-            for (int i = 0; i < from && spliterator.tryAdvance((IntConsumer) e -> {
-            }); i++) {
-            }
-            for (int i = 0; (i < size) && spliterator.tryAdvance((IntConsumer) nodeBuilder); i++) {
-            }
+            for (int i = 0; i < from && spliterator.tryAdvance((IntConsumer) e -> { }); i++) { }
+            for (int i = 0; (i < size) && spliterator.tryAdvance((IntConsumer) nodeBuilder); i++) { }
             nodeBuilder.end();
             return nodeBuilder.build();
         }
@@ -372,7 +372,6 @@ interface Node<T> {
 
         /**
          * {@inheritDoc}
-         *
          * @implSpec The default in {@code Node.OfInt} returns
          * {@code StreamShape.INT_VALUE}
          */
@@ -390,15 +389,16 @@ interface Node<T> {
          * {@inheritDoc}
          *
          * @param consumer A {@code Consumer} that is to be invoked with each
-         *                 element in this {@code Node}.  If this is an
-         *                 {@code LongConsumer}, it is cast to {@code LongConsumer} so
-         *                 the elements may be processed without boxing.
+         *        element in this {@code Node}.  If this is an
+         *        {@code LongConsumer}, it is cast to {@code LongConsumer} so
+         *        the elements may be processed without boxing.
          */
         @Override
         default void forEach(Consumer<? super Long> consumer) {
             if (consumer instanceof LongConsumer) {
                 forEach((LongConsumer) consumer);
-            } else {
+            }
+            else {
                 if (Tripwire.ENABLED)
                     Tripwire.trip(getClass(), "{0} calling Node.OfLong.forEachRemaining(Consumer)");
                 spliterator().forEachRemaining(consumer);
@@ -432,11 +432,8 @@ interface Node<T> {
             Spliterator.OfLong spliterator = spliterator();
             Node.Builder.OfLong nodeBuilder = Nodes.longBuilder(size);
             nodeBuilder.begin(size);
-            for (int i = 0; i < from && spliterator.tryAdvance((LongConsumer) e -> {
-            }); i++) {
-            }
-            for (int i = 0; (i < size) && spliterator.tryAdvance((LongConsumer) nodeBuilder); i++) {
-            }
+            for (int i = 0; i < from && spliterator.tryAdvance((LongConsumer) e -> { }); i++) { }
+            for (int i = 0; (i < size) && spliterator.tryAdvance((LongConsumer) nodeBuilder); i++) { }
             nodeBuilder.end();
             return nodeBuilder.build();
         }
@@ -448,7 +445,6 @@ interface Node<T> {
 
         /**
          * {@inheritDoc}
-         *
          * @implSpec The default in {@code Node.OfLong} returns
          * {@code StreamShape.LONG_VALUE}
          */
@@ -466,15 +462,16 @@ interface Node<T> {
          * {@inheritDoc}
          *
          * @param consumer A {@code Consumer} that is to be invoked with each
-         *                 element in this {@code Node}.  If this is an
-         *                 {@code DoubleConsumer}, it is cast to {@code DoubleConsumer}
-         *                 so the elements may be processed without boxing.
+         *        element in this {@code Node}.  If this is an
+         *        {@code DoubleConsumer}, it is cast to {@code DoubleConsumer}
+         *        so the elements may be processed without boxing.
          */
         @Override
         default void forEach(Consumer<? super Double> consumer) {
             if (consumer instanceof DoubleConsumer) {
                 forEach((DoubleConsumer) consumer);
-            } else {
+            }
+            else {
                 if (Tripwire.ENABLED)
                     Tripwire.trip(getClass(), "{0} calling Node.OfLong.forEachRemaining(Consumer)");
                 spliterator().forEachRemaining(consumer);
@@ -510,11 +507,8 @@ interface Node<T> {
             Spliterator.OfDouble spliterator = spliterator();
             Node.Builder.OfDouble nodeBuilder = Nodes.doubleBuilder(size);
             nodeBuilder.begin(size);
-            for (int i = 0; i < from && spliterator.tryAdvance((DoubleConsumer) e -> {
-            }); i++) {
-            }
-            for (int i = 0; (i < size) && spliterator.tryAdvance((DoubleConsumer) nodeBuilder); i++) {
-            }
+            for (int i = 0; i < from && spliterator.tryAdvance((DoubleConsumer) e -> { }); i++) { }
+            for (int i = 0; (i < size) && spliterator.tryAdvance((DoubleConsumer) nodeBuilder); i++) { }
             nodeBuilder.end();
             return nodeBuilder.build();
         }

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -69,7 +69,6 @@ import java.io.*;
  * <li>   com.foo.MyHandler.formatter=java.util.logging.SimpleFormatter </li>
  * </ul>
  * <p>
- *
  * @since 1.4
  */
 
@@ -85,11 +84,11 @@ public class StreamHandler extends Handler {
         LogManager manager = LogManager.getLogManager();
         String cname = getClass().getName();
 
-        setLevel(manager.getLevelProperty(cname + ".level", Level.INFO));
-        setFilter(manager.getFilterProperty(cname + ".filter", null));
-        setFormatter(manager.getFormatterProperty(cname + ".formatter", new SimpleFormatter()));
+        setLevel(manager.getLevelProperty(cname +".level", Level.INFO));
+        setFilter(manager.getFilterProperty(cname +".filter", null));
+        setFormatter(manager.getFormatterProperty(cname +".formatter", new SimpleFormatter()));
         try {
-            setEncoding(manager.getStringProperty(cname + ".encoding", null));
+            setEncoding(manager.getStringProperty(cname +".encoding", null));
         } catch (Exception ex) {
             try {
                 setEncoding(null);
@@ -113,9 +112,8 @@ public class StreamHandler extends Handler {
      * Create a <tt>StreamHandler</tt> with a given <tt>Formatter</tt>
      * and output stream.
      * <p>
-     *
-     * @param out       the target output stream
-     * @param formatter Formatter to be used to format output
+     * @param out         the target output stream
+     * @param formatter   Formatter to be used to format output
      */
     public StreamHandler(OutputStream out, Formatter formatter) {
         sealed = false;
@@ -127,14 +125,14 @@ public class StreamHandler extends Handler {
 
     /**
      * Change the output stream.
-     * <p>
+     * <P>
      * If there is a current output stream then the <tt>Formatter</tt>'s
      * tail string is written and the stream is flushed and closed.
      * Then the output stream is replaced with the new output stream.
      *
-     * @param out New output stream.  May not be null.
-     * @throws SecurityException if a security manager exists and if
-     *                           the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @param out   New output stream.  May not be null.
+     * @exception  SecurityException  if a security manager exists and if
+     *             the caller does not have <tt>LoggingPermission("control")</tt>.
      */
     protected synchronized void setOutputStream(OutputStream out) throws SecurityException {
         if (out == null) {
@@ -163,16 +161,16 @@ public class StreamHandler extends Handler {
      * The encoding should be set before any <tt>LogRecords</tt> are written
      * to the <tt>Handler</tt>.
      *
-     * @param encoding The name of a supported character encoding.
-     *                 May be null, to indicate the default platform encoding.
-     * @throws SecurityException            if a security manager exists and if
-     *                                      the caller does not have <tt>LoggingPermission("control")</tt>.
-     * @throws UnsupportedEncodingException if the named encoding is
-     *                                      not supported.
+     * @param encoding  The name of a supported character encoding.
+     *        May be null, to indicate the default platform encoding.
+     * @exception  SecurityException  if a security manager exists and if
+     *             the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @exception  UnsupportedEncodingException if the named encoding is
+     *          not supported.
      */
     @Override
     public synchronized void setEncoding(String encoding)
-            throws SecurityException, java.io.UnsupportedEncodingException {
+                        throws SecurityException, java.io.UnsupportedEncodingException {
         super.setEncoding(encoding);
         if (output == null) {
             return;
@@ -200,8 +198,8 @@ public class StreamHandler extends Handler {
      * <tt>OutputStream</tt>, the <tt>Formatter</tt>'s "head" string is
      * written to the stream before the <tt>LogRecord</tt> is written.
      *
-     * @param record description of the log event. A null record is
-     *               silently ignored and is not published
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     @Override
     public synchronized void publish(LogRecord record) {
@@ -239,9 +237,9 @@ public class StreamHandler extends Handler {
      * whether it satisfies any <tt>Filter</tt>.  It will also return false if
      * no output stream has been assigned yet or the LogRecord is null.
      * <p>
-     *
-     * @param record a <tt>LogRecord</tt>
+     * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.
+     *
      */
     @Override
     public boolean isLoggable(LogRecord record) {
@@ -296,8 +294,8 @@ public class StreamHandler extends Handler {
      * yet been written to the stream, it will be written before the
      * "tail" string.
      *
-     * @throws SecurityException if a security manager exists and if
-     *                           the caller does not have LoggingPermission("control").
+     * @exception  SecurityException  if a security manager exists and if
+     *             the caller does not have LoggingPermission("control").
      */
     @Override
     public synchronized void close() throws SecurityException {

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -74,33 +74,37 @@ abstract class PipelineHelper<P_OUT> {
     /**
      * Returns the exact output size of the portion of the output resulting from
      * applying the pipeline stages described by this {@code PipelineHelper} to
-     * the portion of the input described by the provided
+     * the the portion of the input described by the provided
      * {@code Spliterator}, if known.  If not known or known infinite, will
      * return {@code -1}.
      *
-     * @param spliterator the spliterator describing the relevant portion of the
-     *                    source data
-     * @return the exact size if known, or -1 if infinite or unknown
-     * @apiNote The exact output size is known if the {@code Spliterator} has the
+     * @apiNote
+     * The exact output size is known if the {@code Spliterator} has the
      * {@code SIZED} characteristic, and the operation flags
      * {@link StreamOpFlag#SIZED} is known on the combined stream and operation
      * flags.
+     *
+     * @param spliterator the spliterator describing the relevant portion of the
+     *        source data
+     * @return the exact size if known, or -1 if infinite or unknown
      */
-    abstract <P_IN> long exactOutputSizeIfKnown(Spliterator<P_IN> spliterator);
+    abstract<P_IN> long exactOutputSizeIfKnown(Spliterator<P_IN> spliterator);
 
     /**
      * Applies the pipeline stages described by this {@code PipelineHelper} to
      * the provided {@code Spliterator} and send the results to the provided
      * {@code Sink}.
      *
-     * @param sink        the {@code Sink} to receive the results
-     * @param spliterator the spliterator describing the source input to process
-     * @implSpec The implementation behaves as if:
+     * @implSpec
+     * The implementation behaves as if:
      * <pre>{@code
      *     intoWrapped(wrapSink(sink), spliterator);
      * }</pre>
+     *
+     * @param sink the {@code Sink} to receive the results
+     * @param spliterator the spliterator describing the source input to process
      */
-    abstract <P_IN, S extends Sink<P_OUT>> S wrapAndCopyInto(S sink, Spliterator<P_IN> spliterator);
+    abstract<P_IN, S extends Sink<P_OUT>> S wrapAndCopyInto(S sink, Spliterator<P_IN> spliterator);
 
     /**
      * Pushes elements obtained from the {@code Spliterator} into the provided
@@ -109,25 +113,29 @@ abstract class PipelineHelper<P_OUT> {
      * {@link Sink#cancellationRequested()} is checked after each
      * element, stopping if cancellation is requested.
      *
-     * @param wrappedSink the destination {@code Sink}
-     * @param spliterator the source {@code Spliterator}
-     * @implSpec This method conforms to the {@code Sink} protocol of calling
+     * @implSpec
+     * This method conforms to the {@code Sink} protocol of calling
      * {@code Sink.begin} before pushing elements, via {@code Sink.accept}, and
      * calling {@code Sink.end} after all elements have been pushed.
+     *
+     * @param wrappedSink the destination {@code Sink}
+     * @param spliterator the source {@code Spliterator}
      */
-    abstract <P_IN> void copyInto(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator);
+    abstract<P_IN> void copyInto(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator);
 
     /**
      * Pushes elements obtained from the {@code Spliterator} into the provided
      * {@code Sink}, checking {@link Sink#cancellationRequested()} after each
      * element, and stopping if cancellation is requested.
      *
-     * @param wrappedSink the destination {@code Sink}
-     * @param spliterator the source {@code Spliterator}
-     * @implSpec This method conforms to the {@code Sink} protocol of calling
+     * @implSpec
+     * This method conforms to the {@code Sink} protocol of calling
      * {@code Sink.begin} before pushing elements, via {@code Sink.accept}, and
      * calling {@code Sink.end} after all elements have been pushed or if
      * cancellation is requested.
+     *
+     * @param wrappedSink the destination {@code Sink}
+     * @param spliterator the source {@code Spliterator}
      */
     abstract <P_IN> void copyIntoWithCancel(Sink<P_IN> wrappedSink, Spliterator<P_IN> spliterator);
 
@@ -140,28 +148,29 @@ abstract class PipelineHelper<P_OUT> {
      *
      * @param sink the {@code Sink} to receive the results
      * @return a {@code Sink} that implements the pipeline stages and sends
-     * results to the provided {@code Sink}
+     *         results to the provided {@code Sink}
      */
-    abstract <P_IN> Sink<P_IN> wrapSink(Sink<P_OUT> sink);
+    abstract<P_IN> Sink<P_IN> wrapSink(Sink<P_OUT> sink);
 
     /**
+     *
      * @param spliterator
      * @param <P_IN>
      * @return
      */
-    abstract <P_IN> Spliterator<P_OUT> wrapSpliterator(Spliterator<P_IN> spliterator);
+    abstract<P_IN> Spliterator<P_OUT> wrapSpliterator(Spliterator<P_IN> spliterator);
 
     /**
      * Constructs a @{link Node.Builder} compatible with the output shape of
      * this {@code PipelineHelper}.
      *
      * @param exactSizeIfKnown if >=0 then a builder will be created that has a
-     *                         fixed capacity of exactly sizeIfKnown elements; if < 0 then the
-     *                         builder has variable capacity.  A fixed capacity builder will fail
-     *                         if an element is added after the builder has reached capacity.
-     * @param generator        a factory function for array instances
+     *        fixed capacity of exactly sizeIfKnown elements; if < 0 then the
+     *        builder has variable capacity.  A fixed capacity builder will fail
+     *        if an element is added after the builder has reached capacity.
+     * @param generator a factory function for array instances
      * @return a {@code Node.Builder} compatible with the output shape of this
-     * {@code PipelineHelper}
+     *         {@code PipelineHelper}
      */
     abstract Node.Builder<P_OUT> makeNodeBuilder(long exactSizeIfKnown,
                                                  IntFunction<P_OUT[]> generator);
@@ -170,14 +179,8 @@ abstract class PipelineHelper<P_OUT> {
      * Collects all output elements resulting from applying the pipeline stages
      * to the source {@code Spliterator} into a {@code Node}.
      *
-     * @param spliterator the source {@code Spliterator}
-     * @param flatten     if true and the pipeline is a parallel pipeline then the
-     *                    {@code Node} returned will contain no children, otherwise the
-     *                    {@code Node} may represent the root in a tree that reflects the
-     *                    shape of the computation tree.
-     * @param generator   a factory function for array instances
-     * @return the {@code Node} containing all output elements
-     * @implNote If the pipeline has no intermediate operations and the source is backed
+     * @implNote
+     * If the pipeline has no intermediate operations and the source is backed
      * by a {@code Node} then that {@code Node} will be returned (or flattened
      * and then returned). This reduces copying for a pipeline consisting of a
      * stateful operation followed by a terminal operation that returns an
@@ -185,8 +188,16 @@ abstract class PipelineHelper<P_OUT> {
      * <pre>{@code
      *     stream.sorted().toArray();
      * }</pre>
+     *
+     * @param spliterator the source {@code Spliterator}
+     * @param flatten if true and the pipeline is a parallel pipeline then the
+     *        {@code Node} returned will contain no children, otherwise the
+     *        {@code Node} may represent the root in a tree that reflects the
+     *        shape of the computation tree.
+     * @param generator a factory function for array instances
+     * @return the {@code Node} containing all output elements
      */
-    abstract <P_IN> Node<P_OUT> evaluate(Spliterator<P_IN> spliterator,
-                                         boolean flatten,
-                                         IntFunction<P_OUT[]> generator);
+    abstract<P_IN> Node<P_OUT> evaluate(Spliterator<P_IN> spliterator,
+                                        boolean flatten,
+                                        IntFunction<P_OUT[]> generator);
 }

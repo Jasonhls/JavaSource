@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -50,10 +50,10 @@ import java.util.function.Supplier;
  * <p>A {@code Collector} is specified by four functions that work together to
  * accumulate entries into a mutable result container, and optionally perform
  * a final transform on the result.  They are: <ul>
- * <li>creation of a new result container ({@link #supplier()})</li>
- * <li>incorporating a new data element into a result container ({@link #accumulator()})</li>
- * <li>combining two result containers into one ({@link #combiner()})</li>
- * <li>performing an optional final transform on the container ({@link #finisher()})</li>
+ *     <li>creation of a new result container ({@link #supplier()})</li>
+ *     <li>incorporating a new data element into a result container ({@link #accumulator()})</li>
+ *     <li>combining two result containers into one ({@link #combiner()})</li>
+ *     <li>performing an optional final transform on the container ({@link #finisher()})</li>
  * </ul>
  *
  * <p>Collectors also have a set of characteristics, such as
@@ -146,15 +146,12 @@ import java.util.function.Supplier;
  *         Collector.of(TreeSet::new, TreeSet::add,
  *                      (left, right) -> { left.addAll(right); return left; });
  * }</pre>
- * <p>
+ *
  * (This behavior is also implemented by the predefined collector
  * {@link Collectors#toCollection(Supplier)}).
  *
- * @param <T> the type of input elements to the reduction operation
- * @param <A> the mutable accumulation type of the reduction operation (often
- *            hidden as an implementation detail)
- * @param <R> the result type of the reduction operation
- * @apiNote Performing a reduction operation with a {@code Collector} should produce a
+ * @apiNote
+ * Performing a reduction operation with a {@code Collector} should produce a
  * result equivalent to:
  * <pre>{@code
  *     R container = collector.supplier().get();
@@ -178,7 +175,7 @@ import java.util.function.Supplier;
  *     Collector<Employee, ?, Integer> summingSalaries
  *         = Collectors.summingInt(Employee::getSalary))
  * }</pre>
- * <p>
+ *
  * If we wanted to create a collector to tabulate the sum of salaries by
  * department, we could reuse the "sum of salaries" logic using
  * {@link Collectors#groupingBy(Function, Collector)}:
@@ -187,8 +184,14 @@ import java.util.function.Supplier;
  *     Collector<Employee, ?, Map<Department, Integer>> summingSalariesByDept
  *         = Collectors.groupingBy(Employee::getDepartment, summingSalaries);
  * }</pre>
+ *
  * @see Stream#collect(Collector)
  * @see Collectors
+ *
+ * @param <T> the type of input elements to the reduction operation
+ * @param <A> the mutable accumulation type of the reduction operation (often
+ *            hidden as an implementation detail)
+ * @param <R> the result type of the reduction operation
  * @since 1.8
  */
 public interface Collector<T, A, R> {
@@ -243,29 +246,29 @@ public interface Collector<T, A, R> {
      * {@code Collector} has the {@code Collector.Characteristics.IDENTITY_FINISH}
      * characteristic.
      *
-     * @param supplier        The supplier function for the new collector
-     * @param accumulator     The accumulator function for the new collector
-     * @param combiner        The combiner function for the new collector
+     * @param supplier The supplier function for the new collector
+     * @param accumulator The accumulator function for the new collector
+     * @param combiner The combiner function for the new collector
      * @param characteristics The collector characteristics for the new
      *                        collector
-     * @param <T>             The type of input elements for the new collector
-     * @param <R>             The type of intermediate accumulation result, and final result,
-     *                        for the new collector
-     * @return the new {@code Collector}
+     * @param <T> The type of input elements for the new collector
+     * @param <R> The type of intermediate accumulation result, and final result,
+     *           for the new collector
      * @throws NullPointerException if any argument is null
+     * @return the new {@code Collector}
      */
-    public static <T, R> Collector<T, R, R> of(Supplier<R> supplier,
-                                               BiConsumer<R, T> accumulator,
-                                               BinaryOperator<R> combiner,
-                                               Characteristics... characteristics) {
+    public static<T, R> Collector<T, R, R> of(Supplier<R> supplier,
+                                              BiConsumer<R, T> accumulator,
+                                              BinaryOperator<R> combiner,
+                                              Characteristics... characteristics) {
         Objects.requireNonNull(supplier);
         Objects.requireNonNull(accumulator);
         Objects.requireNonNull(combiner);
         Objects.requireNonNull(characteristics);
         Set<Characteristics> cs = (characteristics.length == 0)
-                ? Collectors.CH_ID
-                : Collections.unmodifiableSet(EnumSet.of(Collector.Characteristics.IDENTITY_FINISH,
-                characteristics));
+                                  ? Collectors.CH_ID
+                                  : Collections.unmodifiableSet(EnumSet.of(Collector.Characteristics.IDENTITY_FINISH,
+                                                                           characteristics));
         return new Collectors.CollectorImpl<>(supplier, accumulator, combiner, cs);
     }
 
@@ -273,23 +276,23 @@ public interface Collector<T, A, R> {
      * Returns a new {@code Collector} described by the given {@code supplier},
      * {@code accumulator}, {@code combiner}, and {@code finisher} functions.
      *
-     * @param supplier        The supplier function for the new collector
-     * @param accumulator     The accumulator function for the new collector
-     * @param combiner        The combiner function for the new collector
-     * @param finisher        The finisher function for the new collector
+     * @param supplier The supplier function for the new collector
+     * @param accumulator The accumulator function for the new collector
+     * @param combiner The combiner function for the new collector
+     * @param finisher The finisher function for the new collector
      * @param characteristics The collector characteristics for the new
      *                        collector
-     * @param <T>             The type of input elements for the new collector
-     * @param <A>             The intermediate accumulation type of the new collector
-     * @param <R>             The final result type of the new collector
-     * @return the new {@code Collector}
+     * @param <T> The type of input elements for the new collector
+     * @param <A> The intermediate accumulation type of the new collector
+     * @param <R> The final result type of the new collector
      * @throws NullPointerException if any argument is null
+     * @return the new {@code Collector}
      */
-    public static <T, A, R> Collector<T, A, R> of(Supplier<A> supplier,
-                                                  BiConsumer<A, T> accumulator,
-                                                  BinaryOperator<A> combiner,
-                                                  Function<A, R> finisher,
-                                                  Characteristics... characteristics) {
+    public static<T, A, R> Collector<T, A, R> of(Supplier<A> supplier,
+                                                 BiConsumer<A, T> accumulator,
+                                                 BinaryOperator<A> combiner,
+                                                 Function<A, R> finisher,
+                                                 Characteristics... characteristics) {
         Objects.requireNonNull(supplier);
         Objects.requireNonNull(accumulator);
         Objects.requireNonNull(combiner);

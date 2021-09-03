@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.util.logging;
@@ -83,7 +83,6 @@ package java.util.logging;
  * <li>   com.foo.MyHandler.formatter=java.util.logging.SimpleFormatter </li>
  * </ul>
  * <p>
- *
  * @since 1.4
  */
 
@@ -102,14 +101,14 @@ public class MemoryHandler extends Handler {
         LogManager manager = LogManager.getLogManager();
         String cname = getClass().getName();
 
-        pushLevel = manager.getLevelProperty(cname + ".push", Level.SEVERE);
+        pushLevel = manager.getLevelProperty(cname +".push", Level.SEVERE);
         size = manager.getIntProperty(cname + ".size", DEFAULT_SIZE);
         if (size <= 0) {
             size = DEFAULT_SIZE;
         }
-        setLevel(manager.getLevelProperty(cname + ".level", Level.ALL));
-        setFilter(manager.getFilterProperty(cname + ".filter", null));
-        setFormatter(manager.getFormatterProperty(cname + ".formatter", new SimpleFormatter()));
+        setLevel(manager.getLevelProperty(cname +".level", Level.ALL));
+        setFilter(manager.getFilterProperty(cname +".filter", null));
+        setFormatter(manager.getFormatterProperty(cname +".formatter", new SimpleFormatter()));
     }
 
     /**
@@ -123,7 +122,7 @@ public class MemoryHandler extends Handler {
 
         LogManager manager = LogManager.getLogManager();
         String handlerName = getClass().getName();
-        String targetName = manager.getProperty(handlerName + ".target");
+        String targetName = manager.getProperty(handlerName+".target");
         if (targetName == null) {
             throw new RuntimeException("The handler " + handlerName
                     + " does not specify a target");
@@ -133,7 +132,7 @@ public class MemoryHandler extends Handler {
             clz = ClassLoader.getSystemClassLoader().loadClass(targetName);
             target = (Handler) clz.newInstance();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException("MemoryHandler can't load handler target \"" + targetName + "\"", e);
+            throw new RuntimeException("MemoryHandler can't load handler target \"" + targetName + "\"" , e);
         }
         init();
     }
@@ -152,9 +151,10 @@ public class MemoryHandler extends Handler {
      * properties (or their default values) except that the given <tt>pushLevel</tt>
      * argument and buffer size argument are used.
      *
-     * @param target    the Handler to which to publish output.
-     * @param size      the number of log records to buffer (must be greater than zero)
-     * @param pushLevel message level to push on
+     * @param target  the Handler to which to publish output.
+     * @param size    the number of log records to buffer (must be greater than zero)
+     * @param pushLevel  message level to push on
+     *
      * @throws IllegalArgumentException if {@code size is <= 0}
      */
     public MemoryHandler(Handler target, int size, Level pushLevel) {
@@ -185,15 +185,15 @@ public class MemoryHandler extends Handler {
      * is called to write all buffered records to the target output
      * <tt>Handler</tt>.
      *
-     * @param record description of the log event. A null record is
-     *               silently ignored and is not published
+     * @param  record  description of the log event. A null record is
+     *                 silently ignored and is not published
      */
     @Override
     public synchronized void publish(LogRecord record) {
         if (!isLoggable(record)) {
             return;
         }
-        int ix = (start + count) % buffer.length;
+        int ix = (start+count)%buffer.length;
         buffer[ix] = record;
         if (count < buffer.length) {
             count++;
@@ -213,7 +213,7 @@ public class MemoryHandler extends Handler {
      */
     public synchronized void push() {
         for (int i = 0; i < count; i++) {
-            int ix = (start + i) % buffer.length;
+            int ix = (start+i)%buffer.length;
             LogRecord record = buffer[ix];
             target.publish(record);
         }
@@ -237,8 +237,8 @@ public class MemoryHandler extends Handler {
      * Close the <tt>Handler</tt> and free all associated resources.
      * This will also close the target <tt>Handler</tt>.
      *
-     * @throws SecurityException if a security manager exists and if
-     *                           the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @exception  SecurityException  if a security manager exists and if
+     *             the caller does not have <tt>LoggingPermission("control")</tt>.
      */
     @Override
     public void close() throws SecurityException {
@@ -252,8 +252,8 @@ public class MemoryHandler extends Handler {
      * the <tt>pushLevel</tt>, then <tt>push</tt> will be called.
      *
      * @param newLevel the new value of the <tt>pushLevel</tt>
-     * @throws SecurityException if a security manager exists and if
-     *                           the caller does not have <tt>LoggingPermission("control")</tt>.
+     * @exception  SecurityException  if a security manager exists and if
+     *             the caller does not have <tt>LoggingPermission("control")</tt>.
      */
     public synchronized void setPushLevel(Level newLevel) throws SecurityException {
         if (newLevel == null) {
@@ -281,9 +281,9 @@ public class MemoryHandler extends Handler {
      * check whether the <tt>LogRecord</tt> would result in a "push" of the
      * buffer contents. It will return false if the <tt>LogRecord</tt> is null.
      * <p>
-     *
-     * @param record a <tt>LogRecord</tt>
+     * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.
+     *
      */
     @Override
     public boolean isLoggable(LogRecord record) {

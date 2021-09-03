@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 
@@ -28,7 +28,6 @@ package java.awt;
 
 import java.awt.image.BufferedImage;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Locale;
 
 import sun.font.FontManager;
@@ -161,38 +160,42 @@ public abstract class GraphicsEnvironment {
      */
     private static boolean getHeadlessProperty() {
         if (headless == null) {
-            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
-                String nm = System.getProperty("java.awt.headless");
+            java.security.AccessController.doPrivileged(
+            new java.security.PrivilegedAction<Object>() {
+                public Object run() {
+                    String nm = System.getProperty("java.awt.headless");
 
-                if (nm == null) {
-                    /* No need to ask for DISPLAY when run in a browser */
-                    if (System.getProperty("javaplugin.version") != null) {
-                        headless = defaultHeadless = Boolean.FALSE;
-                    } else {
-                        String osName = System.getProperty("os.name");
-                        if (osName.contains("OS X") && "sun.awt.HToolkit".equals(
-                                System.getProperty("awt.toolkit")))
-                        {
-                            headless = defaultHeadless = Boolean.TRUE;
+                    if (nm == null) {
+                        /* No need to ask for DISPLAY when run in a browser */
+                        if (System.getProperty("javaplugin.version") != null) {
+                            headless = defaultHeadless = Boolean.FALSE;
                         } else {
-                            final String display = System.getenv("DISPLAY");
-                            headless = defaultHeadless =
-                                ("Linux".equals(osName) ||
-                                 "SunOS".equals(osName) ||
-                                 "FreeBSD".equals(osName) ||
-                                 "NetBSD".equals(osName) ||
-                                 "OpenBSD".equals(osName) ||
-                                 "AIX".equals(osName)) &&
-                                 (display == null || display.trim().isEmpty());
+                            String osName = System.getProperty("os.name");
+                            if (osName.contains("OS X") && "sun.awt.HToolkit".equals(
+                                    System.getProperty("awt.toolkit")))
+                            {
+                                headless = defaultHeadless = Boolean.TRUE;
+                            } else {
+                                headless = defaultHeadless =
+                                    Boolean.valueOf(("Linux".equals(osName) ||
+                                                     "SunOS".equals(osName) ||
+                                                     "FreeBSD".equals(osName) ||
+                                                     "NetBSD".equals(osName) ||
+                                                     "OpenBSD".equals(osName)) &&
+                                                     (System.getenv("DISPLAY") == null));
+                            }
                         }
+                    } else if (nm.equals("true")) {
+                        headless = Boolean.TRUE;
+                    } else {
+                        headless = Boolean.FALSE;
                     }
-                } else {
-                    headless = Boolean.valueOf(nm);
+                    return null;
                 }
-                return null;
-            });
+                }
+            );
         }
-        return headless;
+        return headless.booleanValue();
     }
 
     /**

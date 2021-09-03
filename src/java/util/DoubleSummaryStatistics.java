@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util;
 
@@ -47,8 +47,8 @@ import java.util.stream.Collector;
  * <pre> {@code
  * DoubleSummaryStatistics stats = people.stream()
  *     .collect(Collectors.summarizingDouble(Person::getWeight));
- * }</pre>
- * <p>
+ *}</pre>
+ *
  * This computes, in a single pass, the count of people, as well as the minimum,
  * maximum, sum, and average of their weights.
  *
@@ -73,8 +73,7 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
      * {@code Double.POSITIVE_INFINITY} min, {@code Double.NEGATIVE_INFINITY}
      * max and zero average.
      */
-    public DoubleSummaryStatistics() {
-    }
+    public DoubleSummaryStatistics() { }
 
     /**
      * Records another value into the summary information.
@@ -129,7 +128,7 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
     /**
      * Returns the sum of values recorded, or zero if no values have been
      * recorded.
-     * <p>
+     *
      * If any recorded value is a NaN or the sum is at any point a NaN
      * then the sum will be NaN.
      *
@@ -138,19 +137,20 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
      * order of addition operations of this method is intentionally
      * not defined to allow for implementation flexibility to improve
      * the speed and accuracy of the computed result.
-     * <p>
+     *
      * In particular, this method may be implemented using compensated
      * summation or other technique to reduce the error bound in the
      * numerical sum compared to a simple summation of {@code double}
      * values.
      *
-     * @return the sum of values, or zero if none
      * @apiNote Values sorted by increasing absolute magnitude tend to yield
      * more accurate results.
+     *
+     * @return the sum of values, or zero if none
      */
     public final double getSum() {
         // Better error bounds to add both terms as the final sum
-        double tmp = sum + sumCompensation;
+        double tmp =  sum + sumCompensation;
         if (Double.isNaN(tmp) && Double.isInfinite(simpleSum))
             // If the compensated sum is spuriously NaN from
             // accumulating one or more same-signed infinite values,
@@ -192,20 +192,21 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
     /**
      * Returns the arithmetic mean of values recorded, or zero if no
      * values have been recorded.
-     * <p>
+     *
      * If any recorded value is a NaN or the sum is at any point a NaN
      * then the average will be code NaN.
      *
      * <p>The average returned can vary depending upon the order in
      * which values are recorded.
-     * <p>
+     *
      * This method may be implemented using compensated summation or
      * other technique to reduce the error bound in the {@link #getSum
      * numerical sum} used to compute the average.
      *
-     * @return the arithmetic mean of values, or zero if none
      * @apiNote Values sorted by increasing absolute magnitude tend to yield
      * more accurate results.
+     *
+     * @return the arithmetic mean of values, or zero if none
      */
     public final double getAverage() {
         return getCount() > 0 ? getSum() / getCount() : 0.0d;
@@ -213,7 +214,7 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
 
     /**
      * {@inheritDoc}
-     * <p>
+     *
      * Returns a non-empty string representation of this object suitable for
      * debugging. The exact presentation format is unspecified and may vary
      * between implementations and versions.
@@ -221,12 +222,12 @@ public class DoubleSummaryStatistics implements DoubleConsumer {
     @Override
     public String toString() {
         return String.format(
-                "%s{count=%d, sum=%f, min=%f, average=%f, max=%f}",
-                this.getClass().getSimpleName(),
-                getCount(),
-                getSum(),
-                getMin(),
-                getAverage(),
-                getMax());
+            "%s{count=%d, sum=%f, min=%f, average=%f, max=%f}",
+            this.getClass().getSimpleName(),
+            getCount(),
+            getSum(),
+            getMin(),
+            getAverage(),
+            getMax());
     }
 }

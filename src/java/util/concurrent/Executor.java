@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -50,36 +50,36 @@ package java.util.concurrent;
  * executor.execute(new RunnableTask2());
  * ...
  * </pre>
- * <p>
+ *
  * However, the {@code Executor} interface does not strictly
  * require that execution be asynchronous. In the simplest case, an
  * executor can run the submitted task immediately in the caller's
  * thread:
  *
- * <pre> {@code
+ *  <pre> {@code
  * class DirectExecutor implements Executor {
  *   public void execute(Runnable r) {
  *     r.run();
  *   }
  * }}</pre>
- * <p>
+ *
  * More typically, tasks are executed in some thread other
  * than the caller's thread.  The executor below spawns a new thread
  * for each task.
  *
- * <pre> {@code
+ *  <pre> {@code
  * class ThreadPerTaskExecutor implements Executor {
  *   public void execute(Runnable r) {
  *     new Thread(r).start();
  *   }
  * }}</pre>
- * <p>
+ *
  * Many {@code Executor} implementations impose some sort of
  * limitation on how and when tasks are scheduled.  The executor below
  * serializes the submission of tasks to a second executor,
  * illustrating a composite executor.
  *
- * <pre> {@code
+ *  <pre> {@code
  * class SerialExecutor implements Executor {
  *   final Queue<Runnable> tasks = new ArrayDeque<Runnable>();
  *   final Executor executor;
@@ -110,7 +110,7 @@ package java.util.concurrent;
  *     }
  *   }
  * }}</pre>
- * <p>
+ *
  * The {@code Executor} implementations provided in this package
  * implement {@link ExecutorService}, which is a more extensive
  * interface.  The {@link ThreadPoolExecutor} class provides an
@@ -122,8 +122,8 @@ package java.util.concurrent;
  * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
  * its execution begins, perhaps in another thread.
  *
- * @author Doug Lea
  * @since 1.5
+ * @author Doug Lea
  */
 public interface Executor {
 
@@ -134,8 +134,8 @@ public interface Executor {
      *
      * @param command the runnable task
      * @throws RejectedExecutionException if this task cannot be
-     *                                    accepted for execution
-     * @throws NullPointerException       if command is null
+     * accepted for execution
+     * @throws NullPointerException if command is null
      */
     void execute(Runnable command);
 }

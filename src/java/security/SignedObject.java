@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.security;
@@ -81,12 +81,13 @@ import java.io.*;
  * verification in an attempt to bypass a security check.
  *
  * <p> The signature algorithm can be, among others, the NIST standard
- * DSA, using DSA and SHA-256.  The algorithm is specified using the
+ * DSA, using DSA and SHA-1.  The algorithm is specified using the
  * same convention as that for signatures. The DSA algorithm using the
- * SHA-256 message digest algorithm can be specified, for example, as
- * "SHA256withDSA".  In the case of
- * RSA the signing algorithm could be specified as, for example,
- * "SHA256withRSA".  The algorithm name must be
+ * SHA-1 message digest algorithm can be specified, for example, as
+ * "SHA/DSA" or "SHA-1/DSA" (they are equivalent).  In the case of
+ * RSA, there are multiple choices for the message digest algorithm,
+ * so the signing algorithm could be specified as, for example,
+ * "MD2/RSA", "MD5/RSA" or "SHA-1/RSA".  The algorithm name must be
  * specified, as there is no default.
  *
  * <p> The name of the Cryptography Package Provider is designated

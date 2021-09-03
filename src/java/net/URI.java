@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
@@ -188,7 +188,7 @@ import java.lang.NullPointerException;  // for javadoc
  * URI
  *
  * <blockquote>
- * {@code https://docs.oracle.com/javase/1.3/docs/guide/collections/designfaq.html#28}
+ * {@code http://docs.oracle.com/javase/1.3/docs/guide/collections/designfaq.html#28}
  * </blockquote>
  *
  * Resolving the relative URI
@@ -227,7 +227,7 @@ import java.lang.NullPointerException;  // for javadoc
  * possible.  For example, relativizing the URI
  *
  * <blockquote>
- * {@code https://docs.oracle.com/javase/1.3/docs/guide/index.html}
+ * {@code http://docs.oracle.com/javase/1.3/docs/guide/index.html}
  * </blockquote>
  *
  * against the base URI
@@ -1818,8 +1818,10 @@ public final class URI
         throws URISyntaxException
     {
         if (scheme != null) {
-            if (path != null && !path.isEmpty() && path.charAt(0) != '/')
-                throw new URISyntaxException(s, "Relative path in absolute URI");
+            if ((path != null)
+                && ((path.length() > 0) && (path.charAt(0) != '/')))
+                throw new URISyntaxException(s,
+                                             "Relative path in absolute URI");
         }
     }
 
@@ -1948,6 +1950,7 @@ public final class URI
         StringBuffer sb = new StringBuffer();
         appendSchemeSpecificPart(sb, null, getAuthority(), getUserInfo(),
                                  host, port, getPath(), getQuery());
+        if (sb.length() == 0) return;
         schemeSpecificPart = sb.toString();
     }
 
@@ -2074,7 +2077,7 @@ public final class URI
             ru.port = base.port;
 
             String cp = (child.path == null) ? "" : child.path;
-            if (!cp.isEmpty() && cp.charAt(0) == '/') {
+            if ((cp.length() > 0) && (cp.charAt(0) == '/')) {
                 // 5.2 (5): Child path is absolute
                 ru.path = child.path;
             } else {
@@ -2098,7 +2101,7 @@ public final class URI
     // o.w., return a new URI containing the normalized path.
     //
     private static URI normalize(URI u) {
-        if (u.isOpaque() || u.path == null || u.path.isEmpty())
+        if (u.isOpaque() || (u.path == null) || (u.path.length() == 0))
             return u;
 
         String np = normalize(u.path);

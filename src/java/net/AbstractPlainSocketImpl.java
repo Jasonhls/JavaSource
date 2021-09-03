@@ -1,40 +1,35 @@
 /*
  * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.net;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.io.FileDescriptor;
 
-import sun.net.ExtendedSocketOptions;
 import sun.net.ConnectionResetException;
 import sun.net.NetHooks;
 import sun.net.ResourceManager;
@@ -79,9 +74,6 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
     */
     protected boolean stream;
 
-    /* whether this is a server or not */
-    final boolean isServer;
-
     /**
      * Load net library into runtime.
      */
@@ -93,10 +85,6 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
                     return null;
                 }
             });
-    }
-
-    AbstractPlainSocketImpl(boolean isServer) {
-        this.isServer = isServer;
     }
 
     /**
@@ -324,16 +312,11 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
             ret = socketGetOption(opt, null);
             return new Integer(ret);
         case IP_TOS:
-            try {
-                ret = socketGetOption(opt, null);
-                if (ret == -1) { // ipv6 tos
-                    return trafficClass;
-                } else {
-                    return ret;
-                }
-            } catch (SocketException se) {
-                // TODO - should make better effort to read TOS or TCLASS
-                return trafficClass; // ipv6 tos
+            ret = socketGetOption(opt, null);
+            if (ret == -1) { // ipv6 tos
+                return new Integer(trafficClass);
+            } else {
+                return new Integer(ret);
             }
         case SO_KEEPALIVE:
             ret = socketGetOption(opt, null);
@@ -341,120 +324,6 @@ abstract class AbstractPlainSocketImpl extends SocketImpl
         // should never get here
         default:
             return null;
-        }
-    }
-
-    static final ExtendedSocketOptions extendedOptions =
-            ExtendedSocketOptions.getInstance();
-
-    private static final Set<SocketOption<?>> clientSocketOptions = clientSocketOptions();
-    private static final Set<SocketOption<?>> serverSocketOptions = serverSocketOptions();
-
-    private static Set<SocketOption<?>> clientSocketOptions() {
-        HashSet<SocketOption<?>> options = new HashSet<>();
-        options.add(StandardSocketOptions.SO_KEEPALIVE);
-        options.add(StandardSocketOptions.SO_SNDBUF);
-        options.add(StandardSocketOptions.SO_RCVBUF);
-        options.add(StandardSocketOptions.SO_REUSEADDR);
-        options.add(StandardSocketOptions.SO_LINGER);
-        options.add(StandardSocketOptions.IP_TOS);
-        options.add(StandardSocketOptions.TCP_NODELAY);
-        options.addAll(ExtendedSocketOptions.clientSocketOptions());
-        return Collections.unmodifiableSet(options);
-    }
-
-    private static Set<SocketOption<?>> serverSocketOptions() {
-        HashSet<SocketOption<?>> options = new HashSet<>();
-        options.add(StandardSocketOptions.SO_RCVBUF);
-        options.add(StandardSocketOptions.SO_REUSEADDR);
-        options.add(StandardSocketOptions.IP_TOS);
-        options.addAll(ExtendedSocketOptions.serverSocketOptions());
-        return Collections.unmodifiableSet(options);
-    }
-
-    protected Set<SocketOption<?>> supportedOptions() {
-        if (isServer)
-            return serverSocketOptions;
-        else
-            return clientSocketOptions;
-    }
-
-    @Override
-    protected <T> void setOption(SocketOption<T> name, T value) throws IOException {
-        Objects.requireNonNull(name);
-        if (!supportedOptions().contains(name))
-            throw new UnsupportedOperationException("'" + name + "' not supported");
-
-        if (!name.type().isInstance(value))
-            throw new IllegalArgumentException("Invalid value '" + value + "'");
-
-        if (isClosedOrPending())
-            throw new SocketException("Socket closed");
-
-        if (name == StandardSocketOptions.SO_KEEPALIVE) {
-            setOption(SocketOptions.SO_KEEPALIVE, value);
-        } else if (name == StandardSocketOptions.SO_SNDBUF) {
-            if (((Integer)value).intValue() < 0)
-                throw new IllegalArgumentException("Invalid send buffer size:" + value);
-            setOption(SocketOptions.SO_SNDBUF, value);
-        } else if (name == StandardSocketOptions.SO_RCVBUF) {
-            if (((Integer)value).intValue() < 0)
-                throw new IllegalArgumentException("Invalid recv buffer size:" + value);
-            setOption(SocketOptions.SO_RCVBUF, value);
-        } else if (name == StandardSocketOptions.SO_REUSEADDR) {
-            setOption(SocketOptions.SO_REUSEADDR, value);
-        } else if (name == StandardSocketOptions.SO_LINGER ) {
-            if (((Integer)value).intValue() < 0)
-                setOption(SocketOptions.SO_LINGER, false);
-            else
-                setOption(SocketOptions.SO_LINGER, value);
-        } else if (name == StandardSocketOptions.IP_TOS) {
-            int i = ((Integer)value).intValue();
-            if (i < 0 || i > 255)
-                throw new IllegalArgumentException("Invalid IP_TOS value: " + value);
-            setOption(SocketOptions.IP_TOS, value);
-        } else if (name == StandardSocketOptions.TCP_NODELAY) {
-            setOption(SocketOptions.TCP_NODELAY, value);
-        } else if (extendedOptions.isOptionSupported(name)) {
-            extendedOptions.setOption(fd, name, value);
-        } else {
-            throw new AssertionError("unknown option: " + name);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected <T> T getOption(SocketOption<T> name) throws IOException {
-        Objects.requireNonNull(name);
-        if (!supportedOptions().contains(name))
-            throw new UnsupportedOperationException("'" + name + "' not supported");
-
-        if (isClosedOrPending())
-            throw new SocketException("Socket closed");
-
-        if (name == StandardSocketOptions.SO_KEEPALIVE) {
-            return (T)getOption(SocketOptions.SO_KEEPALIVE);
-        } else if (name == StandardSocketOptions.SO_SNDBUF) {
-            return (T)getOption(SocketOptions.SO_SNDBUF);
-        } else if (name == StandardSocketOptions.SO_RCVBUF) {
-            return (T)getOption(SocketOptions.SO_RCVBUF);
-        } else if (name == StandardSocketOptions.SO_REUSEADDR) {
-            return (T)getOption(SocketOptions.SO_REUSEADDR);
-        } else if (name == StandardSocketOptions.SO_LINGER) {
-            Object value = getOption(SocketOptions.SO_LINGER);
-            if (value instanceof Boolean) {
-                assert ((Boolean)value).booleanValue() == false;
-                value = -1;
-            }
-            return (T)value;
-        } else if (name == StandardSocketOptions.IP_TOS) {
-            return (T)getOption(SocketOptions.IP_TOS);
-        } else if (name == StandardSocketOptions.TCP_NODELAY) {
-            return (T)getOption(SocketOptions.TCP_NODELAY);
-        } else if (extendedOptions.isOptionSupported(name)) {
-            return (T) extendedOptions.getOption(fd, name);
-        } else {
-            throw new AssertionError("unknown option: " + name);
         }
     }
 

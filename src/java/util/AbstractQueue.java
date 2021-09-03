@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -57,13 +57,13 @@ package java.util;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
- * @param <E> the type of elements held in this collection
- * @author Doug Lea
  * @since 1.5
+ * @author Doug Lea
+ * @param <E> the type of elements held in this collection
  */
 public abstract class AbstractQueue<E>
-        extends AbstractCollection<E>
-        implements Queue<E> {
+    extends AbstractCollection<E>
+    implements Queue<E> {
 
     /**
      * Constructor for use by subclasses.
@@ -82,14 +82,14 @@ public abstract class AbstractQueue<E>
      *
      * @param e the element to add
      * @return <tt>true</tt> (as specified by {@link Collection#add})
-     * @throws IllegalStateException    if the element cannot be added at this
-     *                                  time due to capacity restrictions
-     * @throws ClassCastException       if the class of the specified element
-     *                                  prevents it from being added to this queue
-     * @throws NullPointerException     if the specified element is null and
-     *                                  this queue does not permit null elements
+     * @throws IllegalStateException if the element cannot be added at this
+     *         time due to capacity restrictions
+     * @throws ClassCastException if the class of the specified element
+     *         prevents it from being added to this queue
+     * @throws NullPointerException if the specified element is null and
+     *         this queue does not permit null elements
      * @throws IllegalArgumentException if some property of this element
-     *                                  prevents it from being added to this queue
+     *         prevents it from being added to this queue
      */
     public boolean add(E e) {
         if (offer(e))
@@ -165,16 +165,16 @@ public abstract class AbstractQueue<E>
      *
      * @param c collection containing elements to be added to this queue
      * @return <tt>true</tt> if this queue changed as a result of the call
-     * @throws ClassCastException       if the class of an element of the specified
-     *                                  collection prevents it from being added to this queue
-     * @throws NullPointerException     if the specified collection contains a
-     *                                  null element and this queue does not permit null elements,
-     *                                  or if the specified collection is null
+     * @throws ClassCastException if the class of an element of the specified
+     *         collection prevents it from being added to this queue
+     * @throws NullPointerException if the specified collection contains a
+     *         null element and this queue does not permit null elements,
+     *         or if the specified collection is null
      * @throws IllegalArgumentException if some property of an element of the
-     *                                  specified collection prevents it from being added to this
-     *                                  queue, or if the specified collection is this queue
-     * @throws IllegalStateException    if not all the elements can be added at
-     *                                  this time due to insertion restrictions
+     *         specified collection prevents it from being added to this
+     *         queue, or if the specified collection is this queue
+     * @throws IllegalStateException if not all the elements can be added at
+     *         this time due to insertion restrictions
      * @see #add(Object)
      */
     public boolean addAll(Collection<? extends E> c) {

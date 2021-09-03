@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util;
 
@@ -38,7 +38,8 @@ package java.util;
  * {@code suffix} is <code>"}"</code> and nothing has been added to the
  * {@code StringJoiner}.
  *
- * @apiNote <p>The String {@code "[George:Sally:Fred]"} may be constructed as follows:
+ * @apiNote
+ * <p>The String {@code "[George:Sally:Fred]"} may be constructed as follows:
  *
  * <pre> {@code
  * StringJoiner sj = new StringJoiner(":", "[", "]");
@@ -56,10 +57,11 @@ package java.util;
  *     .map(i -> i.toString())
  *     .collect(Collectors.joining(", "));
  * }</pre>
+ *
  * @see java.util.stream.Collectors#joining(CharSequence)
  * @see java.util.stream.Collectors#joining(CharSequence, CharSequence, CharSequence)
- * @since 1.8
- */
+ * @since  1.8
+*/
 public final class StringJoiner {
     private final String prefix;
     private final String delimiter;
@@ -90,8 +92,8 @@ public final class StringJoiner {
      * {@code prefix} or {@code suffix} (or properties thereof) in the result,
      * unless {@code setEmptyValue} has first been called.
      *
-     * @param delimiter the sequence of characters to be used between each
-     *                  element added to the {@code StringJoiner} value
+     * @param  delimiter the sequence of characters to be used between each
+     *         element added to the {@code StringJoiner} value
      * @throws NullPointerException if {@code delimiter} is {@code null}
      */
     public StringJoiner(CharSequence delimiter) {
@@ -106,12 +108,12 @@ public final class StringJoiner {
      * {@code prefix + suffix} (or properties thereof) in the result, unless
      * {@code setEmptyValue} has first been called.
      *
-     * @param delimiter the sequence of characters to be used between each
-     *                  element added to the {@code StringJoiner}
-     * @param prefix    the sequence of characters to be used at the beginning
-     * @param suffix    the sequence of characters to be used at the end
+     * @param  delimiter the sequence of characters to be used between each
+     *         element added to the {@code StringJoiner}
+     * @param  prefix the sequence of characters to be used at the beginning
+     * @param  suffix the sequence of characters to be used at the end
      * @throws NullPointerException if {@code prefix}, {@code delimiter}, or
-     *                              {@code suffix} is {@code null}
+     *         {@code suffix} is {@code null}
      */
     public StringJoiner(CharSequence delimiter,
                         CharSequence prefix,
@@ -134,15 +136,15 @@ public final class StringJoiner {
      * called, the {@code StringJoiner} is no longer considered empty, even if
      * the element(s) added correspond to the empty {@code String}.
      *
-     * @param emptyValue the characters to return as the value of an empty
-     *                   {@code StringJoiner}
+     * @param  emptyValue the characters to return as the value of an empty
+     *         {@code StringJoiner}
      * @return this {@code StringJoiner} itself so the calls may be chained
      * @throws NullPointerException when the {@code emptyValue} parameter is
-     *                              {@code null}
+     *         {@code null}
      */
     public StringJoiner setEmptyValue(CharSequence emptyValue) {
         this.emptyValue = Objects.requireNonNull(emptyValue,
-                "The empty value must not be null").toString();
+            "The empty value must not be null").toString();
         return this;
     }
 
@@ -176,7 +178,7 @@ public final class StringJoiner {
      * element of the {@code StringJoiner} value. If {@code newElement} is
      * {@code null}, then {@code "null"} is added.
      *
-     * @param newElement The element to add
+     * @param  newElement The element to add
      * @return a reference to this {@code StringJoiner}
      */
     public StringJoiner add(CharSequence newElement) {
@@ -200,8 +202,8 @@ public final class StringJoiner {
      *
      * @param other The {@code StringJoiner} whose contents should be merged
      *              into this one
-     * @return This {@code StringJoiner}
      * @throws NullPointerException if the other {@code StringJoiner} is null
+     * @return This {@code StringJoiner}
      */
     public StringJoiner merge(StringJoiner other) {
         Objects.requireNonNull(other);

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package java.rmi.activation;
@@ -40,12 +40,6 @@ import java.rmi.server.RemoteObject;
 import java.rmi.server.RemoteObjectInvocationHandler;
 import java.rmi.server.RemoteRef;
 import java.rmi.server.UID;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.Permissions;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.security.ProtectionDomain;
 
 /**
  * Activation makes use of special identifiers to denote remote
@@ -87,14 +81,6 @@ public class ActivationID implements Serializable {
     /** indicate compatibility with the Java 2 SDK v1.2 version of class */
     private static final long serialVersionUID = -4608673054848209235L;
 
-    /** an AccessControlContext with no permissions */
-    private static final AccessControlContext NOPERMS_ACC;
-    static {
-        Permissions perms = new Permissions();
-        ProtectionDomain[] pd = { new ProtectionDomain(null, perms) };
-        NOPERMS_ACC = new AccessControlContext(pd);
-    }
-
     /**
      * The constructor for <code>ActivationID</code> takes a single
      * argument, activator, that specifies a remote reference to the
@@ -130,19 +116,13 @@ public class ActivationID implements Serializable {
         try {
             MarshalledObject<? extends Remote> mobj =
                 activator.activate(this, force);
-            return AccessController.doPrivileged(
-                new PrivilegedExceptionAction<Remote>() {
-                    public Remote run() throws IOException, ClassNotFoundException {
-                        return mobj.get();
-                    }
-                }, NOPERMS_ACC);
-        } catch (PrivilegedActionException pae) {
-            Exception ex = pae.getException();
-            if (ex instanceof RemoteException) {
-                throw (RemoteException) ex;
-            } else {
-                throw new UnmarshalException("activation failed", ex);
-            }
+            return mobj.get();
+        } catch (RemoteException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new UnmarshalException("activation failed", e);
+        } catch (ClassNotFoundException e) {
+            throw new UnmarshalException("activation failed", e);
         }
 
     }

@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012, 2015, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Copyright (c) 2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -132,9 +132,8 @@ import java.util.Set;
  * The set of available chronologies can be extended by applications.
  * Adding a new calendar system requires the writing of an implementation of
  * {@code Chronology}, {@code ChronoLocalDate} and {@code Era}.
- * The majority of the logic specific to the calendar system will be in the
- * {@code ChronoLocalDate} implementation.
- * The {@code Chronology} implementation acts as a factory.
+ * The majority of the logic specific to the calendar system will be in
+ * {@code ChronoLocalDate}. The {@code Chronology} subclass acts as a factory.
  * <p>
  * To permit the discovery of additional chronologies, the {@link java.util.ServiceLoader ServiceLoader}
  * is used. A file must be added to the {@code META-INF/services} directory with the
@@ -168,7 +167,7 @@ public interface Chronology extends Comparable<Chronology> {
      * If the specified temporal object does not have a chronology, {@link IsoChronology} is returned.
      * <p>
      * This method matches the signature of the functional interface {@link TemporalQuery}
-     * allowing it to be used as a query via method reference, {@code Chronology::from}.
+     * allowing it to be used in queries via method reference, {@code Chronology::from}.
      *
      * @param temporal  the temporal to convert, not null
      * @return the chronology, not null
@@ -414,7 +413,7 @@ public interface Chronology extends Comparable<Chronology> {
      * The alternate clock may be introduced using {@link Clock dependency injection}.
      *
      * @implSpec
-     * The default implementation invokes {@link #date(TemporalAccessor)}.
+     * The default implementation invokes {@link #date(TemporalAccessor)} )}.
      *
      * @param clock  the clock to use, not null
      * @return the current local date, not null
@@ -623,7 +622,7 @@ public interface Chronology extends Comparable<Chronology> {
      * The parameters control the style of the returned text and the locale.
      *
      * @implSpec
-     * The default implementation behaves as though the formatter was used to
+     * The default implementation behaves as the the formatter was used to
      * format the chronology textual name.
      *
      * @param style  the style of the text required, not null

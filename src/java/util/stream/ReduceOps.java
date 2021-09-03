@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 package java.util.stream;
 
@@ -50,20 +50,19 @@ import java.util.function.Supplier;
  */
 final class ReduceOps {
 
-    private ReduceOps() {
-    }
+    private ReduceOps() { }
 
     /**
      * Constructs a {@code TerminalOp} that implements a functional reduce on
      * reference values.
      *
-     * @param <T>      the type of the input elements
-     * @param <U>      the type of the result
-     * @param seed     the identity element for the reduction
-     * @param reducer  the accumulating function that incorporates an additional
-     *                 input element into the result
+     * @param <T> the type of the input elements
+     * @param <U> the type of the result
+     * @param seed the identity element for the reduction
+     * @param reducer the accumulating function that incorporates an additional
+     *        input element into the result
      * @param combiner the combining function that combines two intermediate
-     *                 results
+     *        results
      * @return a {@code TerminalOp} implementing the reduction
      */
     public static <T, U> TerminalOp<T, U>
@@ -98,7 +97,7 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a functional reduce on
      * reference values producing an optional reference result.
      *
-     * @param <T>      The type of the input elements, and the type of the result
+     * @param <T> The type of the input elements, and the type of the result
      * @param operator The reducing function
      * @return A {@code TerminalOp} implementing the reduction
      */
@@ -148,8 +147,8 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a mutable reduce on
      * reference values.
      *
-     * @param <T>       the type of the input elements
-     * @param <I>       the type of the intermediate reduction result
+     * @param <T> the type of the input elements
+     * @param <I> the type of the intermediate reduction result
      * @param collector a {@code Collector} defining the reduction
      * @return a {@code ReduceOp} implementing the reduction
      */
@@ -184,8 +183,8 @@ final class ReduceOps {
             @Override
             public int getOpFlags() {
                 return collector.characteristics().contains(Collector.Characteristics.UNORDERED)
-                        ? StreamOpFlag.NOT_ORDERED
-                        : 0;
+                       ? StreamOpFlag.NOT_ORDERED
+                       : 0;
             }
         };
     }
@@ -194,18 +193,18 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a mutable reduce on
      * reference values.
      *
-     * @param <T>         the type of the input elements
-     * @param <R>         the type of the result
+     * @param <T> the type of the input elements
+     * @param <R> the type of the result
      * @param seedFactory a factory to produce a new base accumulator
      * @param accumulator a function to incorporate an element into an
-     *                    accumulator
-     * @param reducer     a function to combine an accumulator into another
+     *        accumulator
+     * @param reducer a function to combine an accumulator into another
      * @return a {@code TerminalOp} implementing the reduction
      */
     public static <T, R> TerminalOp<T, R>
     makeRef(Supplier<R> seedFactory,
             BiConsumer<R, ? super T> accumulator,
-            BiConsumer<R, R> reducer) {
+            BiConsumer<R,R> reducer) {
         Objects.requireNonNull(seedFactory);
         Objects.requireNonNull(accumulator);
         Objects.requireNonNull(reducer);
@@ -302,7 +301,8 @@ final class ReduceOps {
                 if (empty) {
                     empty = false;
                     state = t;
-                } else {
+                }
+                else {
                     state = operator.applyAsInt(state, t);
                 }
             }
@@ -330,11 +330,11 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a mutable reduce on
      * {@code int} values.
      *
-     * @param <R>         The type of the result
-     * @param supplier    a factory to produce a new accumulator of the result type
+     * @param <R> The type of the result
+     * @param supplier a factory to produce a new accumulator of the result type
      * @param accumulator a function to incorporate an int into an
-     *                    accumulator
-     * @param combiner    a function to combine an accumulator into another
+     *        accumulator
+     * @param combiner a function to combine an accumulator into another
      * @return A {@code ReduceOp} implementing the reduction
      */
     public static <R> TerminalOp<Integer, R>
@@ -437,7 +437,8 @@ final class ReduceOps {
                 if (empty) {
                     empty = false;
                     state = t;
-                } else {
+                }
+                else {
                     state = operator.applyAsLong(state, t);
                 }
             }
@@ -465,11 +466,11 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a mutable reduce on
      * {@code long} values.
      *
-     * @param <R>         the type of the result
-     * @param supplier    a factory to produce a new accumulator of the result type
+     * @param <R> the type of the result
+     * @param supplier a factory to produce a new accumulator of the result type
      * @param accumulator a function to incorporate an int into an
-     *                    accumulator
-     * @param combiner    a function to combine an accumulator into another
+     *        accumulator
+     * @param combiner a function to combine an accumulator into another
      * @return a {@code TerminalOp} implementing the reduction
      */
     public static <R> TerminalOp<Long, R>
@@ -572,7 +573,8 @@ final class ReduceOps {
                 if (empty) {
                     empty = false;
                     state = t;
-                } else {
+                }
+                else {
                     state = operator.applyAsDouble(state, t);
                 }
             }
@@ -600,11 +602,11 @@ final class ReduceOps {
      * Constructs a {@code TerminalOp} that implements a mutable reduce on
      * {@code double} values.
      *
-     * @param <R>         the type of the result
-     * @param supplier    a factory to produce a new accumulator of the result type
+     * @param <R> the type of the result
+     * @param supplier a factory to produce a new accumulator of the result type
      * @param accumulator a function to incorporate an int into an
-     *                    accumulator
-     * @param combiner    a function to combine an accumulator into another
+     *        accumulator
+     * @param combiner a function to combine an accumulator into another
      * @return a {@code TerminalOp} implementing the reduction
      */
     public static <R> TerminalOp<Double, R>
@@ -662,8 +664,7 @@ final class ReduceOps {
     private static abstract class Box<U> {
         U state;
 
-        Box() {
-        } // Avoid creation of special accessor
+        Box() {} // Avoid creation of special accessor
 
         public U get() {
             return state;
@@ -719,7 +720,7 @@ final class ReduceOps {
      */
     @SuppressWarnings("serial")
     private static final class ReduceTask<P_IN, P_OUT, R,
-            S extends AccumulatingSink<P_OUT, R, S>>
+                                          S extends AccumulatingSink<P_OUT, R, S>>
             extends AbstractTask<P_IN, P_OUT, S, ReduceTask<P_IN, P_OUT, R, S>> {
         private final ReduceOp<P_OUT, R, S> op;
 

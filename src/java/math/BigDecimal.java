@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2019, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
@@ -29,8 +29,8 @@
 
 package java.math;
 
-import static java.math.BigInteger.LONG_MASK;
 import java.util.Arrays;
+import static java.math.BigInteger.LONG_MASK;
 
 /**
  * Immutable, arbitrary-precision signed decimal numbers.  A
@@ -407,12 +407,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public BigDecimal(char[] in, int offset, int len, MathContext mc) {
-        // protect against huge length, negative values, and integer overflow
-        if ((in.length | len | offset) < 0 || len > in.length - offset) {
-            throw new NumberFormatException
-                ("Bad offset or len arguments for char[] input.");
-        }
-
+        // protect against huge length.
+        if (offset + len > in.length || offset < 0)
+            throw new NumberFormatException("Bad offset or len arguments for char[] input.");
         // This is the primary string to BigDecimal constructor; all
         // incoming strings end up here; it uses explicit (inline)
         // parsing for speed and generates at most one intermediate
@@ -3060,32 +3057,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @return this {@code BigDecimal} converted to a {@code long}.
      */
     public long longValue(){
-        if (intCompact != INFLATED && scale == 0) {
-            return intCompact;
-        } else {
-            // Fastpath zero and small values
-            if (this.signum() == 0 || fractionOnly() ||
-                // Fastpath very large-scale values that will result
-                // in a truncated value of zero. If the scale is -64
-                // or less, there are at least 64 powers of 10 in the
-                // value of the numerical result. Since 10 = 2*5, in
-                // that case there would also be 64 powers of 2 in the
-                // result, meaning all 64 bits of a long will be zero.
-                scale <= -64) {
-                return 0;
-            } else {
-                return toBigInteger().longValue();
-            }
-        }
-    }
-
-    /**
-     * Return true if a nonzero BigDecimal has an absolute value less
-     * than one; i.e. only has fraction digits.
-     */
-    private boolean fractionOnly() {
-        assert this.signum() != 0;
-        return (this.precision() - this.scale) <= 0;
+        return (intCompact != INFLATED && scale == 0) ?
+            intCompact:
+            toBigInteger().longValue();
     }
 
     /**
@@ -3103,20 +3077,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     public long longValueExact() {
         if (intCompact != INFLATED && scale == 0)
             return intCompact;
-
-        // Fastpath zero
-        if (this.signum() == 0)
-            return 0;
-
-        // Fastpath numbers less than 1.0 (the latter can be very slow
-        // to round if very small)
-        if (fractionOnly())
-            throw new ArithmeticException("Rounding necessary");
-
         // If more than 19 digits in integer part it cannot possibly fit
         if ((precision() - scale) > 19) // [OK for negative scale too]
             throw new java.lang.ArithmeticException("Overflow");
-
+        // Fastpath zero and < 1.0 numbers (the latter can be very slow
+        // to round if very small)
+        if (this.signum() == 0)
+            return 0;
+        if ((this.precision() - this.scale) <= 0)
+            throw new ArithmeticException("Rounding necessary");
         // round to an integer, with Exception if decimal part non-0
         BigDecimal num = this.setScale(0, ROUND_UNNECESSARY);
         if (num.precision() >= 19) // need to check carefully
@@ -3158,7 +3127,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     public int intValue() {
         return  (intCompact != INFLATED && scale == 0) ?
             (int)intCompact :
-            (int)longValue();
+            toBigInteger().intValue();
     }
 
     /**
@@ -4832,12 +4801,14 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         if (dividendHi >= divisor) {
             return null;
         }
-
         final int shift = Long.numberOfLeadingZeros(divisor);
         divisor <<= shift;
 
         final long v1 = divisor >>> 32;
         final long v0 = divisor & LONG_MASK;
+
+        long q1, q0;
+        long r_tmp;
 
         long tmp = dividendLo << shift;
         long u1 = tmp >>> 32;
@@ -4845,48 +4816,26 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 
         tmp = (dividendHi << shift) | (dividendLo >>> 64 - shift);
         long u2 = tmp & LONG_MASK;
-        long q1, r_tmp;
-        if (v1 == 1) {
-            q1 = tmp;
-            r_tmp = 0;
-        } else if (tmp >= 0) {
-            q1 = tmp / v1;
-            r_tmp = tmp - q1 * v1;
-        } else {
-            long[] rq = divRemNegativeLong(tmp, v1);
-            q1 = rq[1];
-            r_tmp = rq[0];
-        }
-
+        tmp = divWord(tmp,v1);
+        q1 = tmp & LONG_MASK;
+        r_tmp = tmp >>> 32;
         while(q1 >= DIV_NUM_BASE || unsignedLongCompare(q1*v0, make64(r_tmp, u1))) {
             q1--;
             r_tmp += v1;
             if (r_tmp >= DIV_NUM_BASE)
                 break;
         }
-
         tmp = mulsub(u2,u1,v1,v0,q1);
         u1 = tmp & LONG_MASK;
-        long q0;
-        if (v1 == 1) {
-            q0 = tmp;
-            r_tmp = 0;
-        } else if (tmp >= 0) {
-            q0 = tmp / v1;
-            r_tmp = tmp - q0 * v1;
-        } else {
-            long[] rq = divRemNegativeLong(tmp, v1);
-            q0 = rq[1];
-            r_tmp = rq[0];
-        }
-
+        tmp = divWord(tmp,v1);
+        q0 = tmp & LONG_MASK;
+        r_tmp = tmp >>> 32;
         while(q0 >= DIV_NUM_BASE || unsignedLongCompare(q0*v0,make64(r_tmp,u0))) {
             q0--;
             r_tmp += v1;
             if (r_tmp >= DIV_NUM_BASE)
                 break;
         }
-
         if((int)q1 < 0) {
             // result (which is positive and unsigned here)
             // can't fit into long due to sign bit is used for value
@@ -4909,13 +4858,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                 }
             }
         }
-
         long q = make64(q1,q0);
         q*=sign;
-
         if (roundingMode == ROUND_DOWN && scale == preferredScale)
             return valueOf(q, scale);
-
         long r = mulsub(u1, u0, v1, v0, q0) >>> shift;
         if (r != 0) {
             boolean increment = needIncrement(divisor >>> shift, roundingMode, sign, q, r);
@@ -4958,35 +4904,28 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         }
     }
 
-    /**
-     * Calculate the quotient and remainder of dividing a negative long by
-     * another long.
-     *
-     * @param n the numerator; must be negative
-     * @param d the denominator; must not be unity
-     * @return a two-element {@long} array with the remainder and quotient in
-     *         the initial and final elements, respectively
-     */
-    private static long[] divRemNegativeLong(long n, long d) {
-        assert n < 0 : "Non-negative numerator " + n;
-        assert d != 1 : "Unity denominator";
-
+    private static long divWord(long n, long dLong) {
+        long r;
+        long q;
+        if (dLong == 1) {
+            q = (int)n;
+            return (q & LONG_MASK);
+        }
         // Approximate the quotient and remainder
-        long q = (n >>> 1) / (d >>> 1);
-        long r = n - q * d;
+        q = (n >>> 1) / (dLong >>> 1);
+        r = n - q*dLong;
 
         // Correct the approximation
         while (r < 0) {
-            r += d;
+            r += dLong;
             q--;
         }
-        while (r >= d) {
-            r -= d;
+        while (r >= dLong) {
+            r -= dLong;
             q++;
         }
-
-        // n - q*d == r && 0 <= r < d, hence we're done.
-        return new long[] {r, q};
+        // n - q*dlong == r && 0 <= r <dLong, hence we're done.
+        return (r << 32) | (q & LONG_MASK);
     }
 
     private static long make64(long hi, long lo) {
