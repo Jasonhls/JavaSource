@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,26 +23,14 @@
 package com.sun.org.apache.xml.internal.security.utils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.concurrent.ArrayBlockingQueue;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
 import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
@@ -53,39 +41,33 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * DOM and XML accessibility and comfort functions.
  *
+ * @author Christian Geuer-Pollmann
  */
-public final class XMLUtils {
+public class XMLUtils {
 
     private static boolean ignoreLineBreaks =
-        AccessController.doPrivileged(
-            (PrivilegedAction<Boolean>) () -> Boolean.getBoolean("com.sun.org.apache.xml.internal.security.ignoreLineBreaks"));
-    private static int parserPoolSize =
-        AccessController.doPrivileged(
-            (PrivilegedAction<Integer>) () -> Integer.getInteger("com.sun.org.apache.xml.internal.security.parser.pool-size", 20));
+        AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            public Boolean run() {
+                return Boolean.valueOf(Boolean.getBoolean
+                    ("com.sun.org.apache.xml.internal.security.ignoreLineBreaks"));
+            }
+        }).booleanValue();
 
-    // NOTE: This is an Oracle 8u specific system property to eliminate escaped '\r' character encoded as &#xd or &#13.
-    // This property is not included in the Apache Santuario Project, so please make sure this property and
-    // associated code is preserved and not overwritten when integrating newer versions of Apache Santuario.
-
-    private static final boolean LINEFEED_ONLY =
-        AccessController.doPrivileged(
-            (PrivilegedAction<Boolean>) () -> Boolean.getBoolean("com.sun.org.apache.xml.internal.security.lineFeedOnly"));
     private static volatile String dsPrefix = "ds";
     private static volatile String ds11Prefix = "dsig11";
     private static volatile String xencPrefix = "xenc";
     private static volatile String xenc11Prefix = "xenc11";
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(XMLUtils.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static final java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(XMLUtils.class.getName());
 
-    private static final int MIMELINEMAX = 76;
 
     /**
      * Constructor XMLUtils
@@ -98,50 +80,38 @@ public final class XMLUtils {
     /**
      * Set the prefix for the digital signature namespace
      * @param prefix the new prefix for the digital signature namespace
-     * @throws SecurityException if a security manager is installed and the
-     *    caller does not have permission to set the prefix
      */
     public static void setDsPrefix(String prefix) {
-        JavaUtils.checkRegisterPermission();
         dsPrefix = prefix;
     }
 
     /**
      * Set the prefix for the digital signature 1.1 namespace
      * @param prefix the new prefix for the digital signature 1.1 namespace
-     * @throws SecurityException if a security manager is installed and the
-     *    caller does not have permission to set the prefix
      */
     public static void setDs11Prefix(String prefix) {
-        JavaUtils.checkRegisterPermission();
         ds11Prefix = prefix;
     }
 
     /**
      * Set the prefix for the encryption namespace
      * @param prefix the new prefix for the encryption namespace
-     * @throws SecurityException if a security manager is installed and the
-     *    caller does not have permission to set the prefix
      */
     public static void setXencPrefix(String prefix) {
-        JavaUtils.checkRegisterPermission();
         xencPrefix = prefix;
     }
 
     /**
      * Set the prefix for the encryption namespace 1.1
      * @param prefix the new prefix for the encryption namespace 1.1
-     * @throws SecurityException if a security manager is installed and the
-     *    caller does not have permission to set the prefix
      */
     public static void setXenc11Prefix(String prefix) {
-        JavaUtils.checkRegisterPermission();
         xenc11Prefix = prefix;
     }
 
     public static Element getNextElement(Node el) {
         Node node = el;
-        while (node != null && node.getNodeType() != Node.ELEMENT_NODE) {
+        while ((node != null) && (node.getNodeType() != Node.ELEMENT_NODE)) {
             node = node.getNextSibling();
         }
         return (Element)node;
@@ -154,7 +124,7 @@ public final class XMLUtils {
      * @param com whether comments or not
      */
     public static void getSet(Node rootNode, Set<Node> result, Node exclude, boolean com) {
-        if (exclude != null && isDescendantOrSelf(exclude, rootNode)) {
+        if ((exclude != null) && isDescendantOrSelf(exclude, rootNode)) {
             return;
         }
         getSetRec(rootNode, result, exclude, com);
@@ -166,14 +136,13 @@ public final class XMLUtils {
         if (rootNode == exclude) {
             return;
         }
-        switch (rootNode.getNodeType()) { //NOPMD
+        switch (rootNode.getNodeType()) {
         case Node.ELEMENT_NODE:
             result.add(rootNode);
             Element el = (Element)rootNode;
             if (el.hasAttributes()) {
                 NamedNodeMap nl = el.getAttributes();
-                int length = nl.getLength();
-                for (int i = 0; i < length; i++) {
+                for (int i = 0;i < nl.getLength(); i++) {
                     result.add(nl.item(i));
                 }
             }
@@ -182,7 +151,7 @@ public final class XMLUtils {
             for (Node r = rootNode.getFirstChild(); r != null; r = r.getNextSibling()) {
                 if (r.getNodeType() == Node.TEXT_NODE) {
                     result.add(r);
-                    while (r != null && r.getNodeType() == Node.TEXT_NODE) {
+                    while ((r != null) && (r.getNodeType() == Node.TEXT_NODE)) {
                         r = r.getNextSibling();
                     }
                     if (r == null) {
@@ -191,24 +160,19 @@ public final class XMLUtils {
                 }
                 getSetRec(r, result, exclude, com);
             }
-            break;
+            return;
         case Node.COMMENT_NODE:
             if (com) {
                 result.add(rootNode);
             }
-            break;
+            return;
         case Node.DOCUMENT_TYPE_NODE:
-            break;
+            return;
         default:
             result.add(rootNode);
         }
     }
 
-    private static final Map<ClassLoader, Queue<DocumentBuilder>> DOCUMENT_BUILDERS =
-        Collections.synchronizedMap(new WeakHashMap<ClassLoader, Queue<DocumentBuilder>>());
-
-    private static final Map<ClassLoader, Queue<DocumentBuilder>> DOCUMENT_BUILDERS_DISALLOW_DOCTYPE =
-        Collections.synchronizedMap(new WeakHashMap<ClassLoader, Queue<DocumentBuilder>>());
 
     /**
      * Outputs a DOM tree to an {@link OutputStream}.
@@ -232,31 +196,37 @@ public final class XMLUtils {
     public static void outputDOM(Node contextNode, OutputStream os, boolean addPreamble) {
         try {
             if (addPreamble) {
-                os.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                os.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".getBytes("UTF-8"));
             }
 
             os.write(Canonicalizer.getInstance(
-                Canonicalizer.ALGO_ID_C14N_PHYSICAL).canonicalizeSubtree(contextNode)
+                Canonicalizer.ALGO_ID_C14N_WITH_COMMENTS).canonicalizeSubtree(contextNode)
             );
         } catch (IOException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
         }
         catch (InvalidCanonicalizerException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
         } catch (CanonicalizationException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
         }
     }
 
     /**
-     * Serializes the {@code contextNode} into the OutputStream, <I>but
+     * Serializes the <CODE>contextNode</CODE> into the OutputStream, <I>but
      * suppresses all Exceptions</I>.
-     * <p></p>
+     * <BR />
      * NOTE: <I>This should only be used for debugging purposes,
      * NOT in a production environment; this method ignores all exceptions,
      * so you won't notice if something goes wrong. If you're asking what is to
      * be used in a production environment, simply use the code inside the
-     * {@code try{}} statement, but handle the Exceptions appropriately.</I>
+     * <code>try{}</code> statement, but handle the Exceptions appropriately.</I>
      *
      * @param contextNode
      * @param os
@@ -267,32 +237,33 @@ public final class XMLUtils {
                 Canonicalizer.ALGO_ID_C14N_WITH_COMMENTS).canonicalizeSubtree(contextNode)
             );
         } catch (IOException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
             // throw new RuntimeException(ex.getMessage());
         } catch (InvalidCanonicalizerException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
             // throw new RuntimeException(ex.getMessage());
         } catch (CanonicalizationException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
             // throw new RuntimeException(ex.getMessage());
         }
     }
 
-    @Deprecated
-    public static String getFullTextChildrenFromElement(Element element) {
-        return getFullTextChildrenFromNode(element);
-    }
-
     /**
-     * Method getFullTextChildrenFromNode
+     * Method getFullTextChildrenFromElement
      *
-     * @param node
+     * @param element
      * @return the string of children
      */
-    public static String getFullTextChildrenFromNode(Node node) {
+    public static String getFullTextChildrenFromElement(Element element) {
         StringBuilder sb = new StringBuilder();
 
-        Node child = node.getFirstChild();
+        Node child = element.getFirstChild();
         while (child != null) {
             if (child.getNodeType() == Node.TEXT_NODE) {
                 sb.append(((Text)child).getData());
@@ -315,7 +286,7 @@ public final class XMLUtils {
             throw new RuntimeException("Document is null");
         }
 
-        if (dsPrefix == null || dsPrefix.length() == 0) {
+        if ((dsPrefix == null) || (dsPrefix.length() == 0)) {
             return doc.createElementNS(Constants.SignatureSpecNS, elementName);
         }
         return doc.createElementNS(Constants.SignatureSpecNS, dsPrefix + ":" + elementName);
@@ -333,10 +304,52 @@ public final class XMLUtils {
             throw new RuntimeException("Document is null");
         }
 
-        if (ds11Prefix == null || ds11Prefix.length() == 0) {
+        if ((ds11Prefix == null) || (ds11Prefix.length() == 0)) {
             return doc.createElementNS(Constants.SignatureSpec11NS, elementName);
         }
         return doc.createElementNS(Constants.SignatureSpec11NS, ds11Prefix + ":" + elementName);
+    }
+
+    /**
+     * Creates an Element in the XML Encryption specification namespace.
+     *
+     * @param doc the factory Document
+     * @param elementName the local name of the Element
+     * @return the Element
+     */
+    public static Element createElementInEncryptionSpace(Document doc, String elementName) {
+        if (doc == null) {
+            throw new RuntimeException("Document is null");
+        }
+
+        if ((xencPrefix == null) || (xencPrefix.length() == 0)) {
+            return doc.createElementNS(EncryptionConstants.EncryptionSpecNS, elementName);
+        }
+        return
+            doc.createElementNS(
+                EncryptionConstants.EncryptionSpecNS, xencPrefix + ":" + elementName
+            );
+    }
+
+    /**
+     * Creates an Element in the XML Encryption 1.1 specification namespace.
+     *
+     * @param doc the factory Document
+     * @param elementName the local name of the Element
+     * @return the Element
+     */
+    public static Element createElementInEncryption11Space(Document doc, String elementName) {
+        if (doc == null) {
+            throw new RuntimeException("Document is null");
+        }
+
+        if ((xenc11Prefix == null) || (xenc11Prefix.length() == 0)) {
+            return doc.createElementNS(EncryptionConstants.EncryptionSpec11NS, elementName);
+        }
+        return
+            doc.createElementNS(
+                EncryptionConstants.EncryptionSpec11NS, xenc11Prefix + ":" + elementName
+            );
     }
 
     /**
@@ -376,9 +389,43 @@ public final class XMLUtils {
     }
 
     /**
+     * Returns true if the element is in XML Encryption namespace and the local
+     * name equals the supplied one.
+     *
+     * @param element
+     * @param localName
+     * @return true if the element is in XML Encryption namespace and the local name
+     * equals the supplied one
+     */
+    public static boolean elementIsInEncryptionSpace(Element element, String localName) {
+        if (element == null){
+            return false;
+        }
+        return EncryptionConstants.EncryptionSpecNS.equals(element.getNamespaceURI())
+            && element.getLocalName().equals(localName);
+    }
+
+    /**
+     * Returns true if the element is in XML Encryption 1.1 namespace and the local
+     * name equals the supplied one.
+     *
+     * @param element
+     * @param localName
+     * @return true if the element is in XML Encryption 1.1 namespace and the local name
+     * equals the supplied one
+     */
+    public static boolean elementIsInEncryption11Space(Element element, String localName) {
+        if (element == null){
+            return false;
+        }
+        return EncryptionConstants.EncryptionSpec11NS.equals(element.getNamespaceURI())
+            && element.getLocalName().equals(localName);
+    }
+
+    /**
      * This method returns the owner document of a particular node.
      * This method is necessary because it <I>always</I> returns a
-     * {@link Document}. {@link Node#getOwnerDocument} returns {@code null}
+     * {@link Document}. {@link Node#getOwnerDocument} returns <CODE>null</CODE>
      * if the {@link Node} is a {@link Document}.
      *
      * @param node
@@ -400,7 +447,7 @@ public final class XMLUtils {
     /**
      * This method returns the first non-null owner document of the Nodes in this Set.
      * This method is necessary because it <I>always</I> returns a
-     * {@link Document}. {@link Node#getOwnerDocument} returns {@code null}
+     * {@link Document}. {@link Node#getOwnerDocument} returns <CODE>null</CODE>
      * if the {@link Node} is a {@link Document}.
      *
      * @param xpathNodeSet
@@ -437,7 +484,7 @@ public final class XMLUtils {
      * @return the element.
      */
     public static Element createDSctx(Document doc, String prefix, String namespace) {
-        if (prefix == null || prefix.trim().length() == 0) {
+        if ((prefix == null) || (prefix.trim().length() == 0)) {
             throw new IllegalArgumentException("You must supply a prefix");
         }
 
@@ -473,29 +520,6 @@ public final class XMLUtils {
         }
     }
 
-    public static String encodeToString(byte[] bytes) {
-        if (ignoreLineBreaks) {
-            return Base64.getEncoder().encodeToString(bytes);
-        }
-        if (LINEFEED_ONLY) {
-            return Base64.getMimeEncoder(MIMELINEMAX,
-                                         new byte[]{'\n'}).encodeToString(bytes);
-        }
-        return Base64.getMimeEncoder().encodeToString(bytes);
-    }
-
-    public static byte[] decode(String encodedString) {
-        return Base64.getMimeDecoder().decode(encodedString);
-    }
-
-    public static byte[] decode(byte[] encodedBytes) {
-        return Base64.getMimeDecoder().decode(encodedBytes);
-    }
-
-    public static boolean isIgnoreLineBreaks() {
-        return ignoreLineBreaks;
-    }
-
     /**
      * Method convertNodelistToSet
      *
@@ -504,11 +528,11 @@ public final class XMLUtils {
      */
     public static Set<Node> convertNodelistToSet(NodeList xpathNodeSet) {
         if (xpathNodeSet == null) {
-            return new HashSet<>();
+            return new HashSet<Node>();
         }
 
         int length = xpathNodeSet.getLength();
-        Set<Node> set = new HashSet<>(length);
+        Set<Node> set = new HashSet<Node>(length);
 
         for (int i = 0; i < length; i++) {
             set.add(xpathNodeSet.item(i));
@@ -596,7 +620,7 @@ public final class XMLUtils {
                 sibling = node.getFirstChild();
                 break;
             }
-            while (sibling == null && parent != null) {
+            while ((sibling == null) && (parent != null)) {
                 sibling = parent.getNextSibling();
                 parent = parent.getParentNode();
             }
@@ -655,8 +679,29 @@ public final class XMLUtils {
      * @param number
      * @return nodes with the constrain
      */
+    public static Element selectXencNode(Node sibling, String nodeName, int number) {
+        while (sibling != null) {
+            if (EncryptionConstants.EncryptionSpecNS.equals(sibling.getNamespaceURI())
+                && sibling.getLocalName().equals(nodeName)) {
+                if (number == 0){
+                    return (Element)sibling;
+                }
+                number--;
+            }
+            sibling = sibling.getNextSibling();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param sibling
+     * @param nodeName
+     * @param number
+     * @return nodes with the constrain
+     */
     public static Text selectDsNodeText(Node sibling, String nodeName, int number) {
-        Node n = selectDsNode(sibling, nodeName, number);
+        Node n = selectDsNode(sibling,nodeName,number);
         if (n == null) {
             return null;
         }
@@ -674,7 +719,7 @@ public final class XMLUtils {
      * @return nodes with the constrain
      */
     public static Text selectDs11NodeText(Node sibling, String nodeName, int number) {
-        Node n = selectDs11Node(sibling, nodeName, number);
+        Node n = selectDs11Node(sibling,nodeName,number);
         if (n == null) {
             return null;
         }
@@ -693,7 +738,7 @@ public final class XMLUtils {
      * @return nodes with the constrain
      */
     public static Text selectNodeText(Node sibling, String uri, String nodeName, int number) {
-        Node n = selectNode(sibling, uri, nodeName, number);
+        Node n = selectNode(sibling,uri,nodeName,number);
         if (n == null) {
             return null;
         }
@@ -715,7 +760,7 @@ public final class XMLUtils {
         while (sibling != null) {
             if (sibling.getNamespaceURI() != null && sibling.getNamespaceURI().equals(uri)
                 && sibling.getLocalName().equals(nodeName)) {
-                if (number == 0) {
+                if (number == 0){
                     return (Element)sibling;
                 }
                 number--;
@@ -750,7 +795,7 @@ public final class XMLUtils {
      * @return nodes with the constraint
      */
     public static Element[] selectNodes(Node sibling, String uri, String nodeName) {
-        List<Element> list = new ArrayList<>();
+        List<Element> list = new ArrayList<Element>();
         while (sibling != null) {
             if (sibling.getNamespaceURI() != null && sibling.getNamespaceURI().equals(uri)
                 && sibling.getLocalName().equals(nodeName)) {
@@ -767,7 +812,7 @@ public final class XMLUtils {
      * @return nodes with the constrain
      */
     public static Set<Node> excludeNodeFromSet(Node signatureElement, Set<Node> inputSet) {
-        Set<Node> resultSet = new HashSet<>();
+        Set<Node> resultSet = new HashSet<Node>();
         Iterator<Node> iterator = inputSet.iterator();
 
         while (iterator.hasNext()) {
@@ -802,9 +847,9 @@ public final class XMLUtils {
 
             return sb.toString();
         } else if (xpathnode.getNodeType() == Node.ATTRIBUTE_NODE) {
-            return xpathnode.getNodeValue();
+            return ((Attr) xpathnode).getNodeValue();
         } else if (xpathnode.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
-            return xpathnode.getNodeValue();
+            return ((ProcessingInstruction) xpathnode).getNodeValue();
         }
 
         return null;
@@ -852,7 +897,7 @@ public final class XMLUtils {
      * the empty string if the attribute value is empty.
      *
      * <p>This works around a limitation of the DOM
-     * {@code Element.getAttributeNode} method, which does not distinguish
+     * <code>Element.getAttributeNode</code> method, which does not distinguish
      * between an unspecified attribute and an attribute with a value of
      * "" (it returns "" for both cases).
      *
@@ -872,16 +917,13 @@ public final class XMLUtils {
      * a matching Element has been found, just that no wrapping attack has been detected.
      */
     public static boolean protectAgainstWrappingAttack(Node startNode, String value) {
-        String id = value.trim();
-        if (!id.isEmpty() && id.charAt(0) == '#') {
-            id = id.substring(1);
-        }
-
-        Node startParent = null;
+        Node startParent = startNode.getParentNode();
         Node processedNode = null;
         Element foundElement = null;
-        if (startNode != null) {
-            startParent = startNode.getParentNode();
+
+        String id = value.trim();
+        if (id.charAt(0) == '#') {
+            id = id.substring(1);
         }
 
         while (startNode != null) {
@@ -890,15 +932,14 @@ public final class XMLUtils {
 
                 NamedNodeMap attributes = se.getAttributes();
                 if (attributes != null) {
-                    int length = attributes.getLength();
-                    for (int i = 0; i < length; i++) {
+                    for (int i = 0; i < attributes.getLength(); i++) {
                         Attr attr = (Attr)attributes.item(i);
                         if (attr.isId() && id.equals(attr.getValue())) {
                             if (foundElement == null) {
                                 // Continue searching to find duplicates
                                 foundElement = attr.getOwnerElement();
                             } else {
-                                LOG.debug("Multiple elements with the same 'Id' attribute value!");
+                                log.log(java.util.logging.Level.FINE, "Multiple elements with the same 'Id' attribute value!");
                                 return false;
                             }
                         }
@@ -937,15 +978,12 @@ public final class XMLUtils {
     public static boolean protectAgainstWrappingAttack(
         Node startNode, Element knownElement, String value
     ) {
-        String id = value.trim();
-        if (!id.isEmpty() && id.charAt(0) == '#') {
-            id = id.substring(1);
-        }
-
-        Node startParent = null;
+        Node startParent = startNode.getParentNode();
         Node processedNode = null;
-        if (startNode != null) {
-            startParent = startNode.getParentNode();
+
+        String id = value.trim();
+        if (id.charAt(0) == '#') {
+            id = id.substring(1);
         }
 
         while (startNode != null) {
@@ -954,11 +992,10 @@ public final class XMLUtils {
 
                 NamedNodeMap attributes = se.getAttributes();
                 if (attributes != null) {
-                    int length = attributes.getLength();
-                    for (int i = 0; i < length; i++) {
+                    for (int i = 0; i < attributes.getLength(); i++) {
                         Attr attr = (Attr)attributes.item(i);
                         if (attr.isId() && id.equals(attr.getValue()) && se != knownElement) {
-                            LOG.debug("Multiple elements with the same 'Id' attribute value!");
+                            log.log(java.util.logging.Level.FINE, "Multiple elements with the same 'Id' attribute value!");
                             return false;
                         }
                     }
@@ -986,225 +1023,6 @@ public final class XMLUtils {
             }
         }
         return true;
-    }
-
-    public static Document newDocument() throws ParserConfigurationException {
-        ClassLoader loader = getContextClassLoader();
-        if (loader == null) {
-            loader = getClassLoader(XMLUtils.class);
-        }
-        // If the ClassLoader is null then just create a DocumentBuilder and use it
-        if (loader == null) {
-            DocumentBuilder documentBuilder = buildDocumentBuilder(true);
-            return documentBuilder.newDocument();
-        }
-
-        Queue<DocumentBuilder> queue = getDocumentBuilderQueue(true, loader);
-        DocumentBuilder documentBuilder = getDocumentBuilder(true, queue);
-        Document doc = documentBuilder.newDocument();
-        repoolDocumentBuilder(documentBuilder, queue);
-        return doc;
-    }
-
-    public static Document read(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
-        return read(inputStream, true);
-    }
-
-    public static Document read(InputStream inputStream, boolean disAllowDocTypeDeclarations) throws ParserConfigurationException, SAXException, IOException {
-        ClassLoader loader = getContextClassLoader();
-        if (loader == null) {
-            loader = getClassLoader(XMLUtils.class);
-        }
-        // If the ClassLoader is null then just create a DocumentBuilder and use it
-        if (loader == null) {
-            DocumentBuilder documentBuilder = buildDocumentBuilder(disAllowDocTypeDeclarations);
-            return documentBuilder.parse(inputStream);
-        }
-
-        Queue<DocumentBuilder> queue = getDocumentBuilderQueue(disAllowDocTypeDeclarations, loader);
-        DocumentBuilder documentBuilder = getDocumentBuilder(disAllowDocTypeDeclarations, queue);
-        Document doc = documentBuilder.parse(inputStream);
-        repoolDocumentBuilder(documentBuilder, queue);
-        return doc;
-    }
-
-    public static Document read(String uri, boolean disAllowDocTypeDeclarations)
-        throws ParserConfigurationException, SAXException, IOException {
-        ClassLoader loader = getContextClassLoader();
-        if (loader == null) {
-            loader = getClassLoader(XMLUtils.class);
-        }
-        // If the ClassLoader is null then just create a DocumentBuilder and use it
-        if (loader == null) {
-            DocumentBuilder documentBuilder = buildDocumentBuilder(disAllowDocTypeDeclarations);
-            return documentBuilder.parse(uri);
-        }
-
-        Queue<DocumentBuilder> queue = getDocumentBuilderQueue(disAllowDocTypeDeclarations, loader);
-        DocumentBuilder documentBuilder = getDocumentBuilder(disAllowDocTypeDeclarations, queue);
-        Document doc = documentBuilder.parse(uri);
-        repoolDocumentBuilder(documentBuilder, queue);
-        return doc;
-    }
-
-    public static Document read(InputSource inputSource) throws ParserConfigurationException, SAXException, IOException {
-        return read(inputSource, true);
-    }
-
-    public static Document read(InputSource inputSource, boolean disAllowDocTypeDeclarations)
-        throws ParserConfigurationException, SAXException, IOException {
-        ClassLoader loader = getContextClassLoader();
-        if (loader == null) {
-            loader = getClassLoader(XMLUtils.class);
-        }
-        // If the ClassLoader is null then just create a DocumentBuilder and use it
-        if (loader == null) {
-            DocumentBuilder documentBuilder = buildDocumentBuilder(disAllowDocTypeDeclarations);
-            return documentBuilder.parse(inputSource);
-        }
-
-        Queue<DocumentBuilder> queue = getDocumentBuilderQueue(disAllowDocTypeDeclarations, loader);
-        DocumentBuilder documentBuilder = getDocumentBuilder(disAllowDocTypeDeclarations, queue);
-        Document doc = documentBuilder.parse(inputSource);
-        repoolDocumentBuilder(documentBuilder, queue);
-        return doc;
-    }
-
-    /**
-     * @deprecated Use XMLUtils.read instead to directly read a document.
-     */
-    @Deprecated
-    public static DocumentBuilder createDocumentBuilder(boolean validating) throws ParserConfigurationException {
-        return createDocumentBuilder(validating, true);
-    }
-
-    /**
-     * @deprecated Use XMLUtils.read instead to directly read a document.
-     */
-    @Deprecated
-    public static DocumentBuilder createDocumentBuilder(
-        boolean validating, boolean disAllowDocTypeDeclarations
-    ) throws ParserConfigurationException {
-        DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
-        dfactory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
-        if (disAllowDocTypeDeclarations) {
-            dfactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        }
-        dfactory.setValidating(validating);
-        dfactory.setNamespaceAware(true);
-        return dfactory.newDocumentBuilder();
-    }
-
-    /**
-     * @deprecated This method has no effect in Santuario 2.1.4
-     */
-    @Deprecated
-    public static boolean repoolDocumentBuilder(DocumentBuilder db) {
-        return true;
-    }
-
-    /**
-     * Returns a byte-array representation of a {@code {@link BigInteger}}.
-     * No sign-bit is output.
-     *
-     * <b>N.B.:</B> {@code {@link BigInteger}}'s toByteArray
-     * returns eventually longer arrays because of the leading sign-bit.
-     *
-     * @param big {@code BigInteger} to be converted
-     * @param bitlen {@code int} the desired length in bits of the representation
-     * @return a byte array with {@code bitlen} bits of {@code big}
-     */
-    public static byte[] getBytes(BigInteger big, int bitlen) {
-
-        //round bitlen
-        bitlen = ((bitlen + 7) >> 3) << 3;
-
-        if (bitlen < big.bitLength()) {
-            throw new IllegalArgumentException(I18n.translate("utils.Base64.IllegalBitlength"));
-        }
-
-        byte[] bigBytes = big.toByteArray();
-
-        if (big.bitLength() % 8 != 0
-            && big.bitLength() / 8 + 1 == bitlen / 8) {
-            return bigBytes;
-        }
-
-        // some copying needed
-        int startSrc = 0;    // no need to skip anything
-        int bigLen = bigBytes.length;    //valid length of the string
-
-        if (big.bitLength() % 8 == 0) {    // correct values
-            startSrc = 1;    // skip sign bit
-
-            bigLen--;    // valid length of the string
-        }
-
-        int startDst = bitlen / 8 - bigLen;    //pad with leading nulls
-        byte[] resizedBytes = new byte[bitlen / 8];
-
-        System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, bigLen);
-
-        return resizedBytes;
-    }
-
-    private static Queue<DocumentBuilder> getDocumentBuilderQueue(boolean disAllowDocTypeDeclarations, ClassLoader loader) throws ParserConfigurationException {
-        Map<ClassLoader, Queue<DocumentBuilder>> docBuilderCache =
-            disAllowDocTypeDeclarations ? DOCUMENT_BUILDERS_DISALLOW_DOCTYPE : DOCUMENT_BUILDERS;
-        Queue<DocumentBuilder> queue = docBuilderCache.get(loader);
-        if (queue == null) {
-            queue = new ArrayBlockingQueue<>(parserPoolSize);
-            docBuilderCache.put(loader, queue);
-}
-
-        return queue;
-    }
-
-    private static DocumentBuilder getDocumentBuilder(boolean disAllowDocTypeDeclarations, Queue<DocumentBuilder> queue) throws ParserConfigurationException {
-        DocumentBuilder db = queue.poll();
-        if (db == null) {
-            db = buildDocumentBuilder(disAllowDocTypeDeclarations);
-        }
-        return db;
-    }
-
-    private static DocumentBuilder buildDocumentBuilder(boolean disAllowDocTypeDeclarations) throws ParserConfigurationException {
-        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-        f.setNamespaceAware(true);
-        f.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", disAllowDocTypeDeclarations);
-        return f.newDocumentBuilder();
-    }
-
-    private static void repoolDocumentBuilder(DocumentBuilder db, Queue<DocumentBuilder> queue) {
-        if (queue != null) {
-            db.reset();
-            queue.offer(db);
-        }
-    }
-
-    private static ClassLoader getContextClassLoader() {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                public ClassLoader run() {
-                    return Thread.currentThread().getContextClassLoader();
-                }
-            });
-        }
-        return Thread.currentThread().getContextClassLoader();
-    }
-
-    private static ClassLoader getClassLoader(final Class<?> clazz) {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>() {
-                public ClassLoader run() {
-                    return clazz.getClassLoader();
-                }
-            });
-        }
-        return clazz.getClassLoader();
     }
 
 }

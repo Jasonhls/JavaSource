@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,33 +26,34 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.SignatureElementProxy;
-import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
  * Handles SubjectKeyIdentifier (SKI) for X.509v3.
  *
- * @see <A HREF="http://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Extension.html">
+ * @see <A HREF="http://docs.oracle.com/javase/1.5.0/docs/api/java/security/cert/X509Extension.html">
  * Interface X509Extension</A>
  */
 public class XMLX509SKI extends SignatureElementProxy implements XMLX509DataContent {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(XMLX509SKI.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(XMLX509SKI.class.getName());
 
     /**
-     * {@code SubjectKeyIdentifier (id-ce-subjectKeyIdentifier) (2.5.29.14)}:
+     * <CODE>SubjectKeyIdentifier (id-ce-subjectKeyIdentifier) (2.5.29.14)</CODE>:
      * This extension identifies the public key being certified. It enables
      * distinct keys used by the same subject to be differentiated
      * (e.g., as key updating occurs).
-     * <p></p>
+     * <BR />
      * A key identifier shall be unique with respect to all key identifiers
      * for the subject with which it is used. This extension is always non-critical.
      */
-    public static final String SKI_OID = "2.5.29.14"; //NOPMD
+    public static final String SKI_OID = "2.5.29.14";
 
     /**
      * Constructor X509SKI
@@ -82,11 +83,11 @@ public class XMLX509SKI extends SignatureElementProxy implements XMLX509DataCont
      * Constructor XMLX509SKI
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public XMLX509SKI(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public XMLX509SKI(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
     }
 
     /**
@@ -112,7 +113,7 @@ public class XMLX509SKI extends SignatureElementProxy implements XMLX509DataCont
         throws XMLSecurityException {
 
         if (cert.getVersion() < 3) {
-            Object exArgs[] = { cert.getVersion() };
+            Object exArgs[] = { Integer.valueOf(cert.getVersion()) };
             throw new XMLSecurityException("certificate.noSki.lowVersion", exArgs);
         }
 
@@ -137,14 +138,14 @@ public class XMLX509SKI extends SignatureElementProxy implements XMLX509DataCont
 
         System.arraycopy(extensionValue, 4, skidValue, 0, skidValue.length);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Base64 of SKI is " + XMLUtils.encodeToString(skidValue));
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Base64 of SKI is " + Base64.encode(skidValue));
         }
 
         return skidValue;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public boolean equals(Object obj) {
         if (!(obj instanceof XMLX509SKI)) {
             return false;
@@ -167,13 +168,15 @@ public class XMLX509SKI extends SignatureElementProxy implements XMLX509DataCont
                 result = 31 * result + bytes[i];
             }
         } catch (XMLSecurityException e) {
-            LOG.debug(e.getMessage(), e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, e.getMessage(), e);
+            }
         }
         return result;
 
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_X509SKI;
     }

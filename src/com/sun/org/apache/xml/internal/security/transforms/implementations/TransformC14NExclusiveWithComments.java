@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,9 +36,10 @@ import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Element;
 
 /**
- * Implements the {@code http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments}
+ * Implements the <CODE>http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments</CODE>
  * transform.
  *
+ * @author Christian Geuer-Pollmann
  */
 public class TransformC14NExclusiveWithComments extends TransformSpi {
 
@@ -48,7 +49,7 @@ public class TransformC14NExclusiveWithComments extends TransformSpi {
 
     /**
      * Method engineGetURI
-     *{@inheritDoc}
+     *@inheritDoc
      *
      */
     protected String engineGetURI() {
@@ -81,17 +82,15 @@ public class TransformC14NExclusiveWithComments extends TransformSpi {
 
             Canonicalizer20010315ExclWithComments c14n =
                 new Canonicalizer20010315ExclWithComments();
-            c14n.setSecureValidation(secureValidation);
             if (os != null) {
                 c14n.setWriter(os);
             }
             byte[] result = c14n.engineCanonicalize(input, inclusiveNamespaces);
             XMLSignatureInput output = new XMLSignatureInput(result);
-            output.setSecureValidation(secureValidation);
 
             return output;
         } catch (XMLSecurityException ex) {
-            throw new CanonicalizationException(ex);
+            throw new CanonicalizationException("empty", ex);
         }
     }
 }

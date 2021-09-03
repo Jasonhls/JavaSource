@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,6 +25,7 @@ package com.sun.org.apache.xml.internal.security.exceptions;
 /**
  * This Exception is thrown if decoding of Base64 data fails.
  *
+ * @author Christian Geuer-Pollmann
  */
 public class Base64DecodingException extends XMLSecurityException {
 
@@ -60,32 +61,22 @@ public class Base64DecodingException extends XMLSecurityException {
     /**
      * Constructor Base64DecodingException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public Base64DecodingException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public Base64DecodingException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor Base64DecodingException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public Base64DecodingException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public Base64DecodingException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public Base64DecodingException(String msgID, Object exArgs[], Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,8 +31,9 @@ import org.w3c.dom.NamedNodeMap;
 /**
  * Temporary swapped static functions from the normalizer Section
  *
+ * @author Christian Geuer-Pollmann
  */
-public final class C14nHelper {
+public class C14nHelper {
 
     /**
      * Constructor C14nHelper
@@ -99,7 +100,7 @@ public final class C14nHelper {
         }
 
         String nodeAttrName = attr.getNodeName();
-        boolean definesDefaultNS = "xmlns".equals(nodeAttrName);
+        boolean definesDefaultNS = nodeAttrName.equals("xmlns");
         boolean definesNonDefaultNS = nodeAttrName.startsWith("xmlns:");
 
         if ((definesDefaultNS || definesNonDefaultNS) && namespaceIsRelative(attr)) {
@@ -144,8 +145,7 @@ public final class C14nHelper {
         if (ctxNode != null) {
             NamedNodeMap attributes = ctxNode.getAttributes();
 
-            int length = attributes.getLength();
-            for (int i = 0; i < length; i++) {
+            for (int i = 0; i < attributes.getLength(); i++) {
                 C14nHelper.assertNotRelativeNS((Attr) attributes.item(i));
             }
         } else {

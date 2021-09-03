@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,11 +23,9 @@
 package com.sun.org.apache.xml.internal.security.keys.storage.implementations;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
@@ -40,7 +38,7 @@ import java.util.List;
 
 import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverException;
 import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverSpi;
-import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
  * This {@link StorageResolverSpi} makes all raw (binary) {@link X509Certificate}s
@@ -49,16 +47,17 @@ import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
  */
 public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(
-            CertsInFilesystemDirectoryResolver.class
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(
+            CertsInFilesystemDirectoryResolver.class.getName()
         );
 
     /** Field merlinsCertificatesDir */
-    private String merlinsCertificatesDir;
+    private String merlinsCertificatesDir = null;
 
     /** Field certs */
-    private List<X509Certificate> certs = new ArrayList<>();
+    private List<X509Certificate> certs = new ArrayList<X509Certificate>();
 
     /**
      * @param directoryName
@@ -79,16 +78,14 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
     private void readCertsFromHarddrive() throws StorageResolverException {
 
         File certDir = new File(this.merlinsCertificatesDir);
-        List<String> al = new ArrayList<>();
+        List<String> al = new ArrayList<String>();
         String[] names = certDir.list();
 
-        if (names != null) {
-            for (int i = 0; i < names.length; i++) {
-                String currentFileName = names[i];
+        for (int i = 0; i < names.length; i++) {
+            String currentFileName = names[i];
 
-                if (currentFileName.endsWith(".crt")) {
-                    al.add(names[i]);
-                }
+            if (currentFileName.endsWith(".crt")) {
+                al.add(names[i]);
             }
         }
 
@@ -97,17 +94,24 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
         try {
             cf = CertificateFactory.getInstance("X.509");
         } catch (CertificateException ex) {
-            throw new StorageResolverException(ex);
+            throw new StorageResolverException("empty", ex);
+        }
+
+        if (cf == null) {
+            throw new StorageResolverException("empty");
         }
 
         for (int i = 0; i < al.size(); i++) {
             String filename = certDir.getAbsolutePath() + File.separator + al.get(i);
+            File file = new File(filename);
             boolean added = false;
             String dn = null;
 
-            try (InputStream inputStream = Files.newInputStream(Paths.get(filename))) {
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(file);
                 X509Certificate cert =
-                    (X509Certificate) cf.generateCertificate(inputStream);
+                    (X509Certificate) cf.generateCertificate(fis);
 
                 //add to ArrayList
                 cert.checkValidity();
@@ -116,34 +120,40 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
                 dn = cert.getSubjectX500Principal().getName();
                 added = true;
             } catch (FileNotFoundException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Could not add certificate from file " + filename, ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Could not add certificate from file " + filename, ex);
                 }
             } catch (CertificateNotYetValidException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Could not add certificate from file " + filename, ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Could not add certificate from file " + filename, ex);
                 }
             } catch (CertificateExpiredException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Could not add certificate from file " + filename, ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Could not add certificate from file " + filename, ex);
                 }
             } catch (CertificateException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Could not add certificate from file " + filename, ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Could not add certificate from file " + filename, ex);
                 }
-            } catch (IOException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Could not add certificate from file " + filename, ex);
+            } finally {
+                try {
+                    if (fis != null) {
+                        fis.close();
+                    }
+                } catch (IOException ex) {
+                    if (log.isLoggable(java.util.logging.Level.FINE)) {
+                        log.log(java.util.logging.Level.FINE, "Could not add certificate from file " + filename, ex);
+                    }
                 }
             }
 
-            if (added) {
-                LOG.debug("Added certificate: {}", dn);
+            if (added && log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "Added certificate: " + dn);
             }
         }
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public Iterator<Certificate> getIterator() {
         return new FilesystemIterator(this.certs);
     }
@@ -154,10 +164,10 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
     private static class FilesystemIterator implements Iterator<Certificate> {
 
         /** Field certs */
-        private List<X509Certificate> certs;
+        List<X509Certificate> certs = null;
 
         /** Field i */
-        private int i;
+        int i;
 
         /**
          * Constructor FilesystemIterator
@@ -169,12 +179,12 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
             this.i = 0;
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public boolean hasNext() {
-            return this.i < this.certs.size();
+            return (this.i < this.certs.size());
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public Certificate next() {
             return this.certs.get(this.i++);
         }
@@ -207,7 +217,7 @@ public class CertsInFilesystemDirectoryResolver extends StorageResolverSpi {
 
             System.out.println();
             System.out.println("Base64(SKI())=                 \""
-                               + XMLUtils.encodeToString(ski) + "\"");
+                               + Base64.encode(ski) + "\"");
             System.out.println("cert.getSerialNumber()=        \""
                                + cert.getSerialNumber().toString() + "\"");
             System.out.println("cert.getSubjectX500Principal().getName()= \""

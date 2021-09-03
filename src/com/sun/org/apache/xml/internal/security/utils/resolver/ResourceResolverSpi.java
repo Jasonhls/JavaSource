@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,18 +26,47 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
+import org.w3c.dom.Attr;
 
 /**
  * During reference validation, we have to retrieve resources from somewhere.
  *
+ * @author $Author: coheigea $
  */
 public abstract class ResourceResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(ResourceResolverSpi.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(ResourceResolverSpi.class.getName());
 
     /** Field properties */
-    protected Map<String, String> properties;
+    protected java.util.Map<String, String> properties = null;
+
+    /**
+     * Deprecated - used to carry state about whether resolution was being done in a secure fashion,
+     * but was not thread safe, so the resolution information is now passed as parameters to methods.
+     *
+     * @deprecated Secure validation flag is now passed to methods.
+     */
+    @Deprecated
+    protected final boolean secureValidation = true;
+
+    /**
+     * This is the workhorse method used to resolve resources.
+     *
+     * @param uri
+     * @param BaseURI
+     * @return the resource wrapped around a XMLSignatureInput
+     *
+     * @throws ResourceResolverException
+     *
+     * @deprecated New clients should override {@link #engineResolveURI(ResourceResolverContext)}
+     */
+    @Deprecated
+    public XMLSignatureInput engineResolve(Attr uri, String BaseURI)
+        throws ResourceResolverException {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * This is the workhorse method used to resolve resources.
@@ -47,8 +76,12 @@ public abstract class ResourceResolverSpi {
      *
      * @throws ResourceResolverException
      */
-    public abstract XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-        throws ResourceResolverException;
+    public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
+        throws ResourceResolverException {
+        // The default implementation, to preserve backwards compatibility in the
+        // test cases, calls the old resolver API.
+        return engineResolve(context.attr, context.baseUri);
+    }
 
     /**
      * Method engineSetProperty
@@ -58,7 +91,7 @@ public abstract class ResourceResolverSpi {
      */
     public void engineSetProperty(String key, String value) {
         if (properties == null) {
-            properties = new HashMap<>();
+            properties = new HashMap<String, String>();
         }
         properties.put(key, value);
     }
@@ -83,7 +116,7 @@ public abstract class ResourceResolverSpi {
     public void engineAddProperies(Map<String, String> newProperties) {
         if (newProperties != null && !newProperties.isEmpty()) {
             if (properties == null) {
-                properties = new HashMap<>();
+                properties = new HashMap<String, String>();
             }
             properties.putAll(newProperties);
         }
@@ -92,7 +125,7 @@ public abstract class ResourceResolverSpi {
     /**
      * Tells if the implementation does can be reused by several threads safely.
      * It normally means that the implementation does not have any member, or there is
-     * member change between engineCanResolve and engineResolve invocations. Or it maintains all
+     * member change between engineCanResolve & engineResolve invocations. Or it maintains all
      * member info in ThreadLocal methods.
      */
     public boolean engineIsThreadSafe() {
@@ -103,10 +136,32 @@ public abstract class ResourceResolverSpi {
      * This method helps the {@link ResourceResolver} to decide whether a
      * {@link ResourceResolverSpi} is able to perform the requested action.
      *
+     * @param uri
+     * @param BaseURI
+     * @return true if the engine can resolve the uri
+     *
+     * @deprecated See {@link #engineCanResolveURI(ResourceResolverContext)}
+     */
+    @Deprecated
+    public boolean engineCanResolve(Attr uri, String BaseURI) {
+        // This method used to be abstract, so any calls to "super" are bogus.
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method helps the {@link ResourceResolver} to decide whether a
+     * {@link ResourceResolverSpi} is able to perform the requested action.
+     *
+     * <p>New clients should override this method, and not override {@link #engineCanResolve(Attr, String)}
+     * </p>
      * @param context Context in which to do resolution.
      * @return true if the engine can resolve the uri
      */
-    public abstract boolean engineCanResolveURI(ResourceResolverContext context);
+    public boolean engineCanResolveURI(ResourceResolverContext context) {
+        // To preserve backward compatibility with existing resolvers that might override the old method,
+        // call the old deprecated API.
+        return engineCanResolve( context.attr, context.baseUri );
+    }
 
     /**
      * Method engineGetPropertyKeys
@@ -127,8 +182,8 @@ public abstract class ResourceResolverSpi {
         String[] understood = this.engineGetPropertyKeys();
 
         if (understood != null) {
-            for (String str : understood) {
-                if (str.equals(propertyToTest)) {
+            for (int i = 0; i < understood.length; i++) {
+                if (understood[i].equals(propertyToTest)) {
                     return true;
                 }
             }
@@ -157,12 +212,12 @@ public abstract class ResourceResolverSpi {
             char ch1 = str.charAt(1);
             char ch2 = str.charAt(2);
             char ch3 = str.charAt(3);
-            boolean isDosFilename = 'A' <= ch0 && ch0 <= 'Z'
-                && ch1 == ':' && ch2 == '/'
-                && ch3 != '/';
+            boolean isDosFilename = ((('A' <= ch0) && (ch0 <= 'Z'))
+                && (ch1 == ':') && (ch2 == '/')
+                && (ch3 != '/'));
 
-            if (isDosFilename) {
-                LOG.debug("Found DOS filename: {}", str);
+            if (isDosFilename && log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "Found DOS filename: " + str);
             }
         }
 
@@ -173,7 +228,7 @@ public abstract class ResourceResolverSpi {
             if (ch1 == ':') {
                 char ch0 = Character.toUpperCase(str.charAt(0));
 
-                if ('A' <= ch0 && ch0 <= 'Z') {
+                if (('A' <= ch0) && (ch0 <= 'Z')) {
                     str = "/" + str;
                 }
             }

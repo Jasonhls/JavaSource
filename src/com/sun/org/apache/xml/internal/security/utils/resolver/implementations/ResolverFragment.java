@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -34,14 +34,16 @@ import org.w3c.dom.Node;
 /**
  * This resolver is used for resolving same-document URIs like URI="" of URI="#id".
  *
+ * @author $Author: coheigea $
  * @see <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-ReferenceProcessingModel">The Reference processing model in the XML Signature spec</A>
  * @see <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-Same-Document">Same-Document URI-References in the XML Signature spec</A>
  * @see <A HREF="http://www.ietf.org/rfc/rfc2396.txt">Section 4.2 of RFC 2396</A>
  */
 public class ResolverFragment extends ResourceResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(ResolverFragment.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(ResolverFragment.class.getName());
 
     @Override
     public boolean engineIsThreadSafe() {
@@ -49,9 +51,12 @@ public class ResolverFragment extends ResourceResolverSpi {
     }
 
     /**
-     * {@inheritDoc}
+     * Method engineResolve
+     *
+     * @inheritDoc
+     * @param uri
+     * @param baseURI
      */
-    @Override
     public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
         throws ResourceResolverException {
 
@@ -63,7 +68,9 @@ public class ResolverFragment extends ResourceResolverSpi {
              * Identifies the node-set (minus any comment nodes) of the XML
              * resource containing the signature
              */
-            LOG.debug("ResolverFragment with empty URI (means complete document)");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "ResolverFragment with empty URI (means complete document)");
+            }
             selectedElem = doc;
         } else {
             /*
@@ -80,7 +87,7 @@ public class ResolverFragment extends ResourceResolverSpi {
             if (selectedElem == null) {
                 Object exArgs[] = { id };
                 throw new ResourceResolverException(
-                    "signature.Verification.MissingID", exArgs, context.uriToResolve, context.baseUri
+                    "signature.Verification.MissingID", exArgs, context.attr, context.baseUri
                 );
             }
             if (context.secureValidation) {
@@ -88,17 +95,18 @@ public class ResolverFragment extends ResourceResolverSpi {
                 if (!XMLUtils.protectAgainstWrappingAttack(start, id)) {
                     Object exArgs[] = { id };
                     throw new ResourceResolverException(
-                        "signature.Verification.MultipleIDs", exArgs, context.uriToResolve, context.baseUri
+                        "signature.Verification.MultipleIDs", exArgs, context.attr, context.baseUri
                     );
                 }
             }
-            LOG.debug(
-                "Try to catch an Element with ID {} and Element was {}", id, selectedElem
-            );
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE,
+                    "Try to catch an Element with ID " + id + " and Element was " + selectedElem
+                );
+            }
         }
 
         XMLSignatureInput result = new XMLSignatureInput(selectedElem);
-        result.setSecureValidation(context.secureValidation);
         result.setExcludeComments(true);
 
         result.setMIMEType("text/xml");
@@ -112,22 +120,29 @@ public class ResolverFragment extends ResourceResolverSpi {
 
     /**
      * Method engineCanResolve
-     * {@inheritDoc}
-     * @param context
+     * @inheritDoc
+     * @param uri
+     * @param baseURI
      */
     public boolean engineCanResolveURI(ResourceResolverContext context) {
         if (context.uriToResolve == null) {
-            LOG.debug("Quick fail for null uri");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "Quick fail for null uri");
+            }
             return false;
         }
 
         if (context.uriToResolve.equals("") ||
-            context.uriToResolve.charAt(0) == '#' && !context.uriToResolve.startsWith("#xpointer(")
+            ((context.uriToResolve.charAt(0) == '#') && !context.uriToResolve.startsWith("#xpointer("))
         ) {
-            LOG.debug("State I can resolve reference: \"{}\"", context.uriToResolve);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "State I can resolve reference: \"" + context.uriToResolve + "\"");
+            }
             return true;
         }
-        LOG.debug("Do not seem to be able to resolve reference: \"{}\"", context.uriToResolve);
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Do not seem to be able to resolve reference: \"" + context.uriToResolve + "\"");
+        }
         return false;
     }
 

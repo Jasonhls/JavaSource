@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,6 +26,7 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 
 /**
  *
+ * @author Christian Geuer-Pollmann
  */
 public class TransformationException extends XMLSecurityException {
     /**
@@ -39,10 +40,6 @@ public class TransformationException extends XMLSecurityException {
      */
     public TransformationException() {
         super();
-    }
-
-    public TransformationException(Exception ex) {
-        super(ex);
     }
 
     /**
@@ -67,31 +64,21 @@ public class TransformationException extends XMLSecurityException {
     /**
      * Constructor TransformationException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public TransformationException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public TransformationException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor TransformationException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public TransformationException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public TransformationException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public TransformationException(String msgID, Object exArgs[], Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,21 +23,21 @@
 
 package com.sun.org.apache.xml.internal.security.utils.resolver.implementations;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverContext;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolverSpi;
 
 /**
+ * @author $Author: coheigea $
  */
 public class ResolverAnonymous extends ResourceResolverSpi {
 
-    private InputStream inStream;
+    private InputStream inStream = null;
 
     @Override
     public boolean engineIsThreadSafe() {
@@ -50,7 +50,7 @@ public class ResolverAnonymous extends ResourceResolverSpi {
      * @throws IOException
      */
     public ResolverAnonymous(String filename) throws FileNotFoundException, IOException {
-        inStream = Files.newInputStream(Paths.get(filename));
+        inStream = new FileInputStream(filename);
     }
 
     /**
@@ -60,16 +60,14 @@ public class ResolverAnonymous extends ResourceResolverSpi {
         inStream = is;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     @Override
     public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
-        XMLSignatureInput input = new XMLSignatureInput(inStream);
-        input.setSecureValidation(context.secureValidation);
-        return input;
+        return new XMLSignatureInput(inStream);
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     @Override
     public boolean engineCanResolveURI(ResourceResolverContext context) {
@@ -79,7 +77,7 @@ public class ResolverAnonymous extends ResourceResolverSpi {
         return false;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String[] engineGetPropertyKeys() {
         return new String[0];
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,6 +26,7 @@ package com.sun.org.apache.xml.internal.security.signature;
  * Raised if testing the signature value over <i>DigestValue</i> fails because of invalid signature.
  *
  * @see InvalidDigestValueException  MissingKeyFailureException  MissingResourceFailureException
+ * @author Christian Geuer-Pollmann
  */
 public class InvalidSignatureValueException extends XMLSignatureException {
 
@@ -64,31 +65,21 @@ public class InvalidSignatureValueException extends XMLSignatureException {
     /**
      * Constructor InvalidSignatureValueException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public InvalidSignatureValueException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public InvalidSignatureValueException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor InvalidSignatureValueException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public InvalidSignatureValueException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public InvalidSignatureValueException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public InvalidSignatureValueException(String msgID, Object exArgs[], Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 }

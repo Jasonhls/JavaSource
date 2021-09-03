@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,11 +38,12 @@ import com.sun.org.apache.xml.internal.security.keys.storage.implementations.Sin
  */
 public class StorageResolver {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(StorageResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(StorageResolver.class.getName());
 
     /** Field storageResolvers */
-    private List<StorageResolverSpi> storageResolvers;
+    private List<StorageResolverSpi> storageResolvers = null;
 
     /**
      * Constructor StorageResolver
@@ -66,7 +67,7 @@ public class StorageResolver {
      */
     public void add(StorageResolverSpi resolver) {
         if (storageResolvers == null) {
-            storageResolvers = new ArrayList<>();
+            storageResolvers = new ArrayList<StorageResolverSpi>();
         }
         this.storageResolvers.add(resolver);
     }
@@ -89,7 +90,7 @@ public class StorageResolver {
         try {
             this.add(new KeyStoreResolver(keyStore));
         } catch (StorageResolverException ex) {
-            LOG.error("Could not add KeyStore because of: ", ex);
+            log.log(java.util.logging.Level.SEVERE, "Could not add KeyStore because of: ", ex);
         }
     }
 
@@ -141,7 +142,7 @@ public class StorageResolver {
             currentResolver = findNextResolver();
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public boolean hasNext() {
             if (currentResolver == null) {
                 return false;
@@ -152,10 +153,10 @@ public class StorageResolver {
             }
 
             currentResolver = findNextResolver();
-            return currentResolver != null;
+            return (currentResolver != null);
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public Certificate next() {
             if (hasNext()) {
                 return currentResolver.next();

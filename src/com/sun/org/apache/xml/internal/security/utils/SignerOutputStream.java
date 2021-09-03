@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,11 +28,12 @@ import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm;
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureException;
 
 /**
+ * @author raul
  *
  */
 public class SignerOutputStream extends ByteArrayOutputStream {
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(SignerOutputStream.class);
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(SignerOutputStream.class.getName());
 
     final SignatureAlgorithm sa;
 
@@ -43,7 +44,7 @@ public class SignerOutputStream extends ByteArrayOutputStream {
         this.sa = sa;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public void write(byte[] arg0)  {
         try {
             sa.update(arg0);
@@ -52,7 +53,7 @@ public class SignerOutputStream extends ByteArrayOutputStream {
         }
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public void write(int arg0) {
         try {
             sa.update((byte)arg0);
@@ -61,15 +62,15 @@ public class SignerOutputStream extends ByteArrayOutputStream {
         }
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public void write(byte[] arg0, int arg1, int arg2) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Canonicalized SignedInfo:");
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Canonicalized SignedInfo:");
             StringBuilder sb = new StringBuilder(arg2);
             for (int i = arg1; i < (arg1 + arg2); i++) {
                 sb.append((char)arg0[i]);
             }
-            LOG.debug(sb.toString());
+            log.log(java.util.logging.Level.FINE, sb.toString());
         }
         try {
             sa.update(arg0, arg1, arg2);

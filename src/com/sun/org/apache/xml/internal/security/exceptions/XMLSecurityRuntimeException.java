@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,6 +22,8 @@
  */
 package com.sun.org.apache.xml.internal.security.exceptions;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 
 import com.sun.org.apache.xml.internal.security.utils.Constants;
@@ -31,7 +33,7 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  * The mother of all runtime Exceptions in this bundle. It allows exceptions to have
  * their messages translated to the different locales.
  *
- * The {@code xmlsecurity_en.properties} file contains this line:
+ * The <code>xmlsecurity_en.properties</code> file contains this line:
  * <pre>
  * xml.WrongElement = Can't create a {0} from a {1} element
  * </pre>
@@ -45,7 +47,7 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  * }
  * </pre>
  *
- * Additionally, if another Exception has been caught, we can supply it, too
+ * Additionally, if another Exception has been caught, we can supply it, too>
  * <pre>
  * try {
  *    ...
@@ -57,6 +59,7 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  * </pre>
  *
  *
+ * @author Christian Geuer-Pollmann
  */
 public class XMLSecurityRuntimeException extends RuntimeException {
 
@@ -131,7 +134,7 @@ public class XMLSecurityRuntimeException extends RuntimeException {
      * @param originalException
      */
     public XMLSecurityRuntimeException(String msgID, Object exArgs[], Exception originalException) {
-        super(MessageFormat.format(I18n.getExceptionMessage(msgID), exArgs), originalException);
+        super(MessageFormat.format(I18n.getExceptionMessage(msgID), exArgs));
 
         this.msgID = msgID;
     }
@@ -148,7 +151,7 @@ public class XMLSecurityRuntimeException extends RuntimeException {
         return msgID;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String toString() {
         String s = this.getClass().getName();
         String message = super.getLocalizedMessage();
@@ -164,6 +167,34 @@ public class XMLSecurityRuntimeException extends RuntimeException {
         }
 
         return message;
+    }
+
+    /**
+     * Method printStackTrace
+     *
+     */
+    public void printStackTrace() {
+        synchronized (System.err) {
+            super.printStackTrace(System.err);
+        }
+    }
+
+    /**
+     * Method printStackTrace
+     *
+     * @param printwriter
+     */
+    public void printStackTrace(PrintWriter printwriter) {
+        super.printStackTrace(printwriter);
+    }
+
+    /**
+     * Method printStackTrace
+     *
+     * @param printstream
+     */
+    public void printStackTrace(PrintStream printstream) {
+        super.printStackTrace(printstream);
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,11 +25,12 @@ package com.sun.org.apache.xml.internal.security.c14n.implementations;
 import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 
 /**
+ * @author Sean Mullan
  */
-public class Canonicalizer11_OmitComments extends Canonicalizer20010315 {
+public class Canonicalizer11_OmitComments extends Canonicalizer11 {
 
     public Canonicalizer11_OmitComments() {
-        super(false, true);
+        super(false);
     }
 
     public final String engineGetURI() {

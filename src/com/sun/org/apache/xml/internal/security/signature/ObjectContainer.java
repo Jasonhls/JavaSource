@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,9 +31,10 @@ import org.w3c.dom.Node;
 
 
 /**
- * Handles {@code &lt;ds:Object&gt;} elements
- * {@code Object} {@link Element} supply facility which can contain any kind data
+ * Handles <code>&lt;ds:Object&gt;</code> elements
+ * <code>Object<code> {@link Element} supply facility which can contain any kind data
  *
+ * @author Christian Geuer-Pollmann
  * $todo$ if we remove childen, the boolean values are not updated
  */
 public class ObjectContainer extends SignatureElementProxy {
@@ -41,7 +42,7 @@ public class ObjectContainer extends SignatureElementProxy {
     /**
      * Constructs {@link ObjectContainer}
      *
-     * @param doc the {@link Document} in which {@code Object} element is placed
+     * @param doc the {@link Document} in which <code>Object</code> element is placed
      */
     public ObjectContainer(Document doc) {
         super(doc);
@@ -50,7 +51,7 @@ public class ObjectContainer extends SignatureElementProxy {
     /**
      * Constructs {@link ObjectContainer} from {@link Element}
      *
-     * @param element is {@code Object} element
+     * @param element is <code>Object</code> element
      * @param baseURI the URI of the resource where the XML instance was stored
      * @throws XMLSecurityException
      */
@@ -59,63 +60,64 @@ public class ObjectContainer extends SignatureElementProxy {
     }
 
     /**
-     * Sets the {@code Id} attribute
+     * Sets the <code>Id</code> attribute
      *
-     * @param Id {@code Id} attribute
+     * @param Id <code>Id</code> attribute
      */
     public void setId(String Id) {
         if (Id != null) {
-            setLocalIdAttribute(Constants._ATT_ID, Id);
+            this.constructionElement.setAttributeNS(null, Constants._ATT_ID, Id);
+            this.constructionElement.setIdAttributeNS(null, Constants._ATT_ID, true);
         }
     }
 
     /**
-     * Returns the {@code Id} attribute
+     * Returns the <code>Id</code> attribute
      *
-     * @return the {@code Id} attribute
+     * @return the <code>Id</code> attribute
      */
     public String getId() {
-        return getLocalAttribute(Constants._ATT_ID);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_ID);
     }
 
     /**
-     * Sets the {@code MimeType} attribute
+     * Sets the <code>MimeType</code> attribute
      *
-     * @param MimeType the {@code MimeType} attribute
+     * @param MimeType the <code>MimeType</code> attribute
      */
     public void setMimeType(String MimeType) {
         if (MimeType != null) {
-            setLocalAttribute(Constants._ATT_MIMETYPE, MimeType);
+            this.constructionElement.setAttributeNS(null, Constants._ATT_MIMETYPE, MimeType);
         }
     }
 
     /**
-     * Returns the {@code MimeType} attribute
+     * Returns the <code>MimeType</code> attribute
      *
-     * @return the {@code MimeType} attribute
+     * @return the <code>MimeType</code> attribute
      */
     public String getMimeType() {
-        return getLocalAttribute(Constants._ATT_MIMETYPE);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_MIMETYPE);
     }
 
     /**
-     * Sets the {@code Encoding} attribute
+     * Sets the <code>Encoding</code> attribute
      *
-     * @param Encoding the {@code Encoding} attribute
+     * @param Encoding the <code>Encoding</code> attribute
      */
     public void setEncoding(String Encoding) {
         if (Encoding != null) {
-            setLocalAttribute(Constants._ATT_ENCODING, Encoding);
+            this.constructionElement.setAttributeNS(null, Constants._ATT_ENCODING, Encoding);
         }
     }
 
     /**
-     * Returns the {@code Encoding} attribute
+     * Returns the <code>Encoding</code> attribute
      *
-     * @return the {@code Encoding} attribute
+     * @return the <code>Encoding</code> attribute
      */
     public String getEncoding() {
-        return getLocalAttribute(Constants._ATT_ENCODING);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_ENCODING);
     }
 
     /**
@@ -125,11 +127,10 @@ public class ObjectContainer extends SignatureElementProxy {
      * @return the new node in the tree.
      */
     public Node appendChild(Node node) {
-        appendSelf(node);
-        return node;
+        return this.constructionElement.appendChild(node);
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_OBJECT;
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,15 +22,18 @@
  */
 package com.sun.org.apache.xml.internal.security.exceptions;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 
+import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.I18n;
 
 /**
  * The mother of all Exceptions in this bundle. It allows exceptions to have
  * their messages translated to the different locales.
  *
- * The {@code xmlsecurity_en.properties} file contains this line:
+ * The <code>xmlsecurity_en.properties</code> file contains this line:
  * <pre>
  * xml.WrongElement = Can't create a {0} from a {1} element
  * </pre>
@@ -44,7 +47,7 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  * }
  * </pre>
  *
- * Additionally, if another Exception has been caught, we can supply it, too
+ * Additionally, if another Exception has been caught, we can supply it, too>
  * <pre>
  * try {
  *    ...
@@ -56,6 +59,7 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  * </pre>
  *
  *
+ * @author Christian Geuer-Pollmann
  */
 public class XMLSecurityException extends Exception {
 
@@ -94,7 +98,7 @@ public class XMLSecurityException extends Exception {
      * @param msgID
      * @param exArgs
      */
-    public XMLSecurityException(String msgID, Object[] exArgs) {
+    public XMLSecurityException(String msgID, Object exArgs[]) {
 
         super(MessageFormat.format(I18n.getExceptionMessage(msgID), exArgs));
 
@@ -108,7 +112,11 @@ public class XMLSecurityException extends Exception {
      */
     public XMLSecurityException(Exception originalException) {
 
-        super(originalException.getMessage(), originalException);
+        super("Missing message ID to locate message string in resource bundle \""
+              + Constants.exceptionMessagesResourceBundleBase
+              + "\". Original Exception was a "
+              + originalException.getClass().getName() + " and message "
+              + originalException.getMessage(), originalException);
     }
 
     /**
@@ -117,15 +125,10 @@ public class XMLSecurityException extends Exception {
      * @param msgID
      * @param originalException
      */
-    public XMLSecurityException(Exception originalException, String msgID) {
+    public XMLSecurityException(String msgID, Exception originalException) {
         super(I18n.getExceptionMessage(msgID, originalException), originalException);
 
         this.msgID = msgID;
-    }
-
-    @Deprecated
-    public XMLSecurityException(String msgID, Exception originalException) {
-        this(originalException, msgID);
     }
 
     /**
@@ -135,17 +138,11 @@ public class XMLSecurityException extends Exception {
      * @param exArgs
      * @param originalException
      */
-    public XMLSecurityException(Exception originalException, String msgID, Object[] exArgs) {
+    public XMLSecurityException(String msgID, Object exArgs[], Exception originalException) {
         super(MessageFormat.format(I18n.getExceptionMessage(msgID), exArgs), originalException);
 
         this.msgID = msgID;
     }
-
-    @Deprecated
-    public XMLSecurityException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
-    }
-
 
     /**
      * Method getMsgID
@@ -159,7 +156,7 @@ public class XMLSecurityException extends Exception {
         return msgID;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String toString() {
         String s = this.getClass().getName();
         String message = super.getLocalizedMessage();
@@ -185,6 +182,24 @@ public class XMLSecurityException extends Exception {
         synchronized (System.err) {
             super.printStackTrace(System.err);
         }
+    }
+
+    /**
+     * Method printStackTrace
+     *
+     * @param printwriter
+     */
+    public void printStackTrace(PrintWriter printwriter) {
+        super.printStackTrace(printwriter);
+    }
+
+    /**
+     * Method printStackTrace
+     *
+     * @param printstream
+     */
+    public void printStackTrace(PrintStream printstream) {
+        super.printStackTrace(printstream);
     }
 
     /**

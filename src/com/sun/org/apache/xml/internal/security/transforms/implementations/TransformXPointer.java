@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,6 +33,7 @@ import com.sun.org.apache.xml.internal.security.transforms.Transforms;
 /**
  * Class TransformXPointer
  *
+ * @author Christian Geuer-Pollmann
  */
 public class TransformXPointer extends TransformSpi {
 
@@ -41,7 +42,7 @@ public class TransformXPointer extends TransformSpi {
         Transforms.TRANSFORM_XPOINTER;
 
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     protected String engineGetURI() {
         return implementedTransformURI;
     }

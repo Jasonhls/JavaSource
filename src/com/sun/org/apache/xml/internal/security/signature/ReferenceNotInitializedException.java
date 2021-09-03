@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,6 +26,7 @@ package com.sun.org.apache.xml.internal.security.signature;
  * Raised if verifying a {@link com.sun.org.apache.xml.internal.security.signature.Reference} fails
  * because of an uninitialized {@link com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput}
  *
+ * @author Christian Geuer-Pollmann
  */
 public class ReferenceNotInitializedException extends XMLSignatureException {
 
@@ -40,10 +41,6 @@ public class ReferenceNotInitializedException extends XMLSignatureException {
      */
     public ReferenceNotInitializedException() {
         super();
-    }
-
-    public ReferenceNotInitializedException(Exception ex) {
-        super(ex);
     }
 
     /**
@@ -68,31 +65,21 @@ public class ReferenceNotInitializedException extends XMLSignatureException {
     /**
      * Constructor ReferenceNotInitializedException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public ReferenceNotInitializedException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public ReferenceNotInitializedException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor ReferenceNotInitializedException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public ReferenceNotInitializedException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public ReferenceNotInitializedException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public ReferenceNotInitializedException(String msgID, Object exArgs[], Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 }

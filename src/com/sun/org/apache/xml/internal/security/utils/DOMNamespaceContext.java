@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,7 +25,6 @@ package com.sun.org.apache.xml.internal.security.utils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.xml.namespace.NamespaceContext;
 
@@ -38,7 +37,7 @@ import org.w3c.dom.Node;
  */
 public class DOMNamespaceContext implements NamespaceContext {
 
-    private Map<String, String> namespaceMap = new HashMap<>();
+    private Map<String, String> namespaceMap = new HashMap<String, String>();
 
     public DOMNamespaceContext(Node contextNode) {
         addNamespaces(contextNode);
@@ -49,9 +48,10 @@ public class DOMNamespaceContext implements NamespaceContext {
     }
 
     public String getPrefix(String arg0) {
-        for (Entry<String, String> entry : namespaceMap.entrySet()) {
-            if (entry.getValue().equals(arg0)) {
-                return entry.getKey();
+        for (String key : namespaceMap.keySet()) {
+            String value = namespaceMap.get(key);
+            if (value.equals(arg0)) {
+                return key;
             }
         }
         return null;

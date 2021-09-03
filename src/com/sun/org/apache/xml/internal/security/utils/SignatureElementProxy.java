@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,11 +29,12 @@ import org.w3c.dom.Element;
 /**
  * Class SignatureElementProxy
  *
+ * @author $Author: coheigea $
  */
 public abstract class SignatureElementProxy extends ElementProxy {
 
     protected SignatureElementProxy() {
-    }
+    };
 
     /**
      * Constructor SignatureElementProxy
@@ -45,24 +46,24 @@ public abstract class SignatureElementProxy extends ElementProxy {
             throw new RuntimeException("Document is null");
         }
 
-        setDocument(doc);
-        setElement(XMLUtils.createElementInSignatureSpace(doc,
-                this.getBaseLocalName()));
+        this.doc = doc;
+        this.constructionElement =
+            XMLUtils.createElementInSignatureSpace(this.doc, this.getBaseLocalName());
     }
 
     /**
      * Constructor SignatureElementProxy
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public SignatureElementProxy(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public SignatureElementProxy(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
 
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseNamespace() {
         return Constants.SignatureSpecNS;
     }

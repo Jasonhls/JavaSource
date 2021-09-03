@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -35,8 +35,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Provides content model support for the {@code dsig11:DEREncodedKeyvalue} element.
+ * Provides content model support for the <code>dsig11:DEREncodedKeyvalue</code> element.
  *
+ * @author Brent Putman (putmanb@georgetown.edu)
  */
 public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyInfoContent {
 
@@ -47,11 +48,11 @@ public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyIn
      * Constructor DEREncodedKeyValue
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public DEREncodedKeyValue(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public DEREncodedKeyValue(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
     }
 
     /**
@@ -71,7 +72,7 @@ public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyIn
      * Constructor DEREncodedKeyValue
      *
      * @param doc
-     * @param encodedKey
+     * @param base64EncodedKey
      */
     public DEREncodedKeyValue(Document doc, byte[] encodedKey) {
         super(doc);
@@ -80,24 +81,29 @@ public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyIn
     }
 
     /**
-     * Sets the {@code Id} attribute
+     * Sets the <code>Id</code> attribute
      *
-     * @param id ID
+     * @param Id ID
      */
     public void setId(String id) {
-        setLocalIdAttribute(Constants._ATT_ID, id);
+        if (id != null) {
+            this.constructionElement.setAttributeNS(null, Constants._ATT_ID, id);
+            this.constructionElement.setIdAttributeNS(null, Constants._ATT_ID, true);
+        } else {
+            this.constructionElement.removeAttributeNS(null, Constants._ATT_ID);
+        }
     }
 
     /**
-     * Returns the {@code Id} attribute
+     * Returns the <code>Id</code> attribute
      *
-     * @return the {@code Id} attribute
+     * @return the <code>Id</code> attribute
      */
     public String getId() {
-        return getLocalAttribute(Constants._ATT_ID);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_ID);
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_DERENCODEDKEYVALUE;
     }
@@ -120,9 +126,9 @@ public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyIn
                 if (publicKey != null) {
                     return publicKey;
                 }
-            } catch (NoSuchAlgorithmException e) { //NOPMD
+            } catch (NoSuchAlgorithmException e) {
                 // Do nothing, try the next type
-            } catch (InvalidKeySpecException e) { //NOPMD
+            } catch (InvalidKeySpecException e) {
                 // Do nothing, try the next type
             }
         }
@@ -142,10 +148,10 @@ public class DEREncodedKeyValue extends Signature11ElementProxy implements KeyIn
             return keySpec.getEncoded();
         } catch (NoSuchAlgorithmException e) {
             Object exArgs[] = { publicKey.getAlgorithm(), publicKey.getFormat(), publicKey.getClass().getName() };
-            throw new XMLSecurityException(e, "DEREncodedKeyValue.UnsupportedPublicKey", exArgs);
+            throw new XMLSecurityException("DEREncodedKeyValue.UnsupportedPublicKey", exArgs, e);
         } catch (InvalidKeySpecException e) {
             Object exArgs[] = { publicKey.getAlgorithm(), publicKey.getFormat(), publicKey.getClass().getName() };
-            throw new XMLSecurityException(e, "DEREncodedKeyValue.UnsupportedPublicKey", exArgs);
+            throw new XMLSecurityException("DEREncodedKeyValue.UnsupportedPublicKey", exArgs, e);
         }
     }
 

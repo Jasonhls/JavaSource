@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,8 +29,9 @@ package com.sun.org.apache.xml.internal.security.utils;
  * <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-TransformAlg">XML
  * Signature specification</A>.
  *
+ * @author $Author: coheigea $
  */
-public final class Constants {
+public class Constants {
 
     /** Field configurationFile */
     public static final String configurationFile = "data/websig.conf";
@@ -40,9 +41,9 @@ public final class Constants {
 
     /** Field exceptionMessagesResourceBundleDir */
     public static final String exceptionMessagesResourceBundleDir =
-        "com.sun.org.apache.xml.internal.security/resource";
+        "com/sun/org/apache/xml/internal/security/resource";
 
-    /** Field exceptionMessagesResourceBundleBase is the location of the {@code ResourceBundle} */
+    /** Field exceptionMessagesResourceBundleBase is the location of the <CODE>ResourceBundle</CODE> */
     public static final String exceptionMessagesResourceBundleBase =
         exceptionMessagesResourceBundleDir + "/" + "xmlsecurity";
 
@@ -67,9 +68,6 @@ public final class Constants {
 
     /** The URL for more algorithms **/
     public static final String MoreAlgorithmsSpecNS = "http://www.w3.org/2001/04/xmldsig-more#";
-
-    /** The (newer) URL for more algorithms **/
-    public static final String XML_DSIG_NS_MORE_07_05 = "http://www.w3.org/2007/05/xmldsig-more#";
 
     /** The URI for XML spec*/
     public static final String XML_LANG_SPACE_SpecNS = "http://www.w3.org/XML/1998/namespace";
@@ -199,7 +197,7 @@ public final class Constants {
     public static final String _TAG_P = "P";
 
     /** Tag of Element Q **/
-    public static final String _TAG_Q = "Q";
+    public static final String _TAG_Q   = "Q";
 
     /** Tag of Element G **/
     public static final String _TAG_G = "G";
@@ -209,9 +207,6 @@ public final class Constants {
 
     /** Tag of Element J **/
     public static final String _TAG_J = "J";
-
-    /** Tag of Element ECKeyValue **/
-    public static final String _TAG_ECKEYVALUE = "ECKeyValue";
 
     /** Tag of Element Seed **/
     public static final String _TAG_SEED = "Seed";

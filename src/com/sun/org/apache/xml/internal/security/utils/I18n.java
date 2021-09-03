@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,6 +29,7 @@ import java.util.ResourceBundle;
 /**
  * The Internationalization (I18N) pack.
  *
+ * @author Christian Geuer-Pollmann
  */
 public class I18n {
 
@@ -56,13 +57,13 @@ public class I18n {
      * Method translate
      *
      * translates a message ID into an internationalized String, see alse
-     * {@code XMLSecurityException.getExceptionMEssage()}. The strings are
-     * stored in the {@code ResourceBundle}, which is identified in
-     * {@code exceptionMessagesResourceBundleBase}
+     * <CODE>XMLSecurityException.getExceptionMEssage()</CODE>. The strings are
+     * stored in the <CODE>ResourceBundle</CODE>, which is identified in
+     * <CODE>exceptionMessagesResourceBundleBase</CODE>
      *
      * @param message
-     * @param args is an {@code Object[]} array of strings which are inserted into
-     * the String which is retrieved from the {@code ResouceBundle}
+     * @param args is an <CODE>Object[]</CODE> array of strings which are inserted into
+     * the String which is retrieved from the <CODE>ResouceBundle</CODE>
      * @return message translated
      */
     public static String translate(String message, Object[] args) {
@@ -73,7 +74,7 @@ public class I18n {
      * Method translate
      *
      * translates a message ID into an internationalized String, see also
-     * {@code XMLSecurityException.getExceptionMessage()}
+     * <CODE>XMLSecurityException.getExceptionMessage()</CODE>
      *
      * @param message
      * @return message translated
@@ -152,7 +153,7 @@ public class I18n {
      * @param languageCode
      * @param countryCode
      */
-    public static synchronized void init(String languageCode, String countryCode) {
+    public synchronized static void init(String languageCode, String countryCode) {
         if (alreadyInitialized) {
             return;
         }
@@ -162,19 +163,6 @@ public class I18n {
                 Constants.exceptionMessagesResourceBundleBase,
                 new Locale(languageCode, countryCode)
             );
-        alreadyInitialized = true;
-    }
-
-    /**
-     * Method init
-     * @param resourceBundle
-     */
-    public static synchronized void init(ResourceBundle resourceBundle) {
-        if (alreadyInitialized) {
-            return;
-        }
-
-        I18n.resourceBundle = resourceBundle;
         alreadyInitialized = true;
     }
 }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -39,11 +39,12 @@ import org.w3c.dom.Element;
 
 public class X509IssuerSerialResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(X509IssuerSerialResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(X509IssuerSerialResolver.class.getName());
 
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public PublicKey engineLookupAndResolvePublicKey(
         Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
@@ -58,20 +59,26 @@ public class X509IssuerSerialResolver extends KeyResolverSpi {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public X509Certificate engineLookupResolveX509Certificate(
         Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
-        LOG.debug("Can I resolve {}?", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName() + "?");
+        }
 
         X509Data x509data = null;
         try {
             x509data = new X509Data(element, baseURI);
         } catch (XMLSignatureException ex) {
-            LOG.debug("I can't");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         } catch (XMLSecurityException ex) {
-            LOG.debug("I can't");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         }
 
@@ -84,7 +91,9 @@ public class X509IssuerSerialResolver extends KeyResolverSpi {
                 KeyResolverException ex =
                     new KeyResolverException("KeyResolver.needStorageResolver", exArgs);
 
-                LOG.debug("", ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "", ex);
+                }
                 throw ex;
             }
 
@@ -95,32 +104,44 @@ public class X509IssuerSerialResolver extends KeyResolverSpi {
                 X509Certificate cert = (X509Certificate)storageIterator.next();
                 XMLX509IssuerSerial certSerial = new XMLX509IssuerSerial(element.getOwnerDocument(), cert);
 
-                LOG.debug("Found Certificate Issuer: {}", certSerial.getIssuerName());
-                LOG.debug("Found Certificate Serial: {}", certSerial.getSerialNumber().toString());
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Found Certificate Issuer: " + certSerial.getIssuerName());
+                    log.log(java.util.logging.Level.FINE, "Found Certificate Serial: " + certSerial.getSerialNumber().toString());
+                }
 
                 for (int i = 0; i < noOfISS; i++) {
                     XMLX509IssuerSerial xmliss = x509data.itemIssuerSerial(i);
 
-                    LOG.debug("Found Element Issuer:     {}", xmliss.getIssuerName());
-                    LOG.debug("Found Element Serial:     {}", xmliss.getSerialNumber().toString());
+                    if (log.isLoggable(java.util.logging.Level.FINE)) {
+                        log.log(java.util.logging.Level.FINE, "Found Element Issuer:     "
+                                  + xmliss.getIssuerName());
+                        log.log(java.util.logging.Level.FINE, "Found Element Serial:     "
+                                  + xmliss.getSerialNumber().toString());
+                    }
 
                     if (certSerial.equals(xmliss)) {
-                        LOG.debug("match !!! ");
+                        if (log.isLoggable(java.util.logging.Level.FINE)) {
+                            log.log(java.util.logging.Level.FINE, "match !!! ");
+                        }
                         return cert;
                     }
-                    LOG.debug("no match...");
+                    if (log.isLoggable(java.util.logging.Level.FINE)) {
+                        log.log(java.util.logging.Level.FINE, "no match...");
+                    }
                 }
             }
 
             return null;
         } catch (XMLSecurityException ex) {
-            LOG.debug("XMLSecurityException", ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", ex);
+            }
 
-            throw new KeyResolverException(ex);
+            throw new KeyResolverException("generic.EmptyMessage", ex);
         }
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public javax.crypto.SecretKey engineLookupAndResolveSecretKey(
         Element element, String baseURI, StorageResolver storage
     ) {

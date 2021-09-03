@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,6 +28,7 @@ import com.sun.org.apache.xml.internal.security.utils.SignatureElementProxy;
 import org.w3c.dom.Element;
 
 /**
+ * @author $Author: coheigea $
  * $todo$ Implement
  */
 public class PGPData extends SignatureElementProxy implements KeyInfoContent {
@@ -36,14 +37,14 @@ public class PGPData extends SignatureElementProxy implements KeyInfoContent {
      * Constructor PGPData
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public PGPData(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public PGPData(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_PGPDATA;
     }

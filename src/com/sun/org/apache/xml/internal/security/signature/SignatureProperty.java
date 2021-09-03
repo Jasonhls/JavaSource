@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -30,18 +30,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- * Handles {@code &lt;ds:SignatureProperty&gt;} elements
+ * Handles <code>&lt;ds:SignatureProperty&gt;</code> elements
  * Additional information item concerning the generation of the signature(s) can
  * be placed in this Element
  *
+ * @author Christian Geuer-Pollmann
  */
 public class SignatureProperty extends SignatureElementProxy {
 
     /**
-     * Constructs{@link SignatureProperty} using specified {@code target} attribute
+     * Constructs{@link SignatureProperty} using specified <code>target</code> attribute
      *
-     * @param doc the {@link Document} in which {@code XMLsignature} is placed
-     * @param target the {@code target} attribute references the {@code Signature}
+     * @param doc the {@link Document} in which <code>XMLsignature</code> is placed
+     * @param target the <code>target</code> attribute references the <code>Signature</code>
      * element to which the property applies SignatureProperty
      */
     public SignatureProperty(Document doc, String target) {
@@ -49,13 +50,13 @@ public class SignatureProperty extends SignatureElementProxy {
     }
 
     /**
-     * Constructs {@link SignatureProperty} using sepcified {@code target} attribute and
-     * {@code id} attribute
+     * Constructs {@link SignatureProperty} using sepcified <code>target</code> attribute and
+     * <code>id</code> attribute
      *
-     * @param doc the {@link Document} in which {@code XMLsignature} is placed
-     * @param target the {@code target} attribute references the {@code Signature}
+     * @param doc the {@link Document} in which <code>XMLsignature</code> is placed
+     * @param target the <code>target</code> attribute references the <code>Signature</code>
      *  element to which the property applies
-     * @param id the {@code id} will be specified by {@link Reference#getURI} in validation
+     * @param id the <code>id</code> will be specified by {@link Reference#getURI} in validation
      */
     public SignatureProperty(Document doc, String target, String id) {
         super(doc);
@@ -66,52 +67,53 @@ public class SignatureProperty extends SignatureElementProxy {
 
     /**
      * Constructs a {@link SignatureProperty} from an {@link Element}
-     * @param element {@code SignatureProperty} element
-     * @param baseURI the URI of the resource where the XML instance was stored
+     * @param element <code>SignatureProperty</code> element
+     * @param BaseURI the URI of the resource where the XML instance was stored
      * @throws XMLSecurityException
      */
-    public SignatureProperty(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public SignatureProperty(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
     }
 
     /**
-     *   Sets the {@code id} attribute
+     *   Sets the <code>id</code> attribute
      *
-     *   @param id the {@code id} attribute
+     *   @param id the <code>id</code> attribute
      */
     public void setId(String id) {
         if (id != null) {
-            setLocalIdAttribute(Constants._ATT_ID, id);
+            this.constructionElement.setAttributeNS(null, Constants._ATT_ID, id);
+            this.constructionElement.setIdAttributeNS(null, Constants._ATT_ID, true);
         }
     }
 
     /**
-     * Returns the {@code id} attribute
+     * Returns the <code>id</code> attribute
      *
-     * @return the {@code id} attribute
+     * @return the <code>id</code> attribute
      */
     public String getId() {
-        return getLocalAttribute(Constants._ATT_ID);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_ID);
     }
 
     /**
-     * Sets the {@code target} attribute
+     * Sets the <code>target</code> attribute
      *
-     * @param target the {@code target} attribute
+     * @param target the <code>target</code> attribute
      */
     public void setTarget(String target) {
         if (target != null) {
-            setLocalAttribute(Constants._ATT_TARGET, target);
+            this.constructionElement.setAttributeNS(null, Constants._ATT_TARGET, target);
         }
     }
 
     /**
-     * Returns the {@code target} attribute
+     * Returns the <code>target</code> attribute
      *
-     * @return the {@code target} attribute
+     * @return the <code>target</code> attribute
      */
     public String getTarget() {
-        return getLocalAttribute(Constants._ATT_TARGET);
+        return this.constructionElement.getAttributeNS(null, Constants._ATT_TARGET);
     }
 
     /**
@@ -121,11 +123,10 @@ public class SignatureProperty extends SignatureElementProxy {
      * @return the node in this element.
      */
     public Node appendChild(Node node) {
-        appendSelf(node);
-        return node;
+        return this.constructionElement.appendChild(node);
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_SIGNATUREPROPERTY;
     }

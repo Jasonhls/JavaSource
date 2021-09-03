@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,13 +29,15 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.RFC2253Parser;
 import com.sun.org.apache.xml.internal.security.utils.SignatureElementProxy;
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class XMLX509IssuerSerial extends SignatureElementProxy implements XMLX509DataContent {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(XMLX509IssuerSerial.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(XMLX509IssuerSerial.class.getName());
 
     /**
      * Constructor XMLX509IssuerSerial
@@ -57,7 +59,7 @@ public class XMLX509IssuerSerial extends SignatureElementProxy implements XMLX50
      */
     public XMLX509IssuerSerial(Document doc, String x509IssuerName, BigInteger x509SerialNumber) {
         super(doc);
-        addReturnToSelf();
+        XMLUtils.addReturnToElement(this.constructionElement);
         addTextElement(x509IssuerName, Constants._TAG_X509ISSUERNAME);
         addTextElement(x509SerialNumber.toString(), Constants._TAG_X509SERIALNUMBER);
     }
@@ -106,7 +108,9 @@ public class XMLX509IssuerSerial extends SignatureElementProxy implements XMLX50
     public BigInteger getSerialNumber() {
         String text =
             this.getTextFromChildElement(Constants._TAG_X509SERIALNUMBER, Constants.SignatureSpecNS);
-        LOG.debug("X509SerialNumber text: {}", text);
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "X509SerialNumber text: " + text);
+        }
 
         return new BigInteger(text);
     }
@@ -131,7 +135,7 @@ public class XMLX509IssuerSerial extends SignatureElementProxy implements XMLX50
         );
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public boolean equals(Object obj) {
         if (!(obj instanceof XMLX509IssuerSerial)) {
             return false;
@@ -150,7 +154,7 @@ public class XMLX509IssuerSerial extends SignatureElementProxy implements XMLX50
         return result;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_X509ISSUERSERIAL;
     }

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,9 +32,10 @@ import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
 
 /**
- * Implements the {@code http://www.w3.org/TR/2001/REC-xml-c14n-20010315}
+ * Implements the <CODE>http://www.w3.org/TR/2001/REC-xml-c14n-20010315</CODE>
  * transform.
  *
+ * @author Christian Geuer-Pollmann
  */
 public class TransformC14N extends TransformSpi {
 
@@ -43,7 +44,7 @@ public class TransformC14N extends TransformSpi {
         Transforms.TRANSFORM_C14N_OMIT_COMMENTS;
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected String engineGetURI() {
         return TransformC14N.implementedTransformURI;
@@ -53,14 +54,12 @@ public class TransformC14N extends TransformSpi {
         XMLSignatureInput input, OutputStream os, Transform transformObject
     ) throws CanonicalizationException {
         Canonicalizer20010315OmitComments c14n = new Canonicalizer20010315OmitComments();
-        c14n.setSecureValidation(secureValidation);
         if (os != null) {
             c14n.setWriter(os);
         }
         byte[] result = null;
         result = c14n.engineCanonicalize(input);
         XMLSignatureInput output = new XMLSignatureInput(result);
-        output.setSecureValidation(secureValidation);
         if (os != null) {
             output.setOutputStream(os);
         }

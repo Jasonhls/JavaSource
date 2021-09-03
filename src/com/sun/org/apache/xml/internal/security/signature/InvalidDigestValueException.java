@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,6 +27,7 @@ package com.sun.org.apache.xml.internal.security.signature;
  * Additional human readable info is passed to the constructor -- this being the benefit
  * of raising an exception or returning a value.
  *
+ * @author Christian Geuer-Pollmann
  */
 public class InvalidDigestValueException extends XMLSignatureException {
 
@@ -65,31 +66,21 @@ public class InvalidDigestValueException extends XMLSignatureException {
     /**
      * Constructor InvalidDigestValueException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public InvalidDigestValueException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public InvalidDigestValueException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor InvalidDigestValueException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public InvalidDigestValueException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public InvalidDigestValueException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public InvalidDigestValueException(String msgID, Object exArgs[], Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 }

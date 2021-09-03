@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -39,15 +39,16 @@ import org.w3c.dom.Element;
 
 public class X509SubjectNameResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(X509SubjectNameResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(X509SubjectNameResolver.class.getName());
 
 
     /**
      * Method engineResolvePublicKey
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @param storage
      * @return null if no {@link PublicKey} could be obtained
      * @throws KeyResolverException
@@ -68,7 +69,7 @@ public class X509SubjectNameResolver extends KeyResolverSpi {
 
     /**
      * Method engineResolveX509Certificate
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
      * @param baseURI
      * @param storage
@@ -78,19 +79,26 @@ public class X509SubjectNameResolver extends KeyResolverSpi {
     public X509Certificate engineLookupResolveX509Certificate(
         Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
-        LOG.debug("Can I resolve {}?", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName() + "?");
+        }
         Element[] x509childNodes = null;
         XMLX509SubjectName x509childObject[] = null;
 
         if (!XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_X509DATA)) {
-            LOG.debug("I can't");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         }
         x509childNodes =
             XMLUtils.selectDsNodes(element.getFirstChild(), Constants._TAG_X509SUBJECTNAME);
 
-        if (!(x509childNodes != null && x509childNodes.length > 0)) {
-            LOG.debug("I can't");
+        if (!((x509childNodes != null)
+            && (x509childNodes.length > 0))) {
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         }
 
@@ -100,7 +108,9 @@ public class X509SubjectNameResolver extends KeyResolverSpi {
                 KeyResolverException ex =
                     new KeyResolverException("KeyResolver.needStorageResolver", exArgs);
 
-                LOG.debug("", ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "", ex);
+                }
 
                 throw ex;
             }
@@ -117,31 +127,42 @@ public class X509SubjectNameResolver extends KeyResolverSpi {
                 XMLX509SubjectName certSN =
                     new XMLX509SubjectName(element.getOwnerDocument(), cert);
 
-                LOG.debug("Found Certificate SN: {}", certSN.getSubjectName());
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Found Certificate SN: " + certSN.getSubjectName());
+                }
 
                 for (int i = 0; i < x509childObject.length; i++) {
-                    LOG.debug("Found Element SN:     {}", x509childObject[i].getSubjectName());
+                    if (log.isLoggable(java.util.logging.Level.FINE)) {
+                        log.log(java.util.logging.Level.FINE, "Found Element SN:     "
+                              + x509childObject[i].getSubjectName());
+                    }
 
                     if (certSN.equals(x509childObject[i])) {
-                        LOG.debug("match !!! ");
+                        if (log.isLoggable(java.util.logging.Level.FINE)) {
+                            log.log(java.util.logging.Level.FINE, "match !!! ");
+                        }
 
                         return cert;
                     }
-                    LOG.debug("no match...");
+                    if (log.isLoggable(java.util.logging.Level.FINE)) {
+                        log.log(java.util.logging.Level.FINE, "no match...");
+                    }
                 }
             }
 
             return null;
         } catch (XMLSecurityException ex) {
-            LOG.debug("XMLSecurityException", ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", ex);
+            }
 
-            throw new KeyResolverException(ex);
+            throw new KeyResolverException("generic.EmptyMessage", ex);
         }
     }
 
     /**
      * Method engineResolveSecretKey
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
      * @param baseURI
      * @param storage

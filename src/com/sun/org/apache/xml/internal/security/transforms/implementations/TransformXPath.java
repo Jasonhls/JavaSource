@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -44,9 +44,10 @@ import org.w3c.dom.Node;
 /**
  * Class TransformXPath
  *
- * Implements the {@code http://www.w3.org/TR/1999/REC-xpath-19991116}
+ * Implements the <CODE>http://www.w3.org/TR/1999/REC-xpath-19991116</CODE>
  * transform.
  *
+ * @author Christian Geuer-Pollmann
  * @see <a href="http://www.w3.org/TR/1999/REC-xpath-19991116">XPath</a>
  *
  */
@@ -58,7 +59,7 @@ public class TransformXPath extends TransformSpi {
     /**
      * Method engineGetURI
      *
-     * {@inheritDoc}
+     * @inheritDoc
      */
     protected String engineGetURI() {
         return implementedTransformURI;
@@ -66,7 +67,7 @@ public class TransformXPath extends TransformSpi {
 
     /**
      * Method enginePerformTransform
-     * {@inheritDoc}
+     * @inheritDoc
      * @param input
      *
      * @throws TransformationException
@@ -95,14 +96,14 @@ public class TransformXPath extends TransformSpi {
 
                 throw new TransformationException("xml.WrongContent", exArgs);
             }
-            Node xpathnode = xpathElement.getFirstChild();
+            Node xpathnode = xpathElement.getChildNodes().item(0);
+            String str = XMLUtils.getStrFromNode(xpathnode);
+            input.setNeedsToBeExpanded(needsCircumvent(str));
             if (xpathnode == null) {
                 throw new DOMException(
                     DOMException.HIERARCHY_REQUEST_ERR, "Text must be in ds:Xpath"
                 );
             }
-            String str = XMLUtils.getStrFromNode(xpathnode);
-            input.setNeedsToBeExpanded(needsCircumvent(str));
 
             XPathFactory xpathFactory = XPathFactory.newInstance();
             XPathAPI xpathAPIInstance = xpathFactory.newXPathAPI();
@@ -110,7 +111,7 @@ public class TransformXPath extends TransformSpi {
             input.setNodeSet(true);
             return input;
         } catch (DOMException ex) {
-            throw new TransformationException(ex);
+            throw new TransformationException("empty", ex);
         }
     }
 
@@ -119,7 +120,7 @@ public class TransformXPath extends TransformSpi {
      * @return true if needs to be circumvent for bug.
      */
     private boolean needsCircumvent(String str) {
-        return str.indexOf("namespace") != -1 || str.indexOf("name()") != -1;
+        return (str.indexOf("namespace") != -1) || (str.indexOf("name()") != -1);
     }
 
     static class XPathNodeFilter implements NodeFilter {
@@ -150,7 +151,7 @@ public class TransformXPath extends TransformSpi {
                 Object[] eArgs = {currentNode};
                 throw new XMLSecurityRuntimeException("signature.Transform.node", eArgs, e);
             } catch (Exception e) {
-                Object[] eArgs = {currentNode, currentNode.getNodeType()};
+                Object[] eArgs = {currentNode, Short.valueOf(currentNode.getNodeType())};
                 throw new XMLSecurityRuntimeException("signature.Transform.nodeAndType",eArgs, e);
             }
         }

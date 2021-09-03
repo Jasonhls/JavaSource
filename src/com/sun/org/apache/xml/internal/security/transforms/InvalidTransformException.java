@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,6 +26,7 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 
 /**
  *
+ * @author Christian Geuer-Pollmann
  */
 public class InvalidTransformException extends XMLSecurityException {
 
@@ -67,13 +68,8 @@ public class InvalidTransformException extends XMLSecurityException {
      * @param msgId
      * @param originalException
      */
-    public InvalidTransformException(Exception originalException, String msgId) {
-        super(originalException, msgId);
-    }
-
-    @Deprecated
-    public InvalidTransformException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+    public InvalidTransformException(String msgId, Exception originalException) {
+        super(msgId, originalException);
     }
 
     /**
@@ -83,12 +79,7 @@ public class InvalidTransformException extends XMLSecurityException {
      * @param exArgs
      * @param originalException
      */
-    public InvalidTransformException(Exception originalException, String msgId, Object exArgs[]) {
-        super(originalException, msgId, exArgs);
-    }
-
-    @Deprecated
-    public InvalidTransformException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public InvalidTransformException(String msgId, Object exArgs[], Exception originalException) {
+        super(msgId, exArgs, originalException);
     }
 }

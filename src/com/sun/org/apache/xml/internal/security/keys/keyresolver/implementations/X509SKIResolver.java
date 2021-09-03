@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -39,8 +39,9 @@ import org.w3c.dom.Element;
 
 public class X509SKIResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(X509SKIResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(X509SKIResolver.class.getName());
 
 
     /**
@@ -68,7 +69,7 @@ public class X509SKIResolver extends KeyResolverSpi {
 
     /**
      * Method engineResolveX509Certificate
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
      * @param baseURI
      * @param storage
@@ -78,9 +79,13 @@ public class X509SKIResolver extends KeyResolverSpi {
     public X509Certificate engineLookupResolveX509Certificate(
         Element element, String baseURI, StorageResolver storage
     ) throws KeyResolverException {
-        LOG.debug("Can I resolve {}?", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName() + "?");
+        }
         if (!XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_X509DATA)) {
-            LOG.debug("I can't");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         }
         /** Field _x509childObject[] */
@@ -89,8 +94,10 @@ public class X509SKIResolver extends KeyResolverSpi {
         Element x509childNodes[] = null;
         x509childNodes = XMLUtils.selectDsNodes(element.getFirstChild(), Constants._TAG_X509SKI);
 
-        if (!(x509childNodes != null && x509childNodes.length > 0)) {
-            LOG.debug("I can't");
+        if (!((x509childNodes != null) && (x509childNodes.length > 0))) {
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "I can't");
+            }
             return null;
         }
         try {
@@ -99,7 +106,9 @@ public class X509SKIResolver extends KeyResolverSpi {
                 KeyResolverException ex =
                     new KeyResolverException("KeyResolver.needStorageResolver", exArgs);
 
-                LOG.debug("", ex);
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "", ex);
+                }
 
                 throw ex;
             }
@@ -117,14 +126,16 @@ public class X509SKIResolver extends KeyResolverSpi {
 
                 for (int i = 0; i < x509childObject.length; i++) {
                     if (certSKI.equals(x509childObject[i])) {
-                        LOG.debug("Return PublicKey from {}", cert.getSubjectX500Principal().getName());
+                        if (log.isLoggable(java.util.logging.Level.FINE)) {
+                            log.log(java.util.logging.Level.FINE, "Return PublicKey from " + cert.getSubjectX500Principal().getName());
+                        }
 
                         return cert;
                     }
                 }
             }
         } catch (XMLSecurityException ex) {
-            throw new KeyResolverException(ex);
+            throw new KeyResolverException("empty", ex);
         }
 
         return null;
@@ -132,7 +143,7 @@ public class X509SKIResolver extends KeyResolverSpi {
 
     /**
      * Method engineResolveSecretKey
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
      * @param baseURI
      * @param storage

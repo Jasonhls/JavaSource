@@ -1,34 +1,20 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 package com.sun.org.apache.xml.internal.security.keys.keyresolver.implementations;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
 import javax.crypto.SecretKey;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
@@ -43,29 +29,34 @@ import com.sun.org.apache.xml.internal.security.utils.Constants;
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver;
 import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 /**
  * KeyResolverSpi implementation which resolves public keys, private keys, secret keys, and X.509 certificates from a
- * {@code dsig11:KeyInfoReference} element.
+ * <code>dsig11:KeyInfoReference</code> element.
  *
+ * @author Brent Putman (putmanb@georgetown.edu)
  */
 public class KeyInfoReferenceResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(KeyInfoReferenceResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(KeyInfoReferenceResolver.class.getName());
 
-    /** {{@inheritDoc}}. */
+    /** {@inheritDoc}. */
     public boolean engineCanResolve(Element element, String baseURI, StorageResolver storage) {
         return XMLUtils.elementIsInSignature11Space(element, Constants._TAG_KEYINFOREFERENCE);
     }
 
-    /** {{@inheritDoc}}. */
+    /** {@inheritDoc}. */
     public PublicKey engineLookupAndResolvePublicKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
-        LOG.debug("Can I resolve {}", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName());
+        }
 
         if (!engineCanResolve(element, baseURI, storage)) {
             return null;
@@ -77,17 +68,21 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
                 return referent.getPublicKey();
             }
         } catch (XMLSecurityException e) {
-            LOG.debug("XMLSecurityException", e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", e);
+            }
         }
 
         return null;
     }
 
-    /** {{@inheritDoc}}. */
+    /** {@inheritDoc}. */
     public X509Certificate engineLookupResolveX509Certificate(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
-        LOG.debug("Can I resolve {}", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName());
+        }
 
         if (!engineCanResolve(element, baseURI, storage)) {
             return null;
@@ -99,17 +94,21 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
                 return referent.getX509Certificate();
             }
         } catch (XMLSecurityException e) {
-            LOG.debug("XMLSecurityException", e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", e);
+            }
         }
 
         return null;
     }
 
-    /** {{@inheritDoc}}. */
+    /** {@inheritDoc}. */
     public SecretKey engineLookupAndResolveSecretKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
-        LOG.debug("Can I resolve {}", element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName());
+        }
 
         if (!engineCanResolve(element, baseURI, storage)) {
             return null;
@@ -121,17 +120,21 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
                 return referent.getSecretKey();
             }
         } catch (XMLSecurityException e) {
-            LOG.debug("XMLSecurityException", e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", e);
+            }
         }
 
         return null;
     }
 
-    /** {{@inheritDoc}}. */
+    /** {@inheritDoc}. */
     public PrivateKey engineLookupAndResolvePrivateKey(Element element, String baseURI, StorageResolver storage)
         throws KeyResolverException {
 
-        LOG.debug("Can I resolve " + element.getTagName());
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName());
+        }
 
         if (!engineCanResolve(element, baseURI, storage)) {
             return null;
@@ -143,7 +146,9 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
                 return referent.getPrivateKey();
             }
         } catch (XMLSecurityException e) {
-            LOG.debug("XMLSecurityException", e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", e);
+            }
         }
 
         return null;
@@ -168,12 +173,14 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
         try {
             referentElement = obtainReferenceElement(resource);
         } catch (Exception e) {
-            LOG.debug("XMLSecurityException", e);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", e);
+            }
             return null;
         }
 
         if (referentElement == null) {
-            LOG.debug("De-reference of KeyInfoReference URI returned null: {}", uriAttr.getValue());
+            log.log(java.util.logging.Level.FINE, "De-reference of KeyInfoReference URI returned null: " + uriAttr.getValue());
             return null;
         }
 
@@ -217,20 +224,21 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
      * @param uri
      * @param baseURI
      * @param secureValidation
-     * @return the XML signature input represented by the specified URI.
+     * @return
      * @throws XMLSecurityException
      */
     private XMLSignatureInput resolveInput(Attr uri, String baseURI, boolean secureValidation)
         throws XMLSecurityException {
         ResourceResolver resRes = ResourceResolver.getInstance(uri, baseURI, secureValidation);
-        return resRes.resolve(uri, baseURI, secureValidation);
+        XMLSignatureInput resource = resRes.resolve(uri, baseURI, secureValidation);
+        return resource;
     }
 
     /**
      * Resolve the Element effectively represented by the XML signature input source.
      *
      * @param resource
-     * @return the Element effectively represented by the XML signature input source.
+     * @return
      * @throws CanonicalizationException
      * @throws ParserConfigurationException
      * @throws IOException
@@ -245,13 +253,38 @@ public class KeyInfoReferenceResolver extends KeyResolverSpi {
         if (resource.isElement()){
             e = (Element) resource.getSubNode();
         } else if (resource.isNodeSet()) {
-            LOG.debug("De-reference of KeyInfoReference returned an unsupported NodeSet");
+            log.log(java.util.logging.Level.FINE, "De-reference of KeyInfoReference returned an unsupported NodeSet");
             return null;
         } else {
             // Retrieved resource is a byte stream
             byte inputBytes[] = resource.getBytes();
-            e = getDocFromBytes(inputBytes, this.secureValidation);
+            e = getDocFromBytes(inputBytes);
         }
         return e;
     }
+
+    /**
+     * Parses a byte array and returns the parsed Element.
+     *
+     * @param bytes
+     * @return the Document Element after parsing bytes
+     * @throws KeyResolverException if something goes wrong
+     */
+    private Element getDocFromBytes(byte[] bytes) throws KeyResolverException {
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(new ByteArrayInputStream(bytes));
+            return doc.getDocumentElement();
+        } catch (SAXException ex) {
+            throw new KeyResolverException("empty", ex);
+        } catch (IOException ex) {
+            throw new KeyResolverException("empty", ex);
+        } catch (ParserConfigurationException ex) {
+            throw new KeyResolverException("empty", ex);
+        }
+    }
+
 }

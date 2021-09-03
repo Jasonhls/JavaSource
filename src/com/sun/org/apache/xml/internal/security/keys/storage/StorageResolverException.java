@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -40,10 +40,6 @@ public class StorageResolverException extends XMLSecurityException {
         super();
     }
 
-    public StorageResolverException(Exception ex) {
-        super(ex);
-    }
-
     /**
      * Constructor StorageResolverException
      *
@@ -66,31 +62,22 @@ public class StorageResolverException extends XMLSecurityException {
     /**
      * Constructor StorageResolverException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public StorageResolverException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public StorageResolverException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor StorageResolverException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
-    public StorageResolverException(Exception originalException, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public StorageResolverException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+    public StorageResolverException(String msgID, Object exArgs[],
+                                    Exception originalException) {
+        super(msgID, exArgs, originalException);
     }
 }

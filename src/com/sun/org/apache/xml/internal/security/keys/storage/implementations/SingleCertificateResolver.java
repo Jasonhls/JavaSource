@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,7 +36,7 @@ import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverSpi;
 public class SingleCertificateResolver extends StorageResolverSpi {
 
     /** Field certificate */
-    private X509Certificate certificate;
+    private X509Certificate certificate = null;
 
     /**
      * @param x509cert the single {@link X509Certificate}
@@ -45,7 +45,7 @@ public class SingleCertificateResolver extends StorageResolverSpi {
         this.certificate = x509cert;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public Iterator<Certificate> getIterator() {
         return new InternalIterator(this.certificate);
     }
@@ -70,12 +70,12 @@ public class SingleCertificateResolver extends StorageResolverSpi {
             this.certificate = x509cert;
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public boolean hasNext() {
             return !this.alreadyReturned;
         }
 
-        /** {@inheritDoc} */
+        /** @inheritDoc */
         public Certificate next() {
             if (this.alreadyReturned) {
                 throw new NoSuchElementException();

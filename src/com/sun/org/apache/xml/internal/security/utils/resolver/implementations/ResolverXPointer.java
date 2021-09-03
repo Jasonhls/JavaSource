@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,10 +33,10 @@ import org.w3c.dom.Node;
 
 /**
  * Handles barename XPointer Reference URIs.
- * <p></p>
+ * <BR />
  * To retain comments while selecting an element by an identifier ID,
  * use the following full XPointer: URI='#xpointer(id('ID'))'.
- * <p></p>
+ * <BR />
  * To retain comments while selecting the entire document,
  * use the following full XPointer: URI='#xpointer(/)'.
  * This XPointer contains a simple XPath expression that includes
@@ -44,11 +44,13 @@ import org.w3c.dom.Node;
  * nodes of the parse tree (all descendants, plus all attributes,
  * plus all namespaces nodes).
  *
+ * @author $Author: coheigea $
  */
 public class ResolverXPointer extends ResourceResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(ResolverXPointer.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(ResolverXPointer.class.getName());
 
     private static final String XP = "#xpointer(id(";
     private static final int XP_LENGTH = XP.length();
@@ -59,7 +61,7 @@ public class ResolverXPointer extends ResourceResolverSpi {
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     @Override
     public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
@@ -79,7 +81,7 @@ public class ResolverXPointer extends ResourceResolverSpi {
                 if (!XMLUtils.protectAgainstWrappingAttack(start, id)) {
                     Object exArgs[] = { id };
                     throw new ResourceResolverException(
-                        "signature.Verification.MultipleIDs", exArgs, context.uriToResolve, context.baseUri
+                        "signature.Verification.MultipleIDs", exArgs, context.attr, context.baseUri
                     );
                 }
             }
@@ -88,13 +90,12 @@ public class ResolverXPointer extends ResourceResolverSpi {
                 Object exArgs[] = { id };
 
                 throw new ResourceResolverException(
-                    "signature.Verification.MissingID", exArgs, context.uriToResolve, context.baseUri
+                    "signature.Verification.MissingID", exArgs, context.attr, context.baseUri
                 );
             }
         }
 
         XMLSignatureInput result = new XMLSignatureInput(resultNode);
-        result.setSecureValidation(context.secureValidation);
 
         result.setMIMEType("text/xml");
         if (context.baseUri != null && context.baseUri.length() > 0) {
@@ -107,7 +108,7 @@ public class ResolverXPointer extends ResourceResolverSpi {
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public boolean engineCanResolveURI(ResourceResolverContext context) {
         if (context.uriToResolve == null) {
@@ -145,9 +146,11 @@ public class ResolverXPointer extends ResourceResolverSpi {
             String idPlusDelim = uri.substring(XP_LENGTH, uri.length() - 2);
 
             int idLen = idPlusDelim.length() -1;
-            if (idPlusDelim.charAt(0) == '"' && idPlusDelim.charAt(idLen) == '"'
-                || idPlusDelim.charAt(0) == '\'' && idPlusDelim.charAt(idLen) == '\'') {
-                LOG.debug("Id = {}", idPlusDelim.substring(1, idLen));
+            if (((idPlusDelim.charAt(0) == '"') && (idPlusDelim.charAt(idLen) == '"'))
+                || ((idPlusDelim.charAt(0) == '\'') && (idPlusDelim.charAt(idLen) == '\''))) {
+                if (log.isLoggable(java.util.logging.Level.FINE)) {
+                    log.log(java.util.logging.Level.FINE, "Id = " + idPlusDelim.substring(1, idLen));
+                }
                 return true;
             }
         }
@@ -163,11 +166,11 @@ public class ResolverXPointer extends ResourceResolverSpi {
      */
     private static String getXPointerId(String uri) {
         if (uri.startsWith(XP) && uri.endsWith("))")) {
-            String idPlusDelim = uri.substring(XP_LENGTH, uri.length() - 2);
+            String idPlusDelim = uri.substring(XP_LENGTH,uri.length() - 2);
 
             int idLen = idPlusDelim.length() -1;
-            if (idPlusDelim.charAt(0) == '"' && idPlusDelim.charAt(idLen) == '"'
-                || idPlusDelim.charAt(0) == '\'' && idPlusDelim.charAt(idLen) == '\'') {
+            if (((idPlusDelim.charAt(0) == '"') && (idPlusDelim.charAt(idLen) == '"'))
+                || ((idPlusDelim.charAt(0) == '\'') && (idPlusDelim.charAt(idLen) == '\''))) {
                 return idPlusDelim.substring(1, idLen);
             }
         }

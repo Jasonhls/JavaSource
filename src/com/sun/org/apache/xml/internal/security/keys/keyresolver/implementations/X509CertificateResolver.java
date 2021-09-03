@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,29 +36,31 @@ import org.w3c.dom.Element;
 
 /**
  * Resolves Certificates which are directly contained inside a
- * {@code ds:X509Certificate} Element.
+ * <CODE>ds:X509Certificate</CODE> Element.
  *
+ * @author $Author: coheigea $
  */
 public class X509CertificateResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(X509CertificateResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(X509CertificateResolver.class.getName());
 
     /**
      * Method engineResolvePublicKey
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @param storage
      *
      * @throws KeyResolverException
      */
     public PublicKey engineLookupAndResolvePublicKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) throws KeyResolverException {
 
         X509Certificate cert =
-            this.engineLookupResolveX509Certificate(element, baseURI, storage);
+            this.engineLookupResolveX509Certificate(element, BaseURI, storage);
 
         if (cert != null) {
             return cert.getPublicKey();
@@ -69,32 +71,32 @@ public class X509CertificateResolver extends KeyResolverSpi {
 
     /**
      * Method engineResolveX509Certificate
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @param storage
      *
      * @throws KeyResolverException
      */
     public X509Certificate engineLookupResolveX509Certificate(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) throws KeyResolverException {
 
         try {
             Element[] els =
                 XMLUtils.selectDsNodes(element.getFirstChild(), Constants._TAG_X509CERTIFICATE);
-            if (els == null || els.length == 0) {
+            if ((els == null) || (els.length == 0)) {
                 Element el =
                     XMLUtils.selectDsNode(element.getFirstChild(), Constants._TAG_X509DATA, 0);
                 if (el != null) {
-                    return engineLookupResolveX509Certificate(el, baseURI, storage);
+                    return engineLookupResolveX509Certificate(el, BaseURI, storage);
                 }
                 return null;
             }
 
             // populate Object array
             for (int i = 0; i < els.length; i++) {
-                XMLX509Certificate xmlCert = new XMLX509Certificate(els[i], baseURI);
+                XMLX509Certificate xmlCert = new XMLX509Certificate(els[i], BaseURI);
                 X509Certificate cert = xmlCert.getX509Certificate();
                 if (cert != null) {
                     return cert;
@@ -102,20 +104,22 @@ public class X509CertificateResolver extends KeyResolverSpi {
             }
             return null;
         } catch (XMLSecurityException ex) {
-            LOG.debug("Security Exception", ex);
-            throw new KeyResolverException(ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", ex);
+            }
+            throw new KeyResolverException("generic.EmptyMessage", ex);
         }
     }
 
     /**
      * Method engineResolveSecretKey
-     * {@inheritDoc}
+     * @inheritDoc
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @param storage
      */
     public javax.crypto.SecretKey engineLookupAndResolveSecretKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         return null;
     }

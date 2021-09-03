@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -35,20 +35,21 @@ import org.w3c.dom.Element;
 
 public class DSAKeyValueResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(DSAKeyValueResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(DSAKeyValueResolver.class.getName());
 
 
     /**
      * Method engineResolvePublicKey
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @param storage
      * @return null if no {@link PublicKey} could be obtained
      */
     public PublicKey engineLookupAndResolvePublicKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         if (element == null) {
             return null;
@@ -70,12 +71,14 @@ public class DSAKeyValueResolver extends KeyResolverSpi {
         }
 
         try {
-            DSAKeyValue dsaKeyValue = new DSAKeyValue(dsaKeyElement, baseURI);
+            DSAKeyValue dsaKeyValue = new DSAKeyValue(dsaKeyElement, BaseURI);
             PublicKey pk = dsaKeyValue.getPublicKey();
 
             return pk;
         } catch (XMLSecurityException ex) {
-            LOG.debug(ex.getMessage(), ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, ex.getMessage(), ex);
+            }
             //do nothing
         }
 
@@ -83,16 +86,16 @@ public class DSAKeyValueResolver extends KeyResolverSpi {
     }
 
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public X509Certificate engineLookupResolveX509Certificate(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public javax.crypto.SecretKey engineLookupAndResolveSecretKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         return null;
     }

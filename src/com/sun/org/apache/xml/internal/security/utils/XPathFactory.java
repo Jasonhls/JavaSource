@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,12 +38,12 @@ public abstract class XPathFactory {
             if (funcTableClass != null) {
                 xalanInstalled = true;
             }
-        } catch (Exception e) { //NOPMD
+        } catch (Exception e) {
             //ignore
         }
     }
 
-    protected static synchronized boolean isXalanInstalled() {
+    protected synchronized static boolean isXalanInstalled() {
         return xalanInstalled;
     }
 

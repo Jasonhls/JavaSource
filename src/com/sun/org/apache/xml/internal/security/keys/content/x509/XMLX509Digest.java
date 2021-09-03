@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -34,8 +34,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Provides content model support for the {@code dsig11:X509Digest} element.
+ * Provides content model support for the <code>dsig11:X509Digest</code> element.
  *
+ * @author Brent Putman (putmanb@georgetown.edu)
  */
 public class XMLX509Digest extends Signature11ElementProxy implements XMLX509DataContent {
 
@@ -43,11 +44,11 @@ public class XMLX509Digest extends Signature11ElementProxy implements XMLX509Dat
      * Constructor XMLX509Digest
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public XMLX509Digest(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public XMLX509Digest(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
     }
 
     /**
@@ -60,7 +61,7 @@ public class XMLX509Digest extends Signature11ElementProxy implements XMLX509Dat
     public XMLX509Digest(Document doc, byte[] digestBytes, String algorithmURI) {
         super(doc);
         this.addBase64Text(digestBytes);
-        setLocalAttribute(Constants._ATT_ALGORITHM, algorithmURI);
+        this.constructionElement.setAttributeNS(null, Constants._ATT_ALGORITHM, algorithmURI);
     }
 
     /**
@@ -74,7 +75,7 @@ public class XMLX509Digest extends Signature11ElementProxy implements XMLX509Dat
     public XMLX509Digest(Document doc, X509Certificate x509certificate, String algorithmURI) throws XMLSecurityException {
         super(doc);
         this.addBase64Text(getDigestBytesFromCert(x509certificate, algorithmURI));
-        setLocalAttribute(Constants._ATT_ALGORITHM, algorithmURI);
+        this.constructionElement.setAttributeNS(null, Constants._ATT_ALGORITHM, algorithmURI);
     }
 
     /**
@@ -83,7 +84,7 @@ public class XMLX509Digest extends Signature11ElementProxy implements XMLX509Dat
      * @return the Algorithm attribute
      */
     public Attr getAlgorithmAttr() {
-        return getElement().getAttributeNodeNS(null, Constants._ATT_ALGORITHM);
+        return this.constructionElement.getAttributeNodeNS(null, Constants._ATT_ALGORITHM);
     }
 
     /**
@@ -117,21 +118,21 @@ public class XMLX509Digest extends Signature11ElementProxy implements XMLX509Dat
     public static byte[] getDigestBytesFromCert(X509Certificate cert, String algorithmURI) throws XMLSecurityException {
         String jcaDigestAlgorithm = JCEMapper.translateURItoJCEID(algorithmURI);
         if (jcaDigestAlgorithm == null) {
-                Object exArgs[] = { algorithmURI };
-                throw new XMLSecurityException("XMLX509Digest.UnknownDigestAlgorithm", exArgs);
+            Object exArgs[] = { algorithmURI };
+            throw new XMLSecurityException("XMLX509Digest.UnknownDigestAlgorithm", exArgs);
         }
 
         try {
-                        MessageDigest md = MessageDigest.getInstance(jcaDigestAlgorithm);
-                        return md.digest(cert.getEncoded());
-                } catch (Exception e) {
-                Object exArgs[] = { jcaDigestAlgorithm };
-                        throw new XMLSecurityException("XMLX509Digest.FailedDigest", exArgs);
-                }
+            MessageDigest md = MessageDigest.getInstance(jcaDigestAlgorithm);
+            return md.digest(cert.getEncoded());
+        } catch (Exception e) {
+            Object exArgs[] = { jcaDigestAlgorithm };
+            throw new XMLSecurityException("XMLX509Digest.FailedDigest", exArgs);
+        }
 
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_X509DIGEST;
     }

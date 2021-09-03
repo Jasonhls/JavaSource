@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,19 +23,21 @@
 package com.sun.org.apache.xml.internal.security.utils.resolver;
 
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
+import org.w3c.dom.Attr;
 
 /**
  * This Exception is thrown if something related to the
  * {@link com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver} goes wrong.
  *
+ * @author $Author: coheigea $
  */
 public class ResourceResolverException extends XMLSecurityException {
 
     private static final long serialVersionUID = 1L;
 
-    private String uri;
+    private Attr uri = null;
 
-    private String baseURI;
+    private String baseURI = null;
 
     /**
      * Constructor ResourceResolverException
@@ -44,7 +46,7 @@ public class ResourceResolverException extends XMLSecurityException {
      * @param uri
      * @param baseURI
      */
-    public ResourceResolverException(String msgID, String uri, String baseURI) {
+    public ResourceResolverException(String msgID, Attr uri, String baseURI) {
         super(msgID);
 
         this.uri = uri;
@@ -59,7 +61,7 @@ public class ResourceResolverException extends XMLSecurityException {
      * @param uri
      * @param baseURI
      */
-    public ResourceResolverException(String msgID, Object exArgs[], String uri,
+    public ResourceResolverException(String msgID, Object exArgs[], Attr uri,
                                      String baseURI) {
         super(msgID, exArgs);
 
@@ -70,54 +72,42 @@ public class ResourceResolverException extends XMLSecurityException {
     /**
      * Constructor ResourceResolverException
      *
+     * @param msgID
      * @param originalException
      * @param uri
      * @param baseURI
-     * @param msgID
      */
-    public ResourceResolverException(Exception originalException,
-                                     String uri, String baseURI, String msgID) {
-        super(originalException, msgID);
+    public ResourceResolverException(String msgID, Exception originalException,
+                                     Attr uri, String baseURI) {
+        super(msgID, originalException);
 
         this.uri = uri;
         this.baseURI = baseURI;
-    }
-
-    @Deprecated
-    public ResourceResolverException(String msgID, Exception originalException,
-                                     String uri, String baseURI) {
-        this(originalException, uri, baseURI, msgID);
     }
 
     /**
      * Constructor ResourceResolverException
      *
+     * @param msgID
+     * @param exArgs
      * @param originalException
      * @param uri
      * @param baseURI
-     * @param msgID
-     * @param exArgs
      */
-    public ResourceResolverException(Exception originalException, String uri,
-                                     String baseURI, String msgID, Object exArgs[]) {
-        super(originalException, msgID, exArgs);
+    public ResourceResolverException(String msgID, Object exArgs[],
+                                     Exception originalException, Attr uri,
+                                     String baseURI) {
+        super(msgID, exArgs, originalException);
 
         this.uri = uri;
         this.baseURI = baseURI;
-    }
-
-    @Deprecated
-    public ResourceResolverException(String msgID, Object exArgs[],
-                                     Exception originalException, String uri,
-                                     String baseURI) {
-        this(originalException, uri, baseURI, msgID, exArgs);
     }
 
     /**
      *
      * @param uri
      */
-    public void setURI(String uri) {
+    public void setURI(Attr uri) {
         this.uri = uri;
     }
 
@@ -125,7 +115,7 @@ public class ResourceResolverException extends XMLSecurityException {
      *
      * @return the uri
      */
-    public String getURI() {
+    public Attr getURI() {
         return this.uri;
     }
 

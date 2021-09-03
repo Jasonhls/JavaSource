@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,11 +29,12 @@ import org.w3c.dom.Element;
 /**
  * Class SignatureElementProxy
  *
+ * @author Brent Putman (putmanb@georgetown.edu)
  */
 public abstract class Signature11ElementProxy extends ElementProxy {
 
     protected Signature11ElementProxy() {
-    }
+    };
 
     /**
      * Constructor Signature11ElementProxy
@@ -45,30 +46,24 @@ public abstract class Signature11ElementProxy extends ElementProxy {
             throw new RuntimeException("Document is null");
         }
 
-        setDocument(doc);
-        setElement(XMLUtils.createElementInSignature11Space(doc, this.getBaseLocalName()));
-
-        String prefix = ElementProxy.getDefaultPrefix(getBaseNamespace());
-        if (prefix == null || prefix.length() == 0) {
-            getElement().setAttributeNS(Constants.NamespaceSpecNS, "xmlns", getBaseNamespace());
-        } else {
-            getElement().setAttributeNS(Constants.NamespaceSpecNS, "xmlns:" + prefix, getBaseNamespace());
-        }
+        this.doc = doc;
+        this.constructionElement =
+            XMLUtils.createElementInSignature11Space(this.doc, this.getBaseLocalName());
     }
 
     /**
      * Constructor Signature11ElementProxy
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public Signature11ElementProxy(Element element, String baseURI) throws XMLSecurityException {
-        super(element, baseURI);
+    public Signature11ElementProxy(Element element, String BaseURI) throws XMLSecurityException {
+        super(element, BaseURI);
 
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseNamespace() {
         return Constants.SignatureSpec11NS;
     }

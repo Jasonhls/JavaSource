@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,6 +36,7 @@ import org.w3c.dom.NodeList;
  * Implements the parameters for the <A
  * HREF="http://www.w3.org/TR/xmldsig-filter2/">XPath Filter v2.0</A>.
  *
+ * @author $Author: coheigea $
  * @see <A HREF="http://www.w3.org/TR/xmldsig-filter2/">XPath Filter v2.0 (TR)</A>
  */
 public class XPath2FilterContainer extends ElementProxy implements TransformParam {
@@ -89,22 +90,24 @@ public class XPath2FilterContainer extends ElementProxy implements TransformPara
     private XPath2FilterContainer(Document doc, String xpath2filter, String filterType) {
         super(doc);
 
-        setLocalAttribute(XPath2FilterContainer._ATT_FILTER, filterType);
-        appendSelf(createText(xpath2filter));
+        this.constructionElement.setAttributeNS(
+            null, XPath2FilterContainer._ATT_FILTER, filterType);
+        this.constructionElement.appendChild(doc.createTextNode(xpath2filter));
     }
 
     /**
      * Constructor XPath2FilterContainer
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    private XPath2FilterContainer(Element element, String baseURI) throws XMLSecurityException {
+    private XPath2FilterContainer(Element element, String BaseURI) throws XMLSecurityException {
 
-        super(element, baseURI);
+        super(element, BaseURI);
 
-        String filterStr = getLocalAttribute(XPath2FilterContainer._ATT_FILTER);
+        String filterStr =
+            this.constructionElement.getAttributeNS(null, XPath2FilterContainer._ATT_FILTER);
 
         if (!filterStr.equals(XPath2FilterContainer._ATT_FILTER_VALUE_INTERSECT)
             && !filterStr.equals(XPath2FilterContainer._ATT_FILTER_VALUE_SUBTRACT)
@@ -176,7 +179,7 @@ public class XPath2FilterContainer extends ElementProxy implements TransformPara
 
             if (!(type.equals(XPath2FilterContainer._ATT_FILTER_VALUE_INTERSECT)
                 || type.equals(XPath2FilterContainer._ATT_FILTER_VALUE_SUBTRACT)
-                || type.equals(XPath2FilterContainer._ATT_FILTER_VALUE_UNION))) {
+                || type.equals(XPath2FilterContainer._ATT_FILTER_VALUE_UNION))){
                 throw new IllegalArgumentException("The type(" + i + ")=\"" + type
                                                    + "\" is illegal");
             }
@@ -194,44 +197,47 @@ public class XPath2FilterContainer extends ElementProxy implements TransformPara
      * Creates a XPath2FilterContainer from an existing Element; needed for verification.
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @return the filter
      *
      * @throws XMLSecurityException
      */
     public static XPath2FilterContainer newInstance(
-        Element element, String baseURI
+        Element element, String BaseURI
     ) throws XMLSecurityException {
-        return new XPath2FilterContainer(element, baseURI);
+        return new XPath2FilterContainer(element, BaseURI);
     }
 
     /**
-     * Returns {@code true} if the {@code Filter} attribute has value "intersect".
+     * Returns <code>true</code> if the <code>Filter</code> attribute has value "intersect".
      *
-     * @return {@code true} if the {@code Filter} attribute has value "intersect".
+     * @return <code>true</code> if the <code>Filter</code> attribute has value "intersect".
      */
     public boolean isIntersect() {
-        return getLocalAttribute(XPath2FilterContainer._ATT_FILTER
+        return this.constructionElement.getAttributeNS(
+            null, XPath2FilterContainer._ATT_FILTER
         ).equals(XPath2FilterContainer._ATT_FILTER_VALUE_INTERSECT);
     }
 
     /**
-     * Returns {@code true} if the {@code Filter} attribute has value "subtract".
+     * Returns <code>true</code> if the <code>Filter</code> attribute has value "subtract".
      *
-     * @return {@code true} if the {@code Filter} attribute has value "subtract".
+     * @return <code>true</code> if the <code>Filter</code> attribute has value "subtract".
      */
     public boolean isSubtract() {
-        return getLocalAttribute(XPath2FilterContainer._ATT_FILTER
+        return this.constructionElement.getAttributeNS(
+            null, XPath2FilterContainer._ATT_FILTER
         ).equals(XPath2FilterContainer._ATT_FILTER_VALUE_SUBTRACT);
     }
 
     /**
-     * Returns {@code true} if the {@code Filter} attribute has value "union".
+     * Returns <code>true</code> if the <code>Filter</code> attribute has value "union".
      *
-     * @return {@code true} if the {@code Filter} attribute has value "union".
+     * @return <code>true</code> if the <code>Filter</code> attribute has value "union".
      */
     public boolean isUnion() {
-        return getLocalAttribute(XPath2FilterContainer._ATT_FILTER
+        return this.constructionElement.getAttributeNS(
+            null, XPath2FilterContainer._ATT_FILTER
         ).equals(XPath2FilterContainer._ATT_FILTER_VALUE_UNION);
     }
 
@@ -249,15 +255,18 @@ public class XPath2FilterContainer extends ElementProxy implements TransformPara
      * Filter String. We must use this stupid hook to enable the here() function
      * to work.
      *
+     * $todo$ I dunno whether this crashes: <XPath> here()<!-- comment -->/ds:Signature[1]</XPath>
      * @return the first Text node which contains information from the XPath 2 Filter String
      */
     public Node getXPathFilterTextNode() {
-        Node childNode = getElement().getFirstChild();
-        while (childNode != null) {
-            if (childNode.getNodeType() == Node.TEXT_NODE) {
-                return childNode;
+
+        NodeList children = this.constructionElement.getChildNodes();
+        int length = children.getLength();
+
+        for (int i = 0; i < length; i++) {
+            if (children.item(i).getNodeType() == Node.TEXT_NODE) {
+                return children.item(i);
             }
-            childNode = childNode.getNextSibling();
         }
 
         return null;

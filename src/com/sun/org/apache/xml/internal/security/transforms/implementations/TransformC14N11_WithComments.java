@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,9 +32,10 @@ import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
 
 /**
- * Implements the {@code http://www.w3.org/2006/12/xml-c14n-11#WithComments}
+ * Implements the <CODE>http://www.w3.org/2006/12/xml-c14n-11#WithComments</CODE>
  * (C14N 1.1 With Comments) transform.
  *
+ * @author Sean Mullan
  */
 public class TransformC14N11_WithComments extends TransformSpi {
 
@@ -47,7 +48,6 @@ public class TransformC14N11_WithComments extends TransformSpi {
     ) throws CanonicalizationException {
 
         Canonicalizer11_WithComments c14n = new Canonicalizer11_WithComments();
-        c14n.setSecureValidation(secureValidation);
         if (os != null) {
             c14n.setWriter(os);
         }
@@ -55,7 +55,6 @@ public class TransformC14N11_WithComments extends TransformSpi {
         byte[] result = null;
         result = c14n.engineCanonicalize(input);
         XMLSignatureInput output = new XMLSignatureInput(result);
-        output.setSecureValidation(secureValidation);
         if (os != null) {
             output.setOutputStream(os);
         }

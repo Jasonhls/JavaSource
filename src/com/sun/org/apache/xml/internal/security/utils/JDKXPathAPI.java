@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -66,7 +66,7 @@ public class JDKXPathAPI implements XPathAPI {
                 try {
                     xpf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
                 } catch (XPathFactoryConfigurationException ex) {
-                    throw new TransformerException(ex);
+                    throw new TransformerException("empty", ex);
                 }
             }
             XPath xpath = xpf.newXPath();
@@ -75,13 +75,13 @@ public class JDKXPathAPI implements XPathAPI {
             try {
                 xpathExpression = xpath.compile(xpathStr);
             } catch (XPathExpressionException ex) {
-                throw new TransformerException(ex);
+                throw new TransformerException("empty", ex);
             }
         }
         try {
             return (NodeList)xpathExpression.evaluate(contextNode, XPathConstants.NODESET);
         } catch (XPathExpressionException ex) {
-            throw new TransformerException(ex);
+            throw new TransformerException("empty", ex);
         }
     }
 
@@ -100,7 +100,7 @@ public class JDKXPathAPI implements XPathAPI {
                 try {
                     xpf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
                 } catch (XPathFactoryConfigurationException ex) {
-                    throw new TransformerException(ex);
+                    throw new TransformerException("empty", ex);
                 }
             }
             XPath xpath = xpf.newXPath();
@@ -109,13 +109,14 @@ public class JDKXPathAPI implements XPathAPI {
             try {
                 xpathExpression = xpath.compile(xpathStr);
             } catch (XPathExpressionException ex) {
-                throw new TransformerException(ex);
+                throw new TransformerException("empty", ex);
             }
         }
         try {
-            return (Boolean)xpathExpression.evaluate(contextNode, XPathConstants.BOOLEAN);
+            Boolean result = (Boolean)xpathExpression.evaluate(contextNode, XPathConstants.BOOLEAN);
+            return result.booleanValue();
         } catch (XPathExpressionException ex) {
-            throw new TransformerException(ex);
+            throw new TransformerException("empty", ex);
         }
     }
 

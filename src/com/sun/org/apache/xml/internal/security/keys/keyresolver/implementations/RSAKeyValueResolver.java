@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -36,19 +36,21 @@ import org.w3c.dom.Element;
 
 public class RSAKeyValueResolver extends KeyResolverSpi {
 
-    private static final com.sun.org.slf4j.internal.Logger LOG =
-        com.sun.org.slf4j.internal.LoggerFactory.getLogger(RSAKeyValueResolver.class);
+    /** {@link org.apache.commons.logging} logging facility */
+    private static java.util.logging.Logger log =
+        java.util.logging.Logger.getLogger(RSAKeyValueResolver.class.getName());
 
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public PublicKey engineLookupAndResolvePublicKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
+        if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "Can I resolve " + element.getTagName());
+        }
         if (element == null) {
             return null;
         }
-
-        LOG.debug("Can I resolve {}", element.getTagName());
 
         boolean isKeyValue = XMLUtils.elementIsInSignatureSpace(element, Constants._TAG_KEYVALUE);
         Element rsaKeyElement = null;
@@ -66,26 +68,28 @@ public class RSAKeyValueResolver extends KeyResolverSpi {
         }
 
         try {
-            RSAKeyValue rsaKeyValue = new RSAKeyValue(rsaKeyElement, baseURI);
+            RSAKeyValue rsaKeyValue = new RSAKeyValue(rsaKeyElement, BaseURI);
 
             return rsaKeyValue.getPublicKey();
         } catch (XMLSecurityException ex) {
-            LOG.debug("XMLSecurityException", ex);
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XMLSecurityException", ex);
+            }
         }
 
         return null;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public X509Certificate engineLookupResolveX509Certificate(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public javax.crypto.SecretKey engineLookupAndResolveSecretKey(
-        Element element, String baseURI, StorageResolver storage
+        Element element, String BaseURI, StorageResolver storage
     ) {
         return null;
     }

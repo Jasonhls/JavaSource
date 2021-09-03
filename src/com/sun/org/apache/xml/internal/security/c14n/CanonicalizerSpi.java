@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,6 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -35,12 +39,12 @@ import org.xml.sax.InputSource;
 /**
  * Base class which all Canonicalization algorithms extend.
  *
+ * @author Christian Geuer-Pollmann
  */
 public abstract class CanonicalizerSpi {
 
     /** Reset the writer after a c14n */
     protected boolean reset = false;
-    protected boolean secureValidation;
 
     /**
      * Method canonicalize
@@ -57,12 +61,17 @@ public abstract class CanonicalizerSpi {
         throws javax.xml.parsers.ParserConfigurationException, java.io.IOException,
         org.xml.sax.SAXException, CanonicalizationException {
 
-        Document document = null;
-        try (java.io.InputStream bais = new ByteArrayInputStream(inputBytes)) {
-            InputSource in = new InputSource(bais);
+        java.io.InputStream bais = new ByteArrayInputStream(inputBytes);
+        InputSource in = new InputSource(bais);
+        DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
+        dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 
-            document = XMLUtils.read(in, secureValidation);
-        }
+        // needs to validate for ID attribute normalization
+        dfactory.setNamespaceAware(true);
+
+        DocumentBuilder db = dfactory.newDocumentBuilder();
+
+        Document document = db.parse(in);
         return this.engineCanonicalizeSubTree(document);
     }
 
@@ -151,31 +160,10 @@ public abstract class CanonicalizerSpi {
         throws CanonicalizationException;
 
     /**
-     * C14n a node tree.
-     *
-     * @param rootNode
-     * @param inclusiveNamespaces
-     * @param propagateDefaultNamespace If true the default namespace will be propagated to the c14n-ized root element
-     * @return the c14n bytes
-     * @throws CanonicalizationException
-     */
-    public abstract byte[] engineCanonicalizeSubTree(
-            Node rootNode, String inclusiveNamespaces, boolean propagateDefaultNamespace)
-            throws CanonicalizationException;
-
-    /**
      * Sets the writer where the canonicalization ends. ByteArrayOutputStream if
      * none is set.
      * @param os
      */
     public abstract void setWriter(OutputStream os);
-
-    public boolean isSecureValidation() {
-        return secureValidation;
-    }
-
-    public void setSecureValidation(boolean secureValidation) {
-        this.secureValidation = secureValidation;
-    }
 
 }

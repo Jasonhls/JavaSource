@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
+ * @author $Author: coheigea $
  */
 public class XMLX509SubjectName extends SignatureElementProxy implements XMLX509DataContent {
 
@@ -39,12 +40,12 @@ public class XMLX509SubjectName extends SignatureElementProxy implements XMLX509
      * Constructor X509SubjectName
      *
      * @param element
-     * @param baseURI
+     * @param BaseURI
      * @throws XMLSecurityException
      */
-    public XMLX509SubjectName(Element element, String baseURI)
+    public XMLX509SubjectName(Element element, String BaseURI)
         throws XMLSecurityException {
-        super(element, baseURI);
+        super(element, BaseURI);
     }
 
     /**
@@ -79,7 +80,7 @@ public class XMLX509SubjectName extends SignatureElementProxy implements XMLX509
         return RFC2253Parser.normalize(this.getTextFromTextChild());
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public boolean equals(Object obj) {
         if (!(obj instanceof XMLX509SubjectName)) {
             return false;
@@ -98,7 +99,7 @@ public class XMLX509SubjectName extends SignatureElementProxy implements XMLX509
         return result;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public String getBaseLocalName() {
         return Constants._TAG_X509SUBJECTNAME;
     }

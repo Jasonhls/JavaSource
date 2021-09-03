@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -61,34 +61,24 @@ public class ContentHandlerAlreadyRegisteredException extends XMLSecurityExcepti
     /**
      * Constructor ContentHandlerAlreadyRegisteredException
      *
-     * @param originalException
      * @param msgID
+     * @param originalException
      */
-    public ContentHandlerAlreadyRegisteredException(Exception originalException, String msgID) {
-        super(originalException, msgID);
-    }
-
-    @Deprecated
     public ContentHandlerAlreadyRegisteredException(String msgID, Exception originalException) {
-        this(originalException, msgID);
+        super(msgID, originalException);
     }
 
     /**
      * Constructor ContentHandlerAlreadyRegisteredException
      *
-     * @param originalException
      * @param msgID
      * @param exArgs
+     * @param originalException
      */
     public ContentHandlerAlreadyRegisteredException(
-        Exception originalException, String msgID, Object exArgs[]
+        String msgID, Object exArgs[], Exception originalException
     ) {
-        super(originalException, msgID, exArgs);
-    }
-
-    @Deprecated
-    public ContentHandlerAlreadyRegisteredException(String msgID, Object[] exArgs, Exception originalException) {
-        this(originalException, msgID, exArgs);
+        super(msgID, exArgs, originalException);
     }
 
 }

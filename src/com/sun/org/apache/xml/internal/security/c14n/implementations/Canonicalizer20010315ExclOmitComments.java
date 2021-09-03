@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * reserved comment block
+ * DO NOT REMOVE OR ALTER!
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,12 +33,12 @@ public class Canonicalizer20010315ExclOmitComments extends Canonicalizer20010315
         super(false);
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public final String engineGetURI() {
         return Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS;
     }
 
-    /** {@inheritDoc} */
+    /** @inheritDoc */
     public final boolean engineGetIncludeComments() {
         return false;
     }
