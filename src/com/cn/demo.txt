@@ -1,4 +1,0 @@
-java源码构建环境：
-1：新建java项目，将src.zip解压放到与创建的java项目src同目录下。
-2：删除java.swing.plaf.gtk包（gtk文件夹下的图形化界面，不需要，可将其直接删除）。
-3：注释掉com/sun/source/util/JavacTask.java文件中的方法与报错。

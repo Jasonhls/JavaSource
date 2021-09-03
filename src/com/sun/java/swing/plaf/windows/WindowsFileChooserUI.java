@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -93,6 +93,7 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
     private static int MIN_WIDTH = 425;
     private static int MIN_HEIGHT = 245;
+    private static Dimension MIN_SIZE = new Dimension(MIN_WIDTH, MIN_HEIGHT);
 
     private static int LIST_PREF_WIDTH = 444;
     private static int LIST_PREF_HEIGHT = 138;
@@ -630,7 +631,6 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
      * @return   a <code>Dimension</code> specifying the preferred
      *           width and height of the file chooser
      */
-    @Override
     public Dimension getPreferredSize(JComponent c) {
         int prefWidth = PREF_SIZE.width;
         Dimension d = c.getLayout().preferredLayoutSize(c);
@@ -649,9 +649,8 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
      * @return   a <code>Dimension</code> specifying the minimum
      *           width and height of the file chooser
      */
-    @Override
     public Dimension getMinimumSize(JComponent c) {
-        return new Dimension(MIN_WIDTH, MIN_HEIGHT);
+        return MIN_SIZE;
     }
 
     /**
@@ -661,7 +660,6 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
      * @return   a <code>Dimension</code> specifying the maximum
      *           width and height of the file chooser
      */
-    @Override
     public Dimension getMaximumSize(JComponent c) {
         return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
@@ -1069,9 +1067,16 @@ public class WindowsFileChooserUI extends BasicFileChooserUI {
 
             directories.clear();
 
-            File[] baseFolders = (useShellFolder)
-                    ? (File[]) ShellFolder.get("fileChooserComboBoxFolders")
-                    : fsv.getRoots();
+            File[] baseFolders;
+            if (useShellFolder) {
+                baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
+                    public File[] run() {
+                        return (File[]) ShellFolder.get("fileChooserComboBoxFolders");
+                    }
+                });
+            } else {
+                baseFolders = fsv.getRoots();
+            }
             directories.addAll(Arrays.asList(baseFolders));
 
             // Get the canonical (full) path. This has the side
