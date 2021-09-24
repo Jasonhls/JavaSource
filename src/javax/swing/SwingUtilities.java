@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -44,6 +44,8 @@ import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
 
 import sun.awt.AppContext;
+import sun.awt.AWTAccessor;
+import sun.awt.AWTAccessor.MouseEventAccessor;
 
 /**
  * A collection of utility methods for Swing.
@@ -355,6 +357,9 @@ public class SwingUtilities implements SwingConstants
                                       sourceEvent.getClickCount(),
                                       sourceEvent.isPopupTrigger(),
                                       sourceEvent.getButton());
+            MouseEventAccessor meAccessor = AWTAccessor.getMouseEventAccessor();
+            meAccessor.setCausedByTouchEvent(newEvent,
+                meAccessor.isCausedByTouchEvent(sourceEvent));
         }
         return newEvent;
     }
@@ -1278,7 +1283,7 @@ public class SwingUtilities implements SwingConstants
      * <p>
      * Additional documentation and examples for this method can be
      * found in
-     * <A HREF="http://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">Concurrency in Swing</a>.
+     * <A HREF="https://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">Concurrency in Swing</a>.
      * <p>
      * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeLater()</code>.
      * <p>
@@ -1329,7 +1334,7 @@ public class SwingUtilities implements SwingConstants
      * <p>
      * Additional documentation and examples for this method can be
      * found in
-     * <A HREF="http://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">Concurrency in Swing</a>.
+     * <A HREF="https://docs.oracle.com/javase/tutorial/uiswing/concurrency/index.html">Concurrency in Swing</a>.
      * <p>
      * As of 1.3 this method is just a cover for
      * <code>java.awt.EventQueue.invokeAndWait()</code>.

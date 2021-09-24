@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -45,6 +45,8 @@ import sun.misc.SharedSecrets;
 import sun.security.action.GetPropertyAction;
 
 import com.sun.java.swing.SwingUtilities3;
+import sun.swing.SwingAccessor;
+import sun.swing.SwingUtilities2.RepaintListener;
 
 /**
  * This class manages repaint requests, allowing the number
@@ -179,11 +181,29 @@ public class RepaintManager
      */
     private final ProcessingRunnable processingRunnable;
 
-    private final static JavaSecurityAccess javaSecurityAccess =
-        SharedSecrets.getJavaSecurityAccess();
+    private static final JavaSecurityAccess javaSecurityAccess =
+            SharedSecrets.getJavaSecurityAccess();
 
+    /**
+     * Listener installed to detect display changes. When display changes,
+     * schedules a callback to notify all RepaintManagers of the display
+     * changes.
+     */
+    private static final DisplayChangedListener displayChangedHandler =
+            new DisplayChangedHandler();
 
     static {
+        SwingAccessor.setRepaintManagerAccessor(new SwingAccessor.RepaintManagerAccessor() {
+            @Override
+            public void addRepaintListener(RepaintManager rm, RepaintListener l) {
+                rm.addRepaintListener(l);
+            }
+            @Override
+            public void removeRepaintListener(RepaintManager rm, RepaintListener l) {
+                rm.removeRepaintListener(l);
+            }
+        });
+
         volatileImageBufferEnabled = "true".equals(AccessController.
                 doPrivileged(new GetPropertyAction(
                 "swing.volatileImageBufferEnabled", "true")));
@@ -212,8 +232,8 @@ public class RepaintManager
         GraphicsEnvironment ge = GraphicsEnvironment.
                 getLocalGraphicsEnvironment();
         if (ge instanceof SunGraphicsEnvironment) {
-            ((SunGraphicsEnvironment)ge).addDisplayChangedListener(
-                    new DisplayChangedHandler());
+            ((SunGraphicsEnvironment) ge).addDisplayChangedListener(
+                    displayChangedHandler);
         }
         Toolkit tk = Toolkit.getDefaultToolkit();
         if ((tk instanceof SunToolkit)
@@ -1267,6 +1287,33 @@ public class RepaintManager
         getPaintManager().copyArea(c, g, x, y, w, h, deltaX, deltaY, clip);
     }
 
+    private java.util.List<RepaintListener> repaintListeners = new ArrayList<>(1);
+
+    private void addRepaintListener(RepaintListener l) {
+        repaintListeners.add(l);
+    }
+
+    private void removeRepaintListener(RepaintListener l) {
+        repaintListeners.remove(l);
+    }
+
+    /**
+     * Notify the attached repaint listeners that an area of the {@code c} component
+     * has been immediately repainted, that is without scheduling a repaint runnable,
+     * due to performing a "blit" (via calling the {@code copyArea} method).
+     *
+     * @param c the component
+     * @param x the x coordinate of the area
+     * @param y the y coordinate of the area
+     * @param w the width of the area
+     * @param h the height of the area
+     */
+    void notifyRepaintPerformed(JComponent c, int x, int y, int w, int h) {
+        for (RepaintListener l : repaintListeners) {
+            l.repaintPerformed(c, x, y, w, h);
+        }
+    }
+
     /**
      * Invoked prior to any paint/copyArea method calls.  This will
      * be followed by an invocation of <code>endPaint</code>.
@@ -1609,6 +1656,12 @@ public class RepaintManager
      */
     private static final class DisplayChangedHandler implements
                                              DisplayChangedListener {
+        // Empty non private constructor was added because access to this
+        // class shouldn't be generated by the compiler using synthetic
+        // accessor method
+        DisplayChangedHandler() {
+        }
+
         public void displayChanged() {
             scheduleDisplayChanges();
         }
@@ -1616,11 +1669,10 @@ public class RepaintManager
         public void paletteChanged() {
         }
 
-        private void scheduleDisplayChanges() {
+        private static void scheduleDisplayChanges() {
             // To avoid threading problems, we notify each RepaintManager
             // on the thread it was created on.
-            for (Object c : AppContext.getAppContexts()) {
-                AppContext context = (AppContext) c;
+            for (AppContext context : AppContext.getAppContexts()) {
                 synchronized(context) {
                     if (!context.isDisposed()) {
                         EventQueue eventQueue = (EventQueue)context.get(

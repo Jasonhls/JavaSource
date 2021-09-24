@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2010, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql.rowset;
@@ -28,8 +28,11 @@ package javax.sql.rowset;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.sql.SQLException;
+import java.util.PropertyPermission;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
+import javax.sql.rowset.spi.SyncFactoryException;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * A factory API that enables applications to obtain a
@@ -129,15 +132,11 @@ public class RowSetProvider {
             factoryClassName = getSystemProperty(ROWSET_FACTORY_NAME);
             if (factoryClassName != null) {
                 trace("Found system property, value=" + factoryClassName);
-                factory = (RowSetFactory) getFactoryClass(factoryClassName, null, true).newInstance();
+                factory = (RowSetFactory) ReflectUtil.newInstance(getFactoryClass(factoryClassName, null, true));
             }
-        } catch (ClassNotFoundException e) {
-            throw new SQLException(
-                    "RowSetFactory: " + factoryClassName + " not found", e);
-        } catch (Exception e) {
-            throw new SQLException(
-                    "RowSetFactory: " + factoryClassName + " could not be instantiated: " + e,
-                    e);
+        }  catch (Exception e) {
+            throw new SQLException( "RowSetFactory: " + factoryClassName +
+                    " could not be instantiated: ", e);
         }
 
         // Check to see if we found the RowSetFactory via a System property
@@ -182,6 +181,16 @@ public class RowSetProvider {
             throws SQLException {
 
         trace("***In newInstance()");
+
+        if(factoryClassName == null) {
+            throw new SQLException("Error: factoryClassName cannot be null");
+        }
+        try {
+            ReflectUtil.checkPackageAccess(factoryClassName);
+        } catch (java.security.AccessControlException e) {
+            throw new SQLException("Access Exception",e);
+        }
+
         try {
             Class<?> providerClass = getFactoryClass(factoryClassName, cl, false);
             RowSetFactory instance = (RowSetFactory) providerClass.newInstance();
@@ -291,8 +300,9 @@ public class RowSetProvider {
                 public String run() {
                     return System.getProperty(propName);
                 }
-            });
+            }, null, new PropertyPermission(propName, "read"));
         } catch (SecurityException se) {
+            trace("error getting " + propName + ":  "+ se);
             if (debug) {
                 se.printStackTrace();
             }

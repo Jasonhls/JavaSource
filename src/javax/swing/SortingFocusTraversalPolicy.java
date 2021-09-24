@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -30,6 +30,11 @@ import java.awt.Window;
 import java.util.*;
 import java.awt.FocusTraversalPolicy;
 import sun.util.logging.PlatformLogger;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import sun.security.action.GetPropertyAction;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * A FocusTraversalPolicy that determines traversal order by sorting the
@@ -89,6 +94,34 @@ public class SortingFocusTraversalPolicy
     final private int FORWARD_TRAVERSAL = 0;
     final private int BACKWARD_TRAVERSAL = 1;
 
+    /*
+     * When true (by default), the legacy merge-sort algo is used to sort an FTP cycle.
+     * When false, the default (tim-sort) algo is used, which may lead to an exception.
+     * See: JDK-8048887
+     */
+    private static final boolean legacySortingFTPEnabled;
+    private static final Method legacyMergeSortMethod;
+
+    static {
+        legacySortingFTPEnabled = "true".equals(AccessController.doPrivileged(
+            new GetPropertyAction("swing.legacySortingFTPEnabled", "true")));
+        legacyMergeSortMethod = legacySortingFTPEnabled ?
+            AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                public Method run() {
+                    try {
+                        Class c = Class.forName("java.util.Arrays");
+                        Method m = c.getDeclaredMethod("legacyMergeSort", new Class[]{Object[].class, Comparator.class});
+                        m.setAccessible(true);
+                        return m;
+                    } catch (ClassNotFoundException | NoSuchMethodException e) {
+                        // using default sorting algo
+                        return null;
+                    }
+                }
+            }) :
+            null;
+    }
+
     /**
      * Constructs a SortingFocusTraversalPolicy without a Comparator.
      * Subclasses must set the Comparator using <code>setComparator</code>
@@ -133,8 +166,30 @@ public class SortingFocusTraversalPolicy
     private void enumerateAndSortCycle(Container focusCycleRoot, List<Component> cycle) {
         if (focusCycleRoot.isShowing()) {
             enumerateCycle(focusCycleRoot, cycle);
-            Collections.sort(cycle, comparator);
+            if (!legacySortingFTPEnabled ||
+                !legacySort(cycle, comparator))
+            {
+                Collections.sort(cycle, comparator);
+            }
         }
+    }
+
+    private boolean legacySort(List<Component> l, Comparator<? super Component> c) {
+        if (legacyMergeSortMethod == null)
+            return false;
+
+        Object[] a = l.toArray();
+        try {
+            legacyMergeSortMethod.invoke(null, a, c);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            return false;
+        }
+        ListIterator<Component> i = l.listIterator();
+        for (Object e : a) {
+            i.next();
+            i.set((Component)e);
+        }
+        return true;
     }
 
     private void enumerateCycle(Container container, List<Component> cycle) {
@@ -511,7 +566,10 @@ public class SortingFocusTraversalPolicy
             } else if (comp instanceof Container && comp != aContainer) {
                 Container cont = (Container)comp;
                 if (cont.isFocusTraversalPolicyProvider()) {
-                    return cont.getFocusTraversalPolicy().getLastComponent(cont);
+                    Component retComp = cont.getFocusTraversalPolicy().getLastComponent(cont);
+                    if (retComp != null) {
+                        return retComp;
+                    }
                 }
             }
         }
