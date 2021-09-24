@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -140,6 +140,12 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                                         boolean isMXBean) {
         if (connection == null) {
             throw new IllegalArgumentException("Null connection");
+        }
+        if (Proxy.isProxyClass(connection.getClass())) {
+            if (MBeanServerInvocationHandler.class.isAssignableFrom(
+                    Proxy.getInvocationHandler(connection).getClass())) {
+                throw new IllegalArgumentException("Wrapping MBeanServerInvocationHandler");
+            }
         }
         if (objectName == null) {
             throw new IllegalArgumentException("Null object name");
@@ -418,6 +424,10 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                              new Class<?>[] {Object.class})
             && isLocal(proxy, method))
             return true;
+        if (methodName.equals("finalize")
+            && method.getParameterTypes().length == 0) {
+            return true;
+        }
         return false;
     }
 
@@ -453,6 +463,9 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                 connection + "[" + objectName + "])";
         } else if (methodName.equals("hashCode")) {
             return objectName.hashCode()+connection.hashCode();
+        } else if (methodName.equals("finalize")) {
+            // ignore the finalizer invocation via proxy
+            return null;
         }
 
         throw new RuntimeException("Unexpected method name: " + methodName);

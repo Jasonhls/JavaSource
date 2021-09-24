@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2002, 2016, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote.rmi;
@@ -32,7 +32,6 @@ import java.rmi.server.Unreferenced;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.Permission;
-import java.security.PermissionCollection;
 import java.security.Permissions;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
@@ -59,6 +58,7 @@ import com.sun.jmx.remote.util.ClassLoaderWithRepository;
 import com.sun.jmx.remote.util.ClassLogger;
 import com.sun.jmx.remote.util.EnvHelp;
 import com.sun.jmx.remote.util.OrderClassLoaders;
+import javax.management.loading.ClassLoaderRepository;
 
 /**
  * <p>Implementation of the {@link RMIConnection} interface.  User
@@ -131,20 +131,24 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
 
         final ClassLoader dcl = defaultClassLoader;
 
-        this.classLoaderWithRepository =
-            AccessController.doPrivileged(
-                new PrivilegedAction<ClassLoaderWithRepository>() {
-                    public ClassLoaderWithRepository run() {
-                        return new ClassLoaderWithRepository(
-                                      mbeanServer.getClassLoaderRepository(),
-                                      dcl);
-                    }
-                },
-
-                withPermissions( new MBeanPermission("*", "getClassLoaderRepository"),
-                                 new RuntimePermission("createClassLoader"))
-            );
-
+        ClassLoaderRepository repository = AccessController.doPrivileged(
+            new PrivilegedAction<ClassLoaderRepository>() {
+                public ClassLoaderRepository run() {
+                    return mbeanServer.getClassLoaderRepository();
+                }
+            },
+            withPermissions(new MBeanPermission("*", "getClassLoaderRepository"))
+        );
+        this.classLoaderWithRepository = AccessController.doPrivileged(
+            new PrivilegedAction<ClassLoaderWithRepository>() {
+                public ClassLoaderWithRepository run() {
+                    return new ClassLoaderWithRepository(
+                        repository,
+                        dcl);
+                }
+            },
+            withPermissions(new RuntimePermission("createClassLoader"))
+        );
 
         this.defaultContextClassLoader =
             AccessController.doPrivileged(
@@ -345,7 +349,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                   +", unwrapping parameters using classLoaderWithRepository.");
 
         values =
-            nullIsEmpty(unwrap(params, classLoaderWithRepository, Object[].class));
+            nullIsEmpty(unwrap(params, classLoaderWithRepository, Object[].class,delegationSubject));
 
         try {
             final Object params2[] =
@@ -357,7 +361,6 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                              "connectionId=" + connectionId
                              +", className=" + className
                              +", name=" + name
-                             +", params=" + objects(values)
                              +", signature=" + strings(signature));
 
             return (ObjectInstance)
@@ -410,7 +413,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
         values = nullIsEmpty(unwrap(params,
                                     getClassLoader(loaderName),
                                     defaultClassLoader,
-                                    Object[].class));
+                                    Object[].class,delegationSubject));
 
         try {
             final Object params2[] =
@@ -423,7 +426,6 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  +", className=" + className
                  +", name=" + name
                  +", loaderName=" + loaderName
-                 +", params=" + objects(values)
                  +", signature=" + strings(signature));
 
             return (ObjectInstance)
@@ -522,7 +524,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  "connectionId=" + connectionId
                  +" unwrapping query with defaultClassLoader.");
 
-        queryValue = unwrap(query, defaultContextClassLoader, QueryExp.class);
+        queryValue = unwrap(query, defaultContextClassLoader, QueryExp.class, delegationSubject);
 
         try {
             final Object params[] = new Object[] { name, queryValue };
@@ -557,7 +559,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  "connectionId=" + connectionId
                  +" unwrapping query with defaultClassLoader.");
 
-        queryValue = unwrap(query, defaultContextClassLoader, QueryExp.class);
+        queryValue = unwrap(query, defaultContextClassLoader, QueryExp.class, delegationSubject);
 
         try {
             final Object params[] = new Object[] { name, queryValue };
@@ -707,7 +709,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
         attr = unwrap(attribute,
                       getClassLoaderFor(name),
                       defaultClassLoader,
-                      Attribute.class);
+                      Attribute.class, delegationSubject);
 
         try {
             final Object params[] = new Object[] { name, attr };
@@ -715,7 +717,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
             if (debug) logger.debug("setAttribute",
                              "connectionId=" + connectionId
                              +", name="+name
-                             +", attribute="+attr);
+                             +", attribute name="+attr.getName());
 
             doPrivilegedOperation(
               SET_ATTRIBUTE,
@@ -758,7 +760,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
             unwrap(attributes,
                    getClassLoaderFor(name),
                    defaultClassLoader,
-                   AttributeList.class);
+                   AttributeList.class, delegationSubject);
 
         try {
             final Object params[] = new Object[] { name, attrlist };
@@ -766,7 +768,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
             if (debug) logger.debug("setAttributes",
                              "connectionId=" + connectionId
                              +", name="+name
-                             +", attributes="+attrlist);
+                             +", attribute names="+RMIConnector.getAttributesNames(attrlist));
 
             return (AttributeList)
                 doPrivilegedOperation(
@@ -810,7 +812,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
         values = nullIsEmpty(unwrap(params,
                                     getClassLoaderFor(name),
                                     defaultClassLoader,
-                                    Object[].class));
+                                    Object[].class, delegationSubject));
 
         try {
             final Object params2[] =
@@ -821,7 +823,6 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                              "connectionId=" + connectionId
                              +", name="+name
                              +", operationName="+operationName
-                             +", params="+objects(values)
                              +", signature="+strings(signature));
 
             return
@@ -991,7 +992,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
 
                 filterValues[i] =
                     unwrap(filters[i], targetCl, defaultClassLoader,
-                           NotificationFilter.class);
+                           NotificationFilter.class, sbjs[i]);
 
                 if (debug) logger.debug("addNotificationListener"+
                                         "(ObjectName,NotificationFilter)",
@@ -1059,7 +1060,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  +" unwrapping filter with target extended ClassLoader.");
 
         filterValue =
-            unwrap(filter, targetCl, defaultClassLoader, NotificationFilter.class);
+            unwrap(filter, targetCl, defaultClassLoader, NotificationFilter.class, delegationSubject);
 
         if (debug) logger.debug("addNotificationListener"+
                  "(ObjectName,ObjectName,NotificationFilter,Object)",
@@ -1067,7 +1068,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  +" unwrapping handback with target extended ClassLoader.");
 
         handbackValue =
-            unwrap(handback, targetCl, defaultClassLoader, Object.class);
+            unwrap(handback, targetCl, defaultClassLoader, Object.class, delegationSubject);
 
         try {
             final Object params[] =
@@ -1198,7 +1199,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  +" unwrapping filter with target extended ClassLoader.");
 
         filterValue =
-            unwrap(filter, targetCl, defaultClassLoader, NotificationFilter.class);
+            unwrap(filter, targetCl, defaultClassLoader, NotificationFilter.class, delegationSubject);
 
         if (debug) logger.debug("removeNotificationListener"+
                  "(ObjectName,ObjectName,NotificationFilter,Object)",
@@ -1206,7 +1207,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                  +" unwrapping handback with target extended ClassLoader.");
 
         handbackValue =
-            unwrap(handback, targetCl, defaultClassLoader, Object.class);
+            unwrap(handback, targetCl, defaultClassLoader, Object.class, delegationSubject);
 
         try {
             final Object params[] =
@@ -1254,10 +1255,11 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
             if (serverTerminated) {
                 // we must not call fetchNotifs() if the server is
                 // terminated (timeout elapsed).
-                //
-                return new NotificationResult(0L, 0L,
-                                              new TargetedNotification[0]);
-
+                // returns null to force the client to stop fetching
+                if (logger.debugOn()) logger.debug("fetchNotifications",
+                               "The notification server has been closed, "
+                                       + "returns null to force the client to stop fetching");
+                return null;
             }
             final long csn = clientSequenceNumber;
             final int mn = maxNotifications;
@@ -1549,20 +1551,38 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
         }
     }
 
-    private static <T> T unwrap(final MarshalledObject<?> mo,
+    private <T> T unwrap(final MarshalledObject<?> mo,
                                 final ClassLoader cl,
-                                final Class<T> wrappedClass)
+                                final Class<T> wrappedClass,
+                                Subject delegationSubject)
             throws IOException {
         if (mo == null) {
             return null;
         }
         try {
             final ClassLoader old = AccessController.doPrivileged(new SetCcl(cl));
-            try {
-                return wrappedClass.cast(mo.get());
-            } catch (ClassNotFoundException cnfe) {
-                throw new UnmarshalException(cnfe.toString(), cnfe);
-            } finally {
+            try{
+                final AccessControlContext reqACC;
+                if (delegationSubject == null)
+                    reqACC = acc;
+                else {
+                    if (subject == null) {
+                        final String msg =
+                            "Subject delegation cannot be enabled unless " +
+                            "an authenticated subject is put in place";
+                        throw new SecurityException(msg);
+                    }
+                    reqACC = subjectDelegator.delegatedContext(
+                        acc, delegationSubject, removeCallerContext);
+                }
+                if(reqACC != null){
+                    return AccessController.doPrivileged(
+                            (PrivilegedExceptionAction<T>) () ->
+                                    wrappedClass.cast(mo.get()), reqACC);
+                }else{
+                    return wrappedClass.cast(mo.get());
+                }
+            }finally{
                 AccessController.doPrivileged(new SetCcl(old));
             }
         } catch (PrivilegedActionException pe) {
@@ -1575,14 +1595,19 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
             }
             logger.warning("unwrap", "Failed to unmarshall object: " + e);
             logger.debug("unwrap", e);
+        }catch (ClassNotFoundException ex) {
+            logger.warning("unwrap", "Failed to unmarshall object: " + ex);
+            logger.debug("unwrap", ex);
+            throw new UnmarshalException(ex.toString(), ex);
         }
         return null;
     }
 
-    private static <T> T unwrap(final MarshalledObject<?> mo,
+    private <T> T unwrap(final MarshalledObject<?> mo,
                                 final ClassLoader cl1,
                                 final ClassLoader cl2,
-                                final Class<T> wrappedClass)
+                                final Class<T> wrappedClass,
+                                Subject delegationSubject)
         throws IOException {
         if (mo == null) {
             return null;
@@ -1596,7 +1621,7 @@ public class RMIConnectionImpl implements RMIConnection, Unreferenced {
                     }
                 }
             );
-            return unwrap(mo, orderCL, wrappedClass);
+            return unwrap(mo, orderCL, wrappedClass,delegationSubject);
         } catch (PrivilegedActionException pe) {
             Exception e = extractException(pe);
             if (e instanceof IOException) {

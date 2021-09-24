@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2000, 2015, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -45,7 +45,6 @@ import javax.management.DescriptorRead;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanAttributeInfo;
 import com.sun.jmx.remote.util.EnvHelp;
-import sun.reflect.misc.ConstructorUtil;
 import sun.reflect.misc.MethodUtil;
 import sun.reflect.misc.ReflectUtil;
 
@@ -692,8 +691,9 @@ public class OpenMBeanAttributeInfoSupport
     private static <T> T convertFromString(String s, OpenType<T> openType) {
         Class<T> c;
         try {
-            ReflectUtil.checkPackageAccess(openType.safeGetClassName());
-            c = cast(Class.forName(openType.safeGetClassName()));
+            String className = openType.safeGetClassName();
+            ReflectUtil.checkPackageAccess(className);
+            c = cast(Class.forName(className));
         } catch (ClassNotFoundException e) {
             throw new NoClassDefFoundError(e.toString());  // can't happen
         }
@@ -761,11 +761,15 @@ public class OpenMBeanAttributeInfoSupport
         Class<?> stringArrayClass;
         Class<?> targetArrayClass;
         try {
+            String baseClassName = baseType.safeGetClassName();
+
+            // check access to the provided base type class name and bail out early
+            ReflectUtil.checkPackageAccess(baseClassName);
+
             stringArrayClass =
                 Class.forName(squareBrackets + "Ljava.lang.String;");
             targetArrayClass =
-                Class.forName(squareBrackets + "L" + baseType.safeGetClassName() +
-                              ";");
+                Class.forName(squareBrackets + "L" + baseClassName + ";");
         } catch (ClassNotFoundException e) {
             throw new NoClassDefFoundError(e.toString());  // can't happen
         }
