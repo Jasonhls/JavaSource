@@ -1,6 +1,6 @@
 /*
- * reserved comment block
- * DO NOT REMOVE OR ALTER!
+ * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -40,7 +40,6 @@ public abstract class Algorithm extends SignatureElementProxy {
      */
     public Algorithm(Document doc, String algorithmURI) {
         super(doc);
-
         this.setAlgorithmURI(algorithmURI);
     }
 
@@ -48,11 +47,11 @@ public abstract class Algorithm extends SignatureElementProxy {
      * Constructor Algorithm
      *
      * @param element
-     * @param BaseURI
+     * @param baseURI
      * @throws XMLSecurityException
      */
-    public Algorithm(Element element, String BaseURI) throws XMLSecurityException {
-        super(element, BaseURI);
+    public Algorithm(Element element, String baseURI) throws XMLSecurityException {
+        super(element, baseURI);
     }
 
     /**
@@ -61,7 +60,7 @@ public abstract class Algorithm extends SignatureElementProxy {
      * @return The URI of the algorithm
      */
     public String getAlgorithmURI() {
-        return this.constructionElement.getAttributeNS(null, Constants._ATT_ALGORITHM);
+        return getLocalAttribute(Constants._ATT_ALGORITHM);
     }
 
     /**
@@ -71,9 +70,7 @@ public abstract class Algorithm extends SignatureElementProxy {
      */
     protected void setAlgorithmURI(String algorithmURI) {
         if (algorithmURI != null) {
-            this.constructionElement.setAttributeNS(
-                null, Constants._ATT_ALGORITHM, algorithmURI
-            );
+            setLocalAttribute(Constants._ATT_ALGORITHM, algorithmURI);
         }
     }
 }

@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1998, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -613,8 +613,8 @@ public class WindowsIconFactory implements Serializable
 
     private static class MenuArrowIcon implements Icon, UIResource, Serializable {
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            if (WindowsMenuItemUI.isVistaPainting()) {
-                XPStyle xp = XPStyle.getXP();
+            XPStyle xp = XPStyle.getXP();
+            if (WindowsMenuItemUI.isVistaPainting(xp)) {
                 State state = State.NORMAL;
                 if (c instanceof JMenuItem) {
                     state = ((JMenuItem) c).getModel().isEnabled()
@@ -647,16 +647,18 @@ public class WindowsIconFactory implements Serializable
             }
         }
         public int getIconWidth() {
-            if (WindowsMenuItemUI.isVistaPainting()) {
-                Skin skin = XPStyle.getXP().getSkin(null, Part.MP_POPUPSUBMENU);
+            XPStyle xp = XPStyle.getXP();
+            if (WindowsMenuItemUI.isVistaPainting(xp)) {
+                Skin skin = xp.getSkin(null, Part.MP_POPUPSUBMENU);
                 return skin.getWidth();
             } else {
                 return 4;
             }
         }
         public int getIconHeight() {
-            if (WindowsMenuItemUI.isVistaPainting()) {
-                Skin skin = XPStyle.getXP().getSkin(null, Part.MP_POPUPSUBMENU);
+            XPStyle xp = XPStyle.getXP();
+            if (WindowsMenuItemUI.isVistaPainting(xp)) {
+                Skin skin = xp.getSkin(null, Part.MP_POPUPSUBMENU);
                 return skin.getHeight();
             } else {
                 return 8;
@@ -682,7 +684,8 @@ public class WindowsIconFactory implements Serializable
         }
 
         static int getIconWidth() {
-            return XPStyle.getXP().getSkin(null, Part.MP_POPUPCHECK).getWidth()
+            XPStyle xp = XPStyle.getXP();
+            return ((xp != null) ? xp.getSkin(null, Part.MP_POPUPCHECK).getWidth() : 16)
                 + 2 * OFFSET;
         }
 
@@ -745,12 +748,17 @@ public class WindowsIconFactory implements Serializable
                 Icon icon = getIcon();
                 int height = 0;
                 if (icon != null) {
-                    height = icon.getIconHeight() + 2 * OFFSET;
+                    height = icon.getIconHeight();
                 } else {
-                    Skin skin =
-                        XPStyle.getXP().getSkin(null, Part.MP_POPUPCHECK);
-                    height = skin.getHeight() + 2 * OFFSET;
+                    XPStyle xp = XPStyle.getXP();
+                    if (xp != null) {
+                        Skin skin = xp.getSkin(null, Part.MP_POPUPCHECK);
+                        height = skin.getHeight();
+                    } else {
+                        height = 16;
+                    }
                 }
+                height +=  2 * OFFSET;
                 return height;
             }
 
@@ -798,14 +806,16 @@ public class WindowsIconFactory implements Serializable
                                   ? State.BULLETDISABLED
                                   : State.CHECKMARKDISABLED;
                         }
-                        Skin skin;
                         XPStyle xp = XPStyle.getXP();
-                        skin =  xp.getSkin(c, backgroundPart);
-                        skin.paintSkin(g, x, y,
-                            getIconWidth(), getIconHeight(), backgroundState);
-                        if (icon == null) {
-                            skin = xp.getSkin(c, part);
-                            skin.paintSkin(g, x + OFFSET, y + OFFSET, state);
+                        if (xp != null) {
+                            Skin skin;
+                            skin =  xp.getSkin(c, backgroundPart);
+                            skin.paintSkin(g, x, y,
+                                getIconWidth(), getIconHeight(), backgroundState);
+                            if (icon == null) {
+                                skin = xp.getSkin(c, part);
+                                skin.paintSkin(g, x + OFFSET, y + OFFSET, state);
+                            }
                         }
                     }
                 }

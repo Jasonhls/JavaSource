@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -108,8 +108,9 @@ public class WindowsMenuItemUI extends BasicMenuItemUI {
 
     static void paintBackground(WindowsMenuItemUIAccessor menuItemUI,
             Graphics g, JMenuItem menuItem, Color bgColor) {
-        assert isVistaPainting();
-        if (isVistaPainting()) {
+        XPStyle xp = XPStyle.getXP();
+        assert isVistaPainting(xp);
+        if (isVistaPainting(xp)) {
             int menuWidth = menuItem.getWidth();
             int menuHeight = menuItem.getHeight();
             if (menuItem.isOpaque()) {
@@ -118,7 +119,6 @@ public class WindowsMenuItemUI extends BasicMenuItemUI {
                 g.fillRect(0,0, menuWidth, menuHeight);
                 g.setColor(oldColor);
             }
-            XPStyle xp = XPStyle.getXP();
             Part part = menuItemUI.getPart(menuItem);
             Skin skin = xp.getSkin(menuItem, part);
             skin.paintSkin(g, 0 , 0,
@@ -170,8 +170,11 @@ public class WindowsMenuItemUI extends BasicMenuItemUI {
      * is it possible that in some theme some Vista parts are not defined while
      * others are?
      */
-    static boolean isVistaPainting() {
-        XPStyle xp = XPStyle.getXP();
+    static boolean isVistaPainting(final XPStyle xp) {
         return xp != null && xp.isSkinDefined(null, Part.MP_POPUPITEM);
+    }
+
+    static boolean isVistaPainting() {
+        return isVistaPainting(XPStyle.getXP());
     }
 }

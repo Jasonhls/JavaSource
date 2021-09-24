@@ -1,6 +1,6 @@
 /*
- * reserved comment block
- * DO NOT REMOVE OR ALTER!
+ * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,9 +32,9 @@ import org.w3c.dom.Element;
 public abstract class SignatureAlgorithmSpi {
 
     /**
-     * Returns the URI representation of <code>Transformation algorithm</code>
+     * Returns the URI representation of {@code Transformation algorithm}
      *
-     * @return the URI representation of <code>Transformation algorithm</code>
+     * @return the URI representation of {@code Transformation algorithm}
      */
     protected abstract String engineGetURI();
 

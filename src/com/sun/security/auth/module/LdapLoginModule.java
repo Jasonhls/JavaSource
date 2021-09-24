@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth.module;
@@ -426,7 +426,6 @@ public class LdapLoginModule implements LoginModule {
             constraints = new SearchControls();
             constraints.setSearchScope(SearchControls.SUBTREE_SCOPE);
             constraints.setReturningAttributes(new String[0]); //return no attrs
-            constraints.setReturningObjFlag(true); // to get the full DN
         }
 
         authzIdentity = (String)options.get(AUTHZ_IDENTITY);
@@ -752,7 +751,8 @@ public class LdapLoginModule implements LoginModule {
 
         if (authFirst || authOnly) {
 
-            String id = replaceUsernameToken(identityMatcher, authcIdentity);
+            String id =
+                replaceUsernameToken(identityMatcher, authcIdentity, username);
 
             // Prepare to bind using user's username and password
             ldapEnvironment.put(Context.SECURITY_CREDENTIALS, password);
@@ -879,18 +879,19 @@ public class LdapLoginModule implements LoginModule {
         }
 
         try {
-            NamingEnumeration<SearchResult> results = ctx.search("",
-                replaceUsernameToken(filterMatcher, userFilter), constraints);
+            // Sanitize username and substitute into LDAP filter
+            String canonicalUserFilter =
+                replaceUsernameToken(filterMatcher, userFilter,
+                    escapeUsernameChars());
+
+            NamingEnumeration<SearchResult> results =
+                ctx.search("", canonicalUserFilter, constraints);
 
             // Extract the distinguished name of the user's entry
             // (Use the first entry if more than one is returned)
             if (results.hasMore()) {
                 SearchResult entry = results.next();
-
-                // %%% - use the SearchResult.getNameInNamespace method
-                //        available in JDK 1.5 and later.
-                //        (can remove call to constraints.setReturningObjFlag)
-                userDN = ((Context)entry.getObject()).getNameInNamespace();
+                userDN = entry.getNameInNamespace();
 
                 if (debug) {
                     System.out.println("\t\t[LdapLoginModule] found entry: " +
@@ -932,12 +933,61 @@ public class LdapLoginModule implements LoginModule {
     }
 
     /**
+     * Modify the supplied username to encode characters that must be escaped
+     * according to RFC 4515: LDAP: String Representation of Search Filters.
+     *
+     * The following characters are encoded as a backslash "\" (ASCII 0x5c)
+     * followed by the two hexadecimal digits representing the value of the
+     * escaped character:
+     *     '*' (ASCII 0x2a)
+     *     '(' (ASCII 0x28)
+     *     ')' (ASCII 0x29)
+     *     '\' (ASCII 0x5c)
+     *     '\0'(ASCII 0x00)
+     *
+     * @return the modified username with its characters escaped as needed
+     */
+    private String escapeUsernameChars() {
+        int len = username.length();
+        StringBuilder escapedUsername = new StringBuilder(len + 16);
+
+        for (int i = 0; i < len; i++) {
+            char c = username.charAt(i);
+            switch (c) {
+            case '*':
+                escapedUsername.append("\\\\2A");
+                break;
+            case '(':
+                escapedUsername.append("\\\\28");
+                break;
+            case ')':
+                escapedUsername.append("\\\\29");
+                break;
+            case '\\':
+                escapedUsername.append("\\\\5C");
+                break;
+            case '\0':
+                escapedUsername.append("\\\\00");
+                break;
+            default:
+                escapedUsername.append(c);
+            }
+        }
+
+        return escapedUsername.toString();
+    }
+
+
+    /**
      * Replace the username token
      *
+     * @param matcher the replacement pattern
      * @param string the target string
+     * @param username the supplied username
      * @return the modified string
      */
-    private String replaceUsernameToken(Matcher matcher, String string) {
+    private String replaceUsernameToken(Matcher matcher, String string,
+        String username) {
         return matcher != null ? matcher.replaceAll(username) : string;
     }
 

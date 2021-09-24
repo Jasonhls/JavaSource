@@ -1,6 +1,6 @@
 /*
- * reserved comment block
- * DO NOT REMOVE OR ALTER!
+ * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,11 +32,10 @@ import com.sun.org.apache.xml.internal.security.keys.content.MgmtData;
 import com.sun.org.apache.xml.internal.security.keys.content.X509Data;
 
 /**
- * Utility class for for <CODE>com.sun.org.apache.xml.internal.security.keys</CODE> package.
+ * Utility class for {@code com.sun.org.apache.xml.internal.security.keys} package.
  *
- * @author $Author: coheigea $
  */
-public class KeyUtils {
+public final class KeyUtils {
 
     private KeyUtils() {
         // no instantiation

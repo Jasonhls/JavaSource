@@ -1,6 +1,6 @@
 /*
- * reserved comment block
- * DO NOT REMOVE OR ALTER!
+ * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,7 +25,6 @@ package com.sun.org.apache.xml.internal.security.keys.content;
 /**
  * Empty interface just to identify Elements that can be children of ds:KeyInfo.
  *
- * @author $Author: coheigea $
  */
 public interface KeyInfoContent {
 }

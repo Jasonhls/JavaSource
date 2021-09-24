@@ -1,6 +1,6 @@
 /*
- * reserved comment block
- * DO NOT REMOVE OR ALTER!
+ * Copyright (c) 2007, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -61,21 +61,31 @@ public class InvalidKeyResolverException extends XMLSecurityException {
     /**
      * Constructor InvalidKeyResolverException
      *
-     * @param msgID
      * @param originalException
+     * @param msgID
      */
+    public InvalidKeyResolverException(Exception originalException, String msgID) {
+        super(originalException, msgID);
+    }
+
+    @Deprecated
     public InvalidKeyResolverException(String msgID, Exception originalException) {
-        super(msgID, originalException);
+        this(originalException, msgID);
     }
 
     /**
      * Constructor InvalidKeyResolverException
      *
+     * @param originalException
      * @param msgID
      * @param exArgs
-     * @param originalException
      */
-    public InvalidKeyResolverException(String msgID, Object exArgs[], Exception originalException) {
-        super(msgID, exArgs, originalException);
+    public InvalidKeyResolverException(Exception originalException, String msgID, Object exArgs[]) {
+        super(originalException, msgID, exArgs);
+    }
+
+    @Deprecated
+    public InvalidKeyResolverException(String msgID, Object[] exArgs, Exception originalException) {
+        this(originalException, msgID, exArgs);
     }
 }
