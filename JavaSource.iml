@@ -7,8 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://D:/jdk/jdk1.8.0_291/lib/tools.jar!/" />
@@ -19,5 +18,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
