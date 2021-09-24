@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1996, 2018, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -268,7 +268,24 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      */
     private static final int SCHOENHAGE_BASE_CONVERSION_THRESHOLD = 20;
 
-    //Constructors
+    /**
+     * The threshold value for using squaring code to perform multiplication
+     * of a {@code BigInteger} instance by itself.  If the number of ints in
+     * the number are larger than this value, {@code multiply(this)} will
+     * return {@code square()}.
+     */
+    private static final int MULTIPLY_SQUARE_THRESHOLD = 20;
+
+    /**
+     * The threshold for using an intrinsic version of
+     * implMontgomeryXXX to perform Montgomery multiplication.  If the
+     * number of ints in the number is more than this value we do not
+     * use the intrinsic.
+     */
+    private static final int MONTGOMERY_INTRINSIC_THRESHOLD = 512;
+
+
+    // Constructors
 
     /**
      * Translates a byte array containing the two's-complement binary
@@ -1144,6 +1161,14 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
     private static final double LOG_TWO = Math.log(2.0);
 
     static {
+        assert 0 < KARATSUBA_THRESHOLD
+            && KARATSUBA_THRESHOLD < TOOM_COOK_THRESHOLD
+            && TOOM_COOK_THRESHOLD < Integer.MAX_VALUE
+            && 0 < KARATSUBA_SQUARE_THRESHOLD
+            && KARATSUBA_SQUARE_THRESHOLD < TOOM_COOK_SQUARE_THRESHOLD
+            && TOOM_COOK_SQUARE_THRESHOLD < Integer.MAX_VALUE :
+            "Algorithm thresholds are inconsistent";
+
         for (int i = 1; i <= MAX_CONSTANT; i++) {
             int[] magnitude = new int[1];
             magnitude[0] = i;
@@ -1458,14 +1483,34 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
     /**
      * Returns a BigInteger whose value is {@code (this * val)}.
      *
+     * @implNote An implementation may offer better algorithmic
+     * performance when {@code val == this}.
+     *
      * @param  val value to be multiplied by this BigInteger.
      * @return {@code this * val}
      */
     public BigInteger multiply(BigInteger val) {
+        return multiply(val, false);
+    }
+
+    /**
+     * Returns a BigInteger whose value is {@code (this * val)}.  If
+     * the invocation is recursive certain overflow checks are skipped.
+     *
+     * @param  val value to be multiplied by this BigInteger.
+     * @param  isRecursion whether this is a recursive invocation
+     * @return {@code this * val}
+     */
+    private BigInteger multiply(BigInteger val, boolean isRecursion) {
         if (val.signum == 0 || signum == 0)
             return ZERO;
 
         int xlen = mag.length;
+
+        if (val == this && xlen > MULTIPLY_SQUARE_THRESHOLD) {
+            return square();
+        }
+
         int ylen = val.mag.length;
 
         if ((xlen < KARATSUBA_THRESHOLD) || (ylen < KARATSUBA_THRESHOLD)) {
@@ -1484,6 +1529,63 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
             if ((xlen < TOOM_COOK_THRESHOLD) && (ylen < TOOM_COOK_THRESHOLD)) {
                 return multiplyKaratsuba(this, val);
             } else {
+                //
+                // In "Hacker's Delight" section 2-13, p.33, it is explained
+                // that if x and y are unsigned 32-bit quantities and m and n
+                // are their respective numbers of leading zeros within 32 bits,
+                // then the number of leading zeros within their product as a
+                // 64-bit unsigned quantity is either m + n or m + n + 1. If
+                // their product is not to overflow, it cannot exceed 32 bits,
+                // and so the number of leading zeros of the product within 64
+                // bits must be at least 32, i.e., the leftmost set bit is at
+                // zero-relative position 31 or less.
+                //
+                // From the above there are three cases:
+                //
+                //     m + n    leftmost set bit    condition
+                //     -----    ----------------    ---------
+                //     >= 32    x <= 64 - 32 = 32   no overflow
+                //     == 31    x >= 64 - 32 = 32   possible overflow
+                //     <= 30    x >= 64 - 31 = 33   definite overflow
+                //
+                // The "possible overflow" condition cannot be detected by
+                // examning data lengths alone and requires further calculation.
+                //
+                // By analogy, if 'this' and 'val' have m and n as their
+                // respective numbers of leading zeros within 32*MAX_MAG_LENGTH
+                // bits, then:
+                //
+                //     m + n >= 32*MAX_MAG_LENGTH        no overflow
+                //     m + n == 32*MAX_MAG_LENGTH - 1    possible overflow
+                //     m + n <= 32*MAX_MAG_LENGTH - 2    definite overflow
+                //
+                // Note however that if the number of ints in the result
+                // were to be MAX_MAG_LENGTH and mag[0] < 0, then there would
+                // be overflow. As a result the leftmost bit (of mag[0]) cannot
+                // be used and the constraints must be adjusted by one bit to:
+                //
+                //     m + n >  32*MAX_MAG_LENGTH        no overflow
+                //     m + n == 32*MAX_MAG_LENGTH        possible overflow
+                //     m + n <  32*MAX_MAG_LENGTH        definite overflow
+                //
+                // The foregoing leading zero-based discussion is for clarity
+                // only. The actual calculations use the estimated bit length
+                // of the product as this is more natural to the internal
+                // array representation of the magnitude which has no leading
+                // zero elements.
+                //
+                if (!isRecursion) {
+                    // The bitLength() instance method is not used here as we
+                    // are only considering the magnitudes as non-negative. The
+                    // Toom-Cook multiplication algorithm determines the sign
+                    // at its end from the two signum values.
+                    if (bitLength(mag, mag.length) +
+                        bitLength(val.mag, val.mag.length) >
+                        32L*MAX_MAG_LENGTH) {
+                        reportOverflow();
+                    }
+                }
+
                 return multiplyToomCook3(this, val);
             }
         }
@@ -1557,12 +1659,12 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * Multiplies int arrays x and y to the specified lengths and places
      * the result into z. There will be no leading zeros in the resultant array.
      */
-    private int[] multiplyToLen(int[] x, int xlen, int[] y, int ylen, int[] z) {
+    private static int[] multiplyToLen(int[] x, int xlen, int[] y, int ylen, int[] z) {
         int xstart = xlen - 1;
         int ystart = ylen - 1;
 
         if (z == null || z.length < (xlen+ ylen))
-            z = new int[xlen+ylen];
+             z = new int[xlen+ylen];
 
         long carry = 0;
         for (int j=ystart, k=ystart+1+xstart; j >= 0; j--, k--) {
@@ -1684,16 +1786,16 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
 
         BigInteger v0, v1, v2, vm1, vinf, t1, t2, tm1, da1, db1;
 
-        v0 = a0.multiply(b0);
+        v0 = a0.multiply(b0, true);
         da1 = a2.add(a0);
         db1 = b2.add(b0);
-        vm1 = da1.subtract(a1).multiply(db1.subtract(b1));
+        vm1 = da1.subtract(a1).multiply(db1.subtract(b1), true);
         da1 = da1.add(a1);
         db1 = db1.add(b1);
-        v1 = da1.multiply(db1);
+        v1 = da1.multiply(db1, true);
         v2 = da1.add(a2).shiftLeft(1).subtract(a0).multiply(
-             db1.add(b2).shiftLeft(1).subtract(b0));
-        vinf = a2.multiply(b2);
+             db1.add(b2).shiftLeft(1).subtract(b0), true);
+        vinf = a2.multiply(b2, true);
 
         // The algorithm requires two divisions by 2 and one by 3.
         // All divisions are known to be exact, that is, they do not produce
@@ -1859,6 +1961,17 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * @return {@code this<sup>2</sup>}
      */
     private BigInteger square() {
+        return square(false);
+    }
+
+    /**
+     * Returns a BigInteger whose value is {@code (this<sup>2</sup>)}. If
+     * the invocation is recursive certain overflow checks are skipped.
+     *
+     * @param isRecursion whether this is a recursive invocation
+     * @return {@code this<sup>2</sup>}
+     */
+    private BigInteger square(boolean isRecursion) {
         if (signum == 0) {
             return ZERO;
         }
@@ -1871,6 +1984,15 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
             if (len < TOOM_COOK_SQUARE_THRESHOLD) {
                 return squareKaratsuba();
             } else {
+                //
+                // For a discussion of overflow detection see multiply()
+                //
+                if (!isRecursion) {
+                    if (bitLength(mag, mag.length) > 16L*MAX_MAG_LENGTH) {
+                        reportOverflow();
+                    }
+                }
+
                 return squareToomCook3();
             }
         }
@@ -1881,6 +2003,43 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * int array z.  The contents of x are not changed.
      */
     private static final int[] squareToLen(int[] x, int len, int[] z) {
+         int zlen = len << 1;
+         if (z == null || z.length < zlen)
+             z = new int[zlen];
+
+         // Execute checks before calling intrinsified method.
+         implSquareToLenChecks(x, len, z, zlen);
+         return implSquareToLen(x, len, z, zlen);
+     }
+
+     /**
+      * Parameters validation.
+      */
+     private static void implSquareToLenChecks(int[] x, int len, int[] z, int zlen) throws RuntimeException {
+         if (len < 1) {
+             throw new IllegalArgumentException("invalid input length: " + len);
+         }
+         if (len > x.length) {
+             throw new IllegalArgumentException("input length out of bound: " +
+                                        len + " > " + x.length);
+         }
+         if (len * 2 > z.length) {
+             throw new IllegalArgumentException("input length out of bound: " +
+                                        (len * 2) + " > " + z.length);
+         }
+         if (zlen < 1) {
+             throw new IllegalArgumentException("invalid input length: " + zlen);
+         }
+         if (zlen > z.length) {
+             throw new IllegalArgumentException("input length out of bound: " +
+                                        len + " > " + z.length);
+         }
+     }
+
+     /**
+      * Java Runtime may use intrinsic for this method.
+      */
+     private static final int[] implSquareToLen(int[] x, int len, int[] z, int zlen) {
         /*
          * The algorithm used here is adapted from Colin Plumb's C library.
          * Technique: Consider the partial products in the multiplication
@@ -1915,9 +2074,6 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
          * again.  The low bit is simply a copy of the low bit of the
          * input, so it doesn't need special care.
          */
-        int zlen = len << 1;
-        if (z == null || z.length < zlen)
-            z = new int[zlen];
 
         // Store the squares, right shifted one bit (i.e., divided by 2)
         int lastProductLowWord = 0;
@@ -1987,13 +2143,13 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         a0 = getToomSlice(k, r, 2, len);
         BigInteger v0, v1, v2, vm1, vinf, t1, t2, tm1, da1;
 
-        v0 = a0.square();
+        v0 = a0.square(true);
         da1 = a2.add(a0);
-        vm1 = da1.subtract(a1).square();
+        vm1 = da1.subtract(a1).square(true);
         da1 = da1.add(a1);
-        v1 = da1.square();
-        vinf = a2.square();
-        v2 = da1.add(a2).shiftLeft(1).subtract(a0).square();
+        v1 = da1.square(true);
+        vinf = a2.square(true);
+        v2 = da1.add(a2).shiftLeft(1).subtract(a0).square(true);
 
         // The algorithm requires two divisions by 2 and one by 3.
         // All divisions are known to be exact, that is, they do not produce
@@ -2164,10 +2320,11 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         // The remaining part can then be exponentiated faster.  The
         // powers of two will be multiplied back at the end.
         int powersOfTwo = partToSquare.getLowestSetBit();
-        long bitsToShift = (long)powersOfTwo * exponent;
-        if (bitsToShift > Integer.MAX_VALUE) {
+        long bitsToShiftLong = (long)powersOfTwo * exponent;
+        if (bitsToShiftLong > Integer.MAX_VALUE) {
             reportOverflow();
         }
+        int bitsToShift = (int)bitsToShiftLong;
 
         int remainingBits;
 
@@ -2177,9 +2334,9 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
             remainingBits = partToSquare.bitLength();
             if (remainingBits == 1) {  // Nothing left but +/- 1?
                 if (signum < 0 && (exponent&1) == 1) {
-                    return NEGATIVE_ONE.shiftLeft(powersOfTwo*exponent);
+                    return NEGATIVE_ONE.shiftLeft(bitsToShift);
                 } else {
-                    return ONE.shiftLeft(powersOfTwo*exponent);
+                    return ONE.shiftLeft(bitsToShift);
                 }
             }
         } else {
@@ -2224,13 +2381,16 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                 if (bitsToShift + scaleFactor <= 62) { // Fits in long?
                     return valueOf((result << bitsToShift) * newSign);
                 } else {
-                    return valueOf(result*newSign).shiftLeft((int) bitsToShift);
+                    return valueOf(result*newSign).shiftLeft(bitsToShift);
                 }
-            }
-            else {
+            } else {
                 return valueOf(result*newSign);
             }
         } else {
+            if ((long)bitLength() * exponent / Integer.SIZE > MAX_MAG_LENGTH) {
+                reportOverflow();
+            }
+
             // Large number algorithm.  This is basically identical to
             // the algorithm above, but calls multiply() and square()
             // which may use more efficient algorithms for large numbers.
@@ -2250,7 +2410,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
             // Multiply back the (exponentiated) powers of two (quickly,
             // by shifting left)
             if (powersOfTwo > 0) {
-                answer = answer.shiftLeft(powersOfTwo*exponent);
+                answer = answer.shiftLeft(bitsToShift);
             }
 
             if (signum < 0 && (exponent&1) == 1) {
@@ -2485,6 +2645,75 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         return (invertResult ? result.modInverse(m) : result);
     }
 
+    // Montgomery multiplication.  These are wrappers for
+    // implMontgomeryXX routines which are expected to be replaced by
+    // virtual machine intrinsics.  We don't use the intrinsics for
+    // very large operands: MONTGOMERY_INTRINSIC_THRESHOLD should be
+    // larger than any reasonable crypto key.
+    private static int[] montgomeryMultiply(int[] a, int[] b, int[] n, int len, long inv,
+                                            int[] product) {
+        implMontgomeryMultiplyChecks(a, b, n, len, product);
+        if (len > MONTGOMERY_INTRINSIC_THRESHOLD) {
+            // Very long argument: do not use an intrinsic
+            product = multiplyToLen(a, len, b, len, product);
+            return montReduce(product, n, len, (int)inv);
+        } else {
+            return implMontgomeryMultiply(a, b, n, len, inv, materialize(product, len));
+        }
+    }
+    private static int[] montgomerySquare(int[] a, int[] n, int len, long inv,
+                                          int[] product) {
+        implMontgomeryMultiplyChecks(a, a, n, len, product);
+        if (len > MONTGOMERY_INTRINSIC_THRESHOLD) {
+            // Very long argument: do not use an intrinsic
+            product = squareToLen(a, len, product);
+            return montReduce(product, n, len, (int)inv);
+        } else {
+            return implMontgomerySquare(a, n, len, inv, materialize(product, len));
+        }
+    }
+
+    // Range-check everything.
+    private static void implMontgomeryMultiplyChecks
+        (int[] a, int[] b, int[] n, int len, int[] product) throws RuntimeException {
+        if (len % 2 != 0) {
+            throw new IllegalArgumentException("input array length must be even: " + len);
+        }
+
+        if (len < 1) {
+            throw new IllegalArgumentException("invalid input length: " + len);
+        }
+
+        if (len > a.length ||
+            len > b.length ||
+            len > n.length ||
+            (product != null && len > product.length)) {
+            throw new IllegalArgumentException("input array length out of bound: " + len);
+        }
+    }
+
+    // Make sure that the int array z (which is expected to contain
+    // the result of a Montgomery multiplication) is present and
+    // sufficiently large.
+    private static int[] materialize(int[] z, int len) {
+         if (z == null || z.length < len)
+             z = new int[len];
+         return z;
+    }
+
+    // These methods are intended to be be replaced by virtual machine
+    // intrinsics.
+    private static int[] implMontgomeryMultiply(int[] a, int[] b, int[] n, int len,
+                                         long inv, int[] product) {
+        product = multiplyToLen(a, len, b, len, product);
+        return montReduce(product, n, len, (int)inv);
+    }
+    private static int[] implMontgomerySquare(int[] a, int[] n, int len,
+                                       long inv, int[] product) {
+        product = squareToLen(a, len, product);
+        return montReduce(product, n, len, (int)inv);
+    }
+
     static int[] bnExpModThreshTable = {7, 25, 81, 241, 673, 1793,
                                                 Integer.MAX_VALUE}; // Sentinel
 
@@ -2563,6 +2792,17 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         int[] mod = z.mag;
         int modLen = mod.length;
 
+        // Make modLen even. It is conventional to use a cryptographic
+        // modulus that is 512, 768, 1024, or 2048 bits, so this code
+        // will not normally be executed. However, it is necessary for
+        // the correct functioning of the HotSpot intrinsics.
+        if ((modLen & 1) != 0) {
+            int[] x = new int[modLen + 1];
+            System.arraycopy(mod, 0, x, 1, modLen);
+            mod = x;
+            modLen++;
+        }
+
         // Select an appropriate window size
         int wbits = 0;
         int ebits = bitLength(exp, exp.length);
@@ -2581,8 +2821,10 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         for (int i=0; i < tblmask; i++)
             table[i] = new int[modLen];
 
-        // Compute the modular inverse
-        int inv = -MutableBigInteger.inverseMod32(mod[modLen-1]);
+        // Compute the modular inverse of the least significant 64-bit
+        // digit of the modulus
+        long n0 = (mod[modLen-1] & LONG_MASK) + ((mod[modLen-2] & LONG_MASK) << 32);
+        long inv = -MutableBigInteger.inverseMod64(n0);
 
         // Convert base to Montgomery form
         int[] a = leftShift(base, base.length, modLen << 5);
@@ -2590,6 +2832,8 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         MutableBigInteger q = new MutableBigInteger(),
                           a2 = new MutableBigInteger(a),
                           b2 = new MutableBigInteger(mod);
+        b2.normalize(); // MutableBigInteger.divide() assumes that its
+                        // divisor is in normal form.
 
         MutableBigInteger r= a2.divide(b2, q);
         table[0] = r.toIntArray();
@@ -2598,22 +2842,19 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         if (table[0].length < modLen) {
            int offset = modLen - table[0].length;
            int[] t2 = new int[modLen];
-           for (int i=0; i < table[0].length; i++)
-               t2[i+offset] = table[0][i];
+           System.arraycopy(table[0], 0, t2, offset, table[0].length);
            table[0] = t2;
         }
 
         // Set b to the square of the base
-        int[] b = squareToLen(table[0], modLen, null);
-        b = montReduce(b, mod, modLen, inv);
+        int[] b = montgomerySquare(table[0], mod, modLen, inv, null);
 
         // Set t to high half of b
         int[] t = Arrays.copyOf(b, modLen);
 
         // Fill in the table with odd powers of the base
         for (int i=1; i < tblmask; i++) {
-            int[] prod = multiplyToLen(t, modLen, table[i-1], modLen, null);
-            table[i] = montReduce(prod, mod, modLen, inv);
+            table[i] = montgomeryMultiply(t, table[i-1], mod, modLen, inv, null);
         }
 
         // Pre load the window that slides over the exponent
@@ -2684,8 +2925,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                     isone = false;
                 } else {
                     t = b;
-                    a = multiplyToLen(t, modLen, mult, modLen, a);
-                    a = montReduce(a, mod, modLen, inv);
+                    a = montgomeryMultiply(t, mult, mod, modLen, inv, a);
                     t = a; a = b; b = t;
                 }
             }
@@ -2697,8 +2937,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
             // Square the input
             if (!isone) {
                 t = b;
-                a = squareToLen(t, modLen, a);
-                a = montReduce(a, mod, modLen, inv);
+                a = montgomerySquare(t, mod, modLen, inv, a);
                 t = a; a = b; b = t;
             }
         }
@@ -2707,7 +2946,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
         int[] t2 = new int[2*modLen];
         System.arraycopy(b, 0, t2, modLen, modLen);
 
-        b = montReduce(t2, mod, modLen, inv);
+        b = montReduce(t2, mod, modLen, (int)inv);
 
         t2 = Arrays.copyOf(b, modLen);
 
@@ -2775,6 +3014,32 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
      * Multiply an array by one word k and add to result, return the carry
      */
     static int mulAdd(int[] out, int[] in, int offset, int len, int k) {
+        implMulAddCheck(out, in, offset, len, k);
+        return implMulAdd(out, in, offset, len, k);
+    }
+
+    /**
+     * Parameters validation.
+     */
+    private static void implMulAddCheck(int[] out, int[] in, int offset, int len, int k) {
+        if (len > in.length) {
+            throw new IllegalArgumentException("input length is out of bound: " + len + " > " + in.length);
+        }
+        if (offset < 0) {
+            throw new IllegalArgumentException("input offset is invalid: " + offset);
+        }
+        if (offset > (out.length - 1)) {
+            throw new IllegalArgumentException("input offset is out of bound: " + offset + " > " + (out.length - 1));
+        }
+        if (len > (out.length - offset)) {
+            throw new IllegalArgumentException("input len is out of bound: " + len + " > " + (out.length - offset));
+        }
+    }
+
+    /**
+     * Java Runtime may use intrinsic for this method.
+     */
+    private static int implMulAdd(int[] out, int[] in, int offset, int len, int k) {
         long kLong = k & LONG_MASK;
         long carry = 0;
 
@@ -3270,7 +3535,7 @@ public class BigInteger extends Number implements Comparable<BigInteger> {
                      for (int i=1; i< len && pow2; i++)
                          pow2 = (mag[i] == 0);
 
-                     n = (pow2 ? magBitLength -1 : magBitLength);
+                     n = (pow2 ? magBitLength - 1 : magBitLength);
                  } else {
                      n = magBitLength;
                  }

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1999, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1999, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.math;
@@ -1261,19 +1261,20 @@ class MutableBigInteger {
             int sigma = (int) Math.max(0, n32 - b.bitLength());   // step 3: sigma = max{T | (2^T)*B < beta^n}
             MutableBigInteger bShifted = new MutableBigInteger(b);
             bShifted.safeLeftShift(sigma);   // step 4a: shift b so its length is a multiple of n
-            safeLeftShift(sigma);     // step 4b: shift this by the same amount
+            MutableBigInteger aShifted = new MutableBigInteger (this);
+            aShifted.safeLeftShift(sigma);     // step 4b: shift a by the same amount
 
-            // step 5: t is the number of blocks needed to accommodate this plus one additional bit
-            int t = (int) ((bitLength()+n32) / n32);
+            // step 5: t is the number of blocks needed to accommodate a plus one additional bit
+            int t = (int) ((aShifted.bitLength()+n32) / n32);
             if (t < 2) {
                 t = 2;
             }
 
-            // step 6: conceptually split this into blocks a[t-1], ..., a[0]
-            MutableBigInteger a1 = getBlock(t-1, t, n);   // the most significant block of this
+            // step 6: conceptually split a into blocks a[t-1], ..., a[0]
+            MutableBigInteger a1 = aShifted.getBlock(t-1, t, n);   // the most significant block of a
 
             // step 7: z[t-2] = [a[t-1], a[t-2]]
-            MutableBigInteger z = getBlock(t-2, t, n);    // the second to most significant block
+            MutableBigInteger z = aShifted.getBlock(t-2, t, n);    // the second to most significant block
             z.addDisjoint(a1, n);   // z[t-2]
 
             // do schoolbook division on blocks, dividing 2-block numbers by 1-block numbers
@@ -1284,7 +1285,7 @@ class MutableBigInteger {
                 ri = z.divide2n1n(bShifted, qi);
 
                 // step 8b: z = [ri, a[i-1]]
-                z = getBlock(i-1, t, n);   // a[i-1]
+                z = aShifted.getBlock(i-1, t, n);   // a[i-1]
                 z.addDisjoint(ri, n);
                 quotient.addShifted(qi, i*n);   // update q (part of step 9)
             }
@@ -1292,7 +1293,7 @@ class MutableBigInteger {
             ri = z.divide2n1n(bShifted, qi);
             quotient.add(qi);
 
-            ri.rightShift(sigma);   // step 9: this and b were shifted, so shift back
+            ri.rightShift(sigma);   // step 9: a and b were shifted, so shift back
             return ri;
         }
     }
@@ -2064,6 +2065,21 @@ class MutableBigInteger {
     }
 
     /**
+     * Returns the multiplicative inverse of val mod 2^64.  Assumes val is odd.
+     */
+    static long inverseMod64(long val) {
+        // Newton's iteration!
+        long t = val;
+        t *= 2 - val*t;
+        t *= 2 - val*t;
+        t *= 2 - val*t;
+        t *= 2 - val*t;
+        t *= 2 - val*t;
+        assert(t * val == 1);
+        return t;
+    }
+
+    /**
      * Calculate the multiplicative inverse of 2^k mod mod, where mod is odd.
      */
     static MutableBigInteger modInverseBP2(MutableBigInteger mod, int k) {
@@ -2072,8 +2088,8 @@ class MutableBigInteger {
     }
 
     /**
-     * Calculate the multiplicative inverse of this mod mod, where mod is odd.
-     * This and mod are not changed by the calculation.
+     * Calculate the multiplicative inverse of this modulo mod, where the mod
+     * argument is odd.  This and mod are not changed by the calculation.
      *
      * This method implements an algorithm due to Richard Schroeppel, that uses
      * the same intermediate representation as Montgomery Reduction
@@ -2127,8 +2143,18 @@ class MutableBigInteger {
             k += trailingZeros;
         }
 
-        while (c.sign < 0)
+        if (c.compare(p) >= 0) { // c has a larger magnitude than p
+            MutableBigInteger remainder = c.divide(p,
+                new MutableBigInteger());
+            // The previous line ignores the sign so we copy the data back
+            // into c which will restore the sign as needed (and converts
+            // it back to a SignedMutableBigInteger)
+            c.copyValue(remainder);
+        }
+
+        if (c.sign < 0) {
            c.signedAdd(p);
+        }
 
         return fixup(c, p, k);
     }
@@ -2166,8 +2192,8 @@ class MutableBigInteger {
         }
 
         // In theory, c may be greater than p at this point (Very rare!)
-        while (c.compare(p) >= 0)
-            c.subtract(p);
+        if (c.compare(p) >= 0)
+            c = c.divide(p, new MutableBigInteger());
 
         return c;
     }

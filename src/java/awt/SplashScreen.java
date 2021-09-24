@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
@@ -245,7 +245,14 @@ public final class SplashScreen {
     public Rectangle getBounds() throws IllegalStateException {
         synchronized (SplashScreen.class) {
             checkVisible();
-            return _getBounds(splashPtr);
+            float scale = _getScaleFactor(splashPtr);
+            Rectangle bounds = _getBounds(splashPtr);
+            assert scale > 0;
+            if (scale > 0 && scale != 1) {
+                bounds.setSize((int) (bounds.getWidth() / scale),
+                        (int) (bounds.getHeight() / scale));
+            }
+            return bounds;
         }
     }
 
@@ -286,11 +293,21 @@ public final class SplashScreen {
      */
     public Graphics2D createGraphics() throws IllegalStateException {
         synchronized (SplashScreen.class) {
+            checkVisible();
             if (image==null) {
-                Dimension dim = getSize();
-                image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
+                // get unscaled splash image size
+                Dimension dim = _getBounds(splashPtr).getSize();
+                image = new BufferedImage(dim.width, dim.height,
+                        BufferedImage.TYPE_INT_ARGB);
             }
-            return image.createGraphics();
+            float scale = _getScaleFactor(splashPtr);
+            Graphics2D g = image.createGraphics();
+            assert (scale > 0);
+            if (scale <= 0) {
+                scale = 1;
+            }
+            g.scale(scale, scale);
+            return g;
         }
     }
 
@@ -401,5 +418,6 @@ public final class SplashScreen {
     private native static String _getImageFileName(long splashPtr);
     private native static String _getImageJarName(long SplashPtr);
     private native static boolean _setImageData(long SplashPtr, byte[] data);
+    private native static float _getScaleFactor(long SplashPtr);
 
-};
+}

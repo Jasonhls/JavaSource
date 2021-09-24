@@ -1,35 +1,35 @@
 /*
- * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1995, 2015, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.Locale;
 import java.util.EventListener;
-import java.util.Iterator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -50,8 +50,6 @@ import java.io.IOException;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.beans.Transient;
-import java.awt.event.InputMethodListener;
-import java.awt.event.InputMethodEvent;
 import java.awt.im.InputContext;
 import java.awt.im.InputMethodRequests;
 import java.awt.dnd.DropTarget;
@@ -176,7 +174,7 @@ import sun.util.logging.PlatformLogger;
  * <a href="http://www.oracle.com/technetwork/java/painting-140037.html">Painting in AWT and Swing</a>.
  * <p>
  * For details on the focus subsystem, see
- * <a href="http://docs.oracle.com/javase/tutorial/uiswing/misc/focus.html">
+ * <a href="https://docs.oracle.com/javase/tutorial/uiswing/misc/focus.html">
  * How to Use the Focus Subsystem</a>,
  * a section in <em>The Java Tutorial</em>, and the
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
@@ -314,7 +312,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @see GraphicsConfiguration
      * @see #getGraphicsConfiguration
      */
-    private transient GraphicsConfiguration graphicsConfig = null;
+    private transient volatile GraphicsConfiguration graphicsConfig;
 
     /**
      * A reference to a <code>BufferStrategy</code> object
@@ -1143,9 +1141,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since 1.3
      */
     public GraphicsConfiguration getGraphicsConfiguration() {
-        synchronized(getTreeLock()) {
-            return getGraphicsConfiguration_NoClientCode();
-        }
+        return getGraphicsConfiguration_NoClientCode();
     }
 
     final GraphicsConfiguration getGraphicsConfiguration_NoClientCode() {
@@ -1301,6 +1297,25 @@ public abstract class Component implements ImageObserver, MenuContainer,
      */
     boolean isRecursivelyVisible() {
         return visible && (parent == null || parent.isRecursivelyVisible());
+    }
+
+    /**
+     * Determines the bounds of a visible part of the component relative to its
+     * parent.
+     *
+     * @return the visible part of bounds
+     */
+    private Rectangle getRecursivelyVisibleBounds() {
+        final Component container = getContainer();
+        final Rectangle bounds = getBounds();
+        if (container == null) {
+            // we are top level window or haven't a container, return our bounds
+            return bounds;
+        }
+        // translate the container's bounds to our coordinate space
+        final Rectangle parentsBounds = container.getRecursivelyVisibleBounds();
+        parentsBounds.setLocation(0, 0);
+        return parentsBounds.intersection(bounds);
     }
 
     /**
@@ -1475,7 +1490,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 ComponentPeer peer = this.peer;
                 if (peer != null) {
                     peer.setEnabled(true);
-                    if (visible) {
+                    if (visible && !getRecursivelyVisibleBounds().isEmpty()) {
                         updateCursorImmediately();
                     }
                 }
@@ -1524,7 +1539,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 ComponentPeer peer = this.peer;
                 if (peer != null) {
                     peer.setEnabled(false);
-                    if (visible) {
+                    if (visible && !getRecursivelyVisibleBounds().isEmpty()) {
                         updateCursorImmediately();
                     }
                 }
@@ -1669,15 +1684,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
 
     void clearCurrentFocusCycleRootOnHide() {
         /* do nothing */
-    }
-
-    /*
-     * Delete references from LightweithDispatcher of a heavyweight parent
-     */
-    void clearLightweightDispatcherOnRemove(Component removedComponent) {
-        if (parent != null) {
-            parent.clearLightweightDispatcherOnRemove(removedComponent);
-        }
     }
 
     /**
@@ -3402,7 +3408,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 (width > 0) && (height > 0)) {
                 PaintEvent e = new PaintEvent(this, PaintEvent.UPDATE,
                                               new Rectangle(x, y, width, height));
-                Toolkit.getEventQueue().postEvent(e);
+                SunToolkit.postEvent(SunToolkit.targetToAppContext(this), e);
             }
         }
     }
@@ -4959,6 +4965,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
                 tpeer.handleEvent(e);
             }
         }
+
+        if (SunToolkit.isTouchKeyboardAutoShowEnabled() &&
+            (toolkit instanceof SunToolkit) &&
+            ((e instanceof MouseEvent) || (e instanceof FocusEvent))) {
+            ((SunToolkit)toolkit).showOrHideTouchKeyboard(this, e);
+        }
     } // dispatchEventImpl()
 
     /*
@@ -6182,7 +6194,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
     /**
      * Indicates whether a class or its superclasses override coalesceEvents.
      * Must be called with lock on coalesceMap and privileged.
-     * @see checkCoalsecing
+     * @see checkCoalescing
      */
     private static boolean isCoalesceEventsOverriden(Class<?> clazz) {
         assert Thread.holdsLock(coalesceMap);
@@ -6988,8 +7000,6 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
 
         synchronized (getTreeLock()) {
-            clearLightweightDispatcherOnRemove(this);
-
             if (isFocusOwner() && KeyboardFocusManager.isAutoFocusTransferEnabledFor(this)) {
                 transferFocus(true);
             }
@@ -8120,18 +8130,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since     JDK1.0
      */
     protected String paramString() {
-        String thisName = getName();
-        String str = (thisName != null? thisName : "") + "," + x + "," + y + "," + width + "x" + height;
-        if (!isValid()) {
-            str += ",invalid";
-        }
-        if (!visible) {
-            str += ",hidden";
-        }
-        if (!enabled) {
-            str += ",disabled";
-        }
-        return str;
+        final String thisName = Objects.toString(getName(), "");
+        final String invalid = isValid() ? "" : ",invalid";
+        final String hidden = visible ? "" : ",hidden";
+        final String disabled = enabled ? "" : ",disabled";
+        return thisName + ',' + x + ',' + y + ',' + width + 'x' + height
+                + invalid + hidden + disabled;
     }
 
     /**
@@ -8140,7 +8144,7 @@ public abstract class Component implements ImageObserver, MenuContainer,
      * @since     JDK1.0
      */
     public String toString() {
-        return getClass().getName() + "[" + paramString() + "]";
+        return getClass().getName() + '[' + paramString() + ']';
     }
 
     /**

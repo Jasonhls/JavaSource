@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2008, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2008, 2019, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.invoke;
@@ -97,7 +97,8 @@ class MethodType implements java.io.Serializable {
 
     // The remaining fields are caches of various sorts:
     private @Stable MethodTypeForm form; // erased form, plus cached data about primitives
-    private @Stable MethodType wrapAlt;  // alternative wrapped/unwrapped version
+    private @Stable Object wrapAlt;  // alternative wrapped/unwrapped version and
+                                     // private communication for readObject and readResolve
     private @Stable Invokers invokers;   // cache of handy higher-order adapters
     private @Stable String methodDescriptor;  // cache for toMethodDescriptorString
 
@@ -466,6 +467,75 @@ class MethodType implements java.io.Serializable {
         return dropParameterTypes(start, end).insertParameterTypes(start, ptypesToInsert);
     }
 
+    /** Replace the last arrayLength parameter types with the component type of arrayType.
+     * @param arrayType any array type
+     * @param arrayLength the number of parameter types to change
+     * @return the resulting type
+     */
+    /*non-public*/ MethodType asSpreaderType(Class<?> arrayType, int arrayLength) {
+        assert(parameterCount() >= arrayLength);
+        int spreadPos = ptypes.length - arrayLength;
+        if (arrayLength == 0)  return this;  // nothing to change
+        if (arrayType == Object[].class) {
+            if (isGeneric())  return this;  // nothing to change
+            if (spreadPos == 0) {
+                // no leading arguments to preserve; go generic
+                MethodType res = genericMethodType(arrayLength);
+                if (rtype != Object.class) {
+                    res = res.changeReturnType(rtype);
+                }
+                return res;
+            }
+        }
+        Class<?> elemType = arrayType.getComponentType();
+        assert(elemType != null);
+        for (int i = spreadPos; i < ptypes.length; i++) {
+            if (ptypes[i] != elemType) {
+                Class<?>[] fixedPtypes = ptypes.clone();
+                Arrays.fill(fixedPtypes, i, ptypes.length, elemType);
+                return methodType(rtype, fixedPtypes);
+            }
+        }
+        return this;  // arguments check out; no change
+    }
+
+    /** Return the leading parameter type, which must exist and be a reference.
+     *  @return the leading parameter type, after error checks
+     */
+    /*non-public*/ Class<?> leadingReferenceParameter() {
+        Class<?> ptype;
+        if (ptypes.length == 0 ||
+            (ptype = ptypes[0]).isPrimitive())
+            throw newIllegalArgumentException("no leading reference parameter");
+        return ptype;
+    }
+
+    /** Delete the last parameter type and replace it with arrayLength copies of the component type of arrayType.
+     * @param arrayType any array type
+     * @param arrayLength the number of parameter types to insert
+     * @return the resulting type
+     */
+    /*non-public*/ MethodType asCollectorType(Class<?> arrayType, int arrayLength) {
+        assert(parameterCount() >= 1);
+        assert(lastParameterType().isAssignableFrom(arrayType));
+        MethodType res;
+        if (arrayType == Object[].class) {
+            res = genericMethodType(arrayLength);
+            if (rtype != Object.class) {
+                res = res.changeReturnType(rtype);
+            }
+        } else {
+            Class<?> elemType = arrayType.getComponentType();
+            assert(elemType != null);
+            res = methodType(rtype, Collections.nCopies(arrayLength, elemType));
+        }
+        if (ptypes.length == 1) {
+            return res;
+        } else {
+            return res.insertParameterTypes(0, parameterList().subList(0, ptypes.length-1));
+        }
+    }
+
     /**
      * Finds or creates a method type with some parameter types omitted.
      * Convenience method for {@link #methodType(java.lang.Class, java.lang.Class[]) methodType}.
@@ -573,6 +643,10 @@ class MethodType implements java.io.Serializable {
         return genericMethodType(parameterCount());
     }
 
+    /*non-public*/ boolean isGeneric() {
+        return this == erase() && !hasPrimitives();
+    }
+
     /**
      * Converts all primitive types to their corresponding wrapper types.
      * Convenience method for {@link #methodType(java.lang.Class, java.lang.Class[]) methodType}.
@@ -600,7 +674,7 @@ class MethodType implements java.io.Serializable {
 
     private static MethodType wrapWithPrims(MethodType pt) {
         assert(pt.hasPrimitives());
-        MethodType wt = pt.wrapAlt;
+        MethodType wt = (MethodType)pt.wrapAlt;
         if (wt == null) {
             // fill in lazily
             wt = MethodTypeForm.canonicalize(pt, MethodTypeForm.WRAP, MethodTypeForm.WRAP);
@@ -612,7 +686,7 @@ class MethodType implements java.io.Serializable {
 
     private static MethodType unwrapWithNoPrims(MethodType wt) {
         assert(!wt.hasPrimitives());
-        MethodType uwt = wt.wrapAlt;
+        MethodType uwt = (MethodType)wt.wrapAlt;
         if (uwt == null) {
             // fill in lazily
             uwt = MethodTypeForm.canonicalize(wt, MethodTypeForm.UNWRAP, MethodTypeForm.UNWRAP);
@@ -653,7 +727,7 @@ class MethodType implements java.io.Serializable {
      * @return the parameter types (as an immutable list)
      */
     public List<Class<?>> parameterList() {
-        return Collections.unmodifiableList(Arrays.asList(ptypes));
+        return Collections.unmodifiableList(Arrays.asList(ptypes.clone()));
     }
 
     /*non-public*/ Class<?> lastParameterType() {
@@ -728,44 +802,127 @@ class MethodType implements java.io.Serializable {
         return sb.toString();
     }
 
-
+    /** True if the old return type can always be viewed (w/o casting) under new return type,
+     *  and the new parameters can be viewed (w/o casting) under the old parameter types.
+     */
     /*non-public*/
-    boolean isViewableAs(MethodType newType) {
-        if (!VerifyType.isNullConversion(returnType(), newType.returnType()))
+    boolean isViewableAs(MethodType newType, boolean keepInterfaces) {
+        if (!VerifyType.isNullConversion(returnType(), newType.returnType(), keepInterfaces))
             return false;
+        return parametersAreViewableAs(newType, keepInterfaces);
+    }
+    /** True if the new parameters can be viewed (w/o casting) under the old parameter types. */
+    /*non-public*/
+    boolean parametersAreViewableAs(MethodType newType, boolean keepInterfaces) {
+        if (form == newType.form && form.erasedType == this)
+            return true;  // my reference parameters are all Object
+        if (ptypes == newType.ptypes)
+            return true;
         int argc = parameterCount();
         if (argc != newType.parameterCount())
             return false;
         for (int i = 0; i < argc; i++) {
-            if (!VerifyType.isNullConversion(newType.parameterType(i), parameterType(i)))
+            if (!VerifyType.isNullConversion(newType.parameterType(i), parameterType(i), keepInterfaces))
                 return false;
         }
-        return true;
-    }
-    /*non-public*/
-    boolean isCastableTo(MethodType newType) {
-        int argc = parameterCount();
-        if (argc != newType.parameterCount())
-            return false;
         return true;
     }
     /*non-public*/
     boolean isConvertibleTo(MethodType newType) {
+        MethodTypeForm oldForm = this.form();
+        MethodTypeForm newForm = newType.form();
+        if (oldForm == newForm)
+            // same parameter count, same primitive/object mix
+            return true;
         if (!canConvert(returnType(), newType.returnType()))
             return false;
-        int argc = parameterCount();
-        if (argc != newType.parameterCount())
+        Class<?>[] srcTypes = newType.ptypes;
+        Class<?>[] dstTypes = ptypes;
+        if (srcTypes == dstTypes)
+            return true;
+        int argc;
+        if ((argc = srcTypes.length) != dstTypes.length)
             return false;
-        for (int i = 0; i < argc; i++) {
-            if (!canConvert(newType.parameterType(i), parameterType(i)))
+        if (argc <= 1) {
+            if (argc == 1 && !canConvert(srcTypes[0], dstTypes[0]))
                 return false;
+            return true;
+        }
+        if ((oldForm.primitiveParameterCount() == 0 && oldForm.erasedType == this) ||
+            (newForm.primitiveParameterCount() == 0 && newForm.erasedType == newType)) {
+            // Somewhat complicated test to avoid a loop of 2 or more trips.
+            // If either type has only Object parameters, we know we can convert.
+            assert(canConvertParameters(srcTypes, dstTypes));
+            return true;
+        }
+        return canConvertParameters(srcTypes, dstTypes);
+    }
+
+    /** Returns true if MHs.explicitCastArguments produces the same result as MH.asType.
+     *  If the type conversion is impossible for either, the result should be false.
+     */
+    /*non-public*/
+    boolean explicitCastEquivalentToAsType(MethodType newType) {
+        if (this == newType)  return true;
+        if (!explicitCastEquivalentToAsType(rtype, newType.rtype)) {
+            return false;
+        }
+        Class<?>[] srcTypes = newType.ptypes;
+        Class<?>[] dstTypes = ptypes;
+        if (dstTypes == srcTypes) {
+            return true;
+        }
+        assert(dstTypes.length == srcTypes.length);
+        for (int i = 0; i < dstTypes.length; i++) {
+            if (!explicitCastEquivalentToAsType(srcTypes[i], dstTypes[i])) {
+                return false;
+            }
         }
         return true;
     }
+
+    /** Reports true if the src can be converted to the dst, by both asType and MHs.eCE,
+     *  and with the same effect.
+     *  MHs.eCA has the following "upgrades" to MH.asType:
+     *  1. interfaces are unchecked (that is, treated as if aliased to Object)
+     *     Therefore, {@code Object->CharSequence} is possible in both cases but has different semantics
+     *  2. the full matrix of primitive-to-primitive conversions is supported
+     *     Narrowing like {@code long->byte} and basic-typing like {@code boolean->int}
+     *     are not supported by asType, but anything supported by asType is equivalent
+     *     with MHs.eCE.
+     *  3a. unboxing conversions can be followed by the full matrix of primitive conversions
+     *  3b. unboxing of null is permitted (creates a zero primitive value)
+     * Other than interfaces, reference-to-reference conversions are the same.
+     * Boxing primitives to references is the same for both operators.
+     */
+    private static boolean explicitCastEquivalentToAsType(Class<?> src, Class<?> dst) {
+        if (src == dst || dst == Object.class || dst == void.class)  return true;
+        if (src.isPrimitive()) {
+            // Could be a prim/prim conversion, where casting is a strict superset.
+            // Or a boxing conversion, which is always to an exact wrapper class.
+            return canConvert(src, dst);
+        } else if (dst.isPrimitive()) {
+            // Unboxing behavior is different between MHs.eCA & MH.asType (see 3b).
+            return false;
+        } else {
+            // R->R always works, but we have to avoid a check-cast to an interface.
+            return !dst.isInterface() || dst.isAssignableFrom(src);
+        }
+    }
+
+    private boolean canConvertParameters(Class<?>[] srcTypes, Class<?>[] dstTypes) {
+        for (int i = 0; i < srcTypes.length; i++) {
+            if (!canConvert(srcTypes[i], dstTypes[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /*non-public*/
     static boolean canConvert(Class<?> src, Class<?> dst) {
         // short-circuit a few cases:
-        if (src == dst || dst == Object.class)  return true;
+        if (src == dst || src == Object.class || dst == Object.class)  return true;
         // the remainder of this logic is documented in MethodHandle.asType
         if (src.isPrimitive()) {
             // can force void to an explicit null, a la reflect.Method.invoke
@@ -907,7 +1064,7 @@ class MethodType implements java.io.Serializable {
         if (!descriptor.startsWith("(") ||  // also generates NPE if needed
             descriptor.indexOf(')') < 0 ||
             descriptor.indexOf('.') >= 0)
-            throw new IllegalArgumentException("not a method descriptor: "+descriptor);
+            throw newIllegalArgumentException("not a method descriptor: "+descriptor);
         List<Class<?>> types = BytecodeDescriptor.parseMethod(descriptor, loader);
         Class<?> rtype = types.remove(types.size() - 1);
         checkSlotCount(types.size());
@@ -984,40 +1141,21 @@ s.writeObject(this.parameterArray());
      * @param s the stream to read the object from
      * @throws java.io.IOException if there is a problem reading the object
      * @throws ClassNotFoundException if one of the component classes cannot be resolved
-     * @see #MethodType()
      * @see #readResolve
      * @see #writeObject
      */
     private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
+        // Assign defaults in case this object escapes
+        UNSAFE.putObject(this, rtypeOffset, void.class);
+        UNSAFE.putObject(this, ptypesOffset, NO_PTYPES);
+
         s.defaultReadObject();  // requires serialPersistentFields to be an empty array
 
         Class<?>   returnType     = (Class<?>)   s.readObject();
         Class<?>[] parameterArray = (Class<?>[]) s.readObject();
-
-        // Probably this object will never escape, but let's check
-        // the field values now, just to be sure.
-        checkRtype(returnType);
-        checkPtypes(parameterArray);
-
-        parameterArray = parameterArray.clone();  // make sure it is unshared
-        MethodType_init(returnType, parameterArray);
-    }
-
-    /**
-     * For serialization only.
-     * Sets the final fields to null, pending {@code Unsafe.putObject}.
-     */
-    private MethodType() {
-        this.rtype = null;
-        this.ptypes = null;
-    }
-    private void MethodType_init(Class<?> rtype, Class<?>[] ptypes) {
-        // In order to communicate these values to readResolve, we must
-        // store them into the implementation-specific final fields.
-        checkRtype(rtype);
-        checkPtypes(ptypes);
-        UNSAFE.putObject(this, rtypeOffset, rtype);
-        UNSAFE.putObject(this, ptypesOffset, ptypes);
+        // Verify all operands, and make sure ptypes is unshared
+        // Cache the new MethodType for readResolve
+        wrapAlt = new MethodType[]{MethodType.methodType(returnType, parameterArray)};
     }
 
     // Support for resetting final fields while deserializing
@@ -1040,9 +1178,12 @@ s.writeObject(this.parameterArray());
      */
     private Object readResolve() {
         // Do not use a trusted path for deserialization:
-        //return makeImpl(rtype, ptypes, true);
+        //    return makeImpl(rtype, ptypes, true);
         // Verify all operands, and make sure ptypes is unshared:
-        return methodType(rtype, ptypes);
+        // Return a new validated MethodType for the rtype and ptypes passed from readObject.
+        MethodType mt = ((MethodType[])wrapAlt)[0];
+        wrapAlt = null;
+        return mt;
     }
 
     /**

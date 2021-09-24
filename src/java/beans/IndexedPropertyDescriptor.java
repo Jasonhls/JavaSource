@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
@@ -429,7 +429,7 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
     /**
      * Package-private constructor.
      * Merge two property descriptors.  Where they conflict, give the
-     * second argument (y) priority over the first argumnnt (x).
+     * second argument (y) priority over the first argument (x).
      *
      * @param x  The first (lower priority) PropertyDescriptor
      * @param y  The second (higher priority) PropertyDescriptor
@@ -437,39 +437,37 @@ public class IndexedPropertyDescriptor extends PropertyDescriptor {
 
     IndexedPropertyDescriptor(PropertyDescriptor x, PropertyDescriptor y) {
         super(x,y);
-        if (x instanceof IndexedPropertyDescriptor) {
-            IndexedPropertyDescriptor ix = (IndexedPropertyDescriptor)x;
-            try {
-                Method xr = ix.getIndexedReadMethod();
-                if (xr != null) {
-                    setIndexedReadMethod(xr);
-                }
+        Method tr = null;
+        Method tw = null;
 
-                Method xw = ix.getIndexedWriteMethod();
-                if (xw != null) {
-                    setIndexedWriteMethod(xw);
-                }
-            } catch (IntrospectionException ex) {
-                // Should not happen
-                throw new AssertionError(ex);
-            }
+        if (x instanceof IndexedPropertyDescriptor) {
+            IndexedPropertyDescriptor ix = (IndexedPropertyDescriptor) x;
+            tr = ix.getIndexedReadMethod();
+            tw = ix.getIndexedWriteMethod();
         }
         if (y instanceof IndexedPropertyDescriptor) {
-            IndexedPropertyDescriptor iy = (IndexedPropertyDescriptor)y;
-            try {
-                Method yr = iy.getIndexedReadMethod();
-                if (yr != null && yr.getDeclaringClass() == getClass0()) {
-                    setIndexedReadMethod(yr);
-                }
-
-                Method yw = iy.getIndexedWriteMethod();
-                if (yw != null && yw.getDeclaringClass() == getClass0()) {
-                    setIndexedWriteMethod(yw);
-                }
-            } catch (IntrospectionException ex) {
-                // Should not happen
-                throw new AssertionError(ex);
+            IndexedPropertyDescriptor iy = (IndexedPropertyDescriptor) y;
+            Method yr = iy.getIndexedReadMethod();
+            if (isAssignable(tr, yr)) {
+                tr = yr;
             }
+
+            Method yw = iy.getIndexedWriteMethod();
+            if (isAssignable(tw, yw)) {
+                tw = yw;
+            }
+        }
+
+        try {
+            if(tr != null) {
+                setIndexedReadMethod(tr);
+            }
+            if(tw != null) {
+                setIndexedWriteMethod(tw);
+            }
+        } catch(IntrospectionException ex) {
+            // Should not happen
+            throw new AssertionError(ex);
         }
     }
 

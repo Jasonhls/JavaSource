@@ -1,31 +1,33 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.ref;
 
 import sun.misc.Cleaner;
+import sun.misc.JavaLangRefAccess;
+import sun.misc.SharedSecrets;
 
 /**
  * Abstract base class for reference objects.  This class defines the
@@ -97,7 +99,7 @@ public abstract class Reference<T> {
      *    Inactive:   this
      */
     @SuppressWarnings("rawtypes")
-    Reference next;
+    volatile Reference next;
 
     /* When active:   next element in a discovered reference list maintained by GC (or this if last)
      *     pending:   next element in the pending list (or null if last)
@@ -111,7 +113,7 @@ public abstract class Reference<T> {
      * therefore critical that any code holding this lock complete as quickly
      * as possible, allocate no new objects, and avoid calling user code.
      */
-    static private class Lock { };
+    static private class Lock { }
     private static Lock lock = new Lock();
 
 
@@ -126,51 +128,94 @@ public abstract class Reference<T> {
      */
     private static class ReferenceHandler extends Thread {
 
+        private static void ensureClassInitialized(Class<?> clazz) {
+            try {
+                Class.forName(clazz.getName(), true, clazz.getClassLoader());
+            } catch (ClassNotFoundException e) {
+                throw (Error) new NoClassDefFoundError(e.getMessage()).initCause(e);
+            }
+        }
+
+        static {
+            // pre-load and initialize InterruptedException and Cleaner classes
+            // so that we don't get into trouble later in the run loop if there's
+            // memory shortage while loading/initializing them lazily.
+            ensureClassInitialized(InterruptedException.class);
+            ensureClassInitialized(Cleaner.class);
+        }
+
         ReferenceHandler(ThreadGroup g, String name) {
             super(g, name);
         }
 
         public void run() {
-            for (;;) {
-                Reference<Object> r;
-                synchronized (lock) {
-                    if (pending != null) {
-                        r = pending;
-                        pending = r.discovered;
-                        r.discovered = null;
-                    } else {
-                        // The waiting on the lock may cause an OOME because it may try to allocate
-                        // exception objects, so also catch OOME here to avoid silent exit of the
-                        // reference handler thread.
-                        //
-                        // Explicitly define the order of the two exceptions we catch here
-                        // when waiting for the lock.
-                        //
-                        // We do not want to try to potentially load the InterruptedException class
-                        // (which would be done if this was its first use, and InterruptedException
-                        // were checked first) in this situation.
-                        //
-                        // This may lead to the VM not ever trying to load the InterruptedException
-                        // class again.
-                        try {
-                            try {
-                                lock.wait();
-                            } catch (OutOfMemoryError x) { }
-                        } catch (InterruptedException x) { }
-                        continue;
-                    }
-                }
-
-                // Fast path for cleaners
-                if (r instanceof Cleaner) {
-                    ((Cleaner)r).clean();
-                    continue;
-                }
-
-                ReferenceQueue<Object> q = r.queue;
-                if (q != ReferenceQueue.NULL) q.enqueue(r);
+            while (true) {
+                tryHandlePending(true);
             }
         }
+    }
+
+    /**
+     * Try handle pending {@link Reference} if there is one.<p>
+     * Return {@code true} as a hint that there might be another
+     * {@link Reference} pending or {@code false} when there are no more pending
+     * {@link Reference}s at the moment and the program can do some other
+     * useful work instead of looping.
+     *
+     * @param waitForNotify if {@code true} and there was no pending
+     *                      {@link Reference}, wait until notified from VM
+     *                      or interrupted; if {@code false}, return immediately
+     *                      when there is no pending {@link Reference}.
+     * @return {@code true} if there was a {@link Reference} pending and it
+     *         was processed, or we waited for notification and either got it
+     *         or thread was interrupted before being notified;
+     *         {@code false} otherwise.
+     */
+    static boolean tryHandlePending(boolean waitForNotify) {
+        Reference<Object> r;
+        Cleaner c;
+        try {
+            synchronized (lock) {
+                if (pending != null) {
+                    r = pending;
+                    // 'instanceof' might throw OutOfMemoryError sometimes
+                    // so do this before un-linking 'r' from the 'pending' chain...
+                    c = r instanceof Cleaner ? (Cleaner) r : null;
+                    // unlink 'r' from 'pending' chain
+                    pending = r.discovered;
+                    r.discovered = null;
+                } else {
+                    // The waiting on the lock may cause an OutOfMemoryError
+                    // because it may try to allocate exception objects.
+                    if (waitForNotify) {
+                        lock.wait();
+                    }
+                    // retry if waited
+                    return waitForNotify;
+                }
+            }
+        } catch (OutOfMemoryError x) {
+            // Give other threads CPU time so they hopefully drop some live references
+            // and GC reclaims some space.
+            // Also prevent CPU intensive spinning in case 'r instanceof Cleaner' above
+            // persistently throws OOME for some time...
+            Thread.yield();
+            // retry
+            return true;
+        } catch (InterruptedException x) {
+            // retry
+            return true;
+        }
+
+        // Fast path for cleaners
+        if (c != null) {
+            c.clean();
+            return true;
+        }
+
+        ReferenceQueue<? super Object> q = r.queue;
+        if (q != ReferenceQueue.NULL) q.enqueue(r);
+        return true;
     }
 
     static {
@@ -185,8 +230,15 @@ public abstract class Reference<T> {
         handler.setPriority(Thread.MAX_PRIORITY);
         handler.setDaemon(true);
         handler.start();
-    }
 
+        // provide access in SharedSecrets
+        SharedSecrets.setJavaLangRefAccess(new JavaLangRefAccess() {
+            @Override
+            public boolean tryHandlePendingReference() {
+                return tryHandlePending(false);
+            }
+        });
+    }
 
     /* -- Referent accessor and setters -- */
 

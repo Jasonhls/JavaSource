@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1994, 2016, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -145,7 +145,7 @@ class Thread implements Runnable {
         registerNatives();
     }
 
-    private volatile char  name[];
+    private volatile String name;
     private int            priority;
     private Thread         threadQ;
     private long           eetop;
@@ -342,11 +342,11 @@ class Thread implements Runnable {
 
     /**
      * Initializes a Thread with the current AccessControlContext.
-     * @see #init(ThreadGroup,Runnable,String,long,AccessControlContext)
+     * @see #init(ThreadGroup,Runnable,String,long,AccessControlContext,boolean)
      */
     private void init(ThreadGroup g, Runnable target, String name,
                       long stackSize) {
-        init(g, target, name, stackSize, null);
+        init(g, target, name, stackSize, null, true);
     }
 
     /**
@@ -359,12 +359,17 @@ class Thread implements Runnable {
      *        zero to indicate that this parameter is to be ignored.
      * @param acc the AccessControlContext to inherit, or
      *            AccessController.getContext() if null
+     * @param inheritThreadLocals if {@code true}, inherit initial values for
+     *            inheritable thread-locals from the constructing thread
      */
     private void init(ThreadGroup g, Runnable target, String name,
-                      long stackSize, AccessControlContext acc) {
+                      long stackSize, AccessControlContext acc,
+                      boolean inheritThreadLocals) {
         if (name == null) {
             throw new NullPointerException("name cannot be null");
         }
+
+        this.name = name;
 
         Thread parent = currentThread();
         SecurityManager security = System.getSecurityManager();
@@ -402,7 +407,6 @@ class Thread implements Runnable {
         this.group = g;
         this.daemon = parent.isDaemon();
         this.priority = parent.getPriority();
-        this.name = name.toCharArray();
         if (security == null || isCCLOverridden(parent.getClass()))
             this.contextClassLoader = parent.getContextClassLoader();
         else
@@ -411,7 +415,7 @@ class Thread implements Runnable {
                 acc != null ? acc : AccessController.getContext();
         this.target = target;
         setPriority(priority);
-        if (parent.inheritableThreadLocals != null)
+        if (inheritThreadLocals && parent.inheritableThreadLocals != null)
             this.inheritableThreadLocals =
                 ThreadLocal.createInheritedMap(parent.inheritableThreadLocals);
         /* Stash the specified stack size in case the VM cares */
@@ -465,7 +469,7 @@ class Thread implements Runnable {
      * This is not a public constructor.
      */
     Thread(Runnable target, AccessControlContext acc) {
-        init(null, target, "Thread-" + nextThreadNum(), 0, acc);
+        init(null, target, "Thread-" + nextThreadNum(), 0, acc, false);
     }
 
     /**
@@ -1118,7 +1122,11 @@ class Thread implements Runnable {
      */
     public final synchronized void setName(String name) {
         checkAccess();
-        this.name = name.toCharArray();
+        if (name == null) {
+            throw new NullPointerException("name cannot be null");
+        }
+
+        this.name = name;
         if (threadStatus != 0) {
             setNativeName(name);
         }
@@ -1131,7 +1139,7 @@ class Thread implements Runnable {
      * @see     #setName(String)
      */
     public final String getName() {
-        return new String(name, true);
+        return name;
     }
 
     /**

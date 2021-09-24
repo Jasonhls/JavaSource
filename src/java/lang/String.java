@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1994, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -135,7 +135,7 @@ public final class String
      * unnecessary since Strings are immutable.
      */
     public String() {
-        this.value = new char[0];
+        this.value = "".value;
     }
 
     /**
@@ -191,8 +191,14 @@ public final class String
         if (offset < 0) {
             throw new StringIndexOutOfBoundsException(offset);
         }
-        if (count < 0) {
-            throw new StringIndexOutOfBoundsException(count);
+        if (count <= 0) {
+            if (count < 0) {
+                throw new StringIndexOutOfBoundsException(count);
+            }
+            if (offset <= value.length) {
+                this.value = "".value;
+                return;
+            }
         }
         // Note: offset or count might be near -1>>>1.
         if (offset > value.length - count) {
@@ -233,8 +239,14 @@ public final class String
         if (offset < 0) {
             throw new StringIndexOutOfBoundsException(offset);
         }
-        if (count < 0) {
-            throw new StringIndexOutOfBoundsException(count);
+        if (count <= 0) {
+            if (count < 0) {
+                throw new StringIndexOutOfBoundsException(count);
+            }
+            if (offset <= codePoints.length) {
+                this.value = "".value;
+                return;
+            }
         }
         // Note: offset or count might be near -1>>>1.
         if (offset > codePoints.length - count) {
@@ -782,7 +794,7 @@ public final class String
      * subarray of {@code dst} starting at index {@code dstBegin}
      * and ending at index:
      * <blockquote><pre>
-     *     dstbegin + (srcEnd-srcBegin) - 1
+     *     dstBegin + (srcEnd-srcBegin) - 1
      * </pre></blockquote>
      *
      * @param      srcBegin   index of the first character in the string
@@ -827,7 +839,7 @@ public final class String
      * dst} starting at index {@code dstBegin} and ending at index:
      *
      * <blockquote><pre>
-     *     dstbegin + (srcEnd-srcBegin) - 1
+     *     dstBegin + (srcEnd-srcBegin) - 1
      * </pre></blockquote>
      *
      * @deprecated  This method does not properly convert characters into
@@ -1045,8 +1057,9 @@ public final class String
             }
         }
         // Argument is a String
-        if (cs.equals(this))
-            return true;
+        if (cs instanceof String) {
+            return equals(cs);
+        }
         // Argument is a generic CharSequence
         char v1[] = value;
         int n = v1.length;
@@ -2011,11 +2024,11 @@ public final class String
      *          characters followed by the string argument's characters.
      */
     public String concat(String str) {
-        int otherLen = str.length();
-        if (otherLen == 0) {
+        if (str.isEmpty()) {
             return this;
         }
         int len = value.length;
+        int otherLen = str.length();
         char buf[] = Arrays.copyOf(value, len + otherLen);
         str.getChars(buf, len);
         return new String(buf, true);
@@ -2357,7 +2370,7 @@ public final class String
             // Construct result
             int resultSize = list.size();
             if (limit == 0) {
-                while (resultSize > 0 && list.get(resultSize - 1).length() == 0) {
+                while (resultSize > 0 && list.get(resultSize - 1).isEmpty()) {
                     resultSize--;
                 }
             }
@@ -2597,7 +2610,9 @@ public final class String
             } else {
                 srcCount = 1;
             }
-            if (localeDependent || srcChar == '\u03A3') { // GREEK CAPITAL LETTER SIGMA
+            if (localeDependent ||
+                srcChar == '\u03A3' || // GREEK CAPITAL LETTER SIGMA
+                srcChar == '\u0130') { // LATIN CAPITAL LETTER I WITH DOT ABOVE
                 lowerChar = ConditionalSpecialCasing.toLowerCaseEx(this, i, locale);
             } else {
                 lowerChar = Character.toLowerCase(srcChar);

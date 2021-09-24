@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2008, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.invoke;
@@ -93,7 +93,7 @@ import java.util.Objects;
     /** Return the simple name of this member.
      *  For a type, it is the same as {@link Class#getSimpleName}.
      *  For a method or field, it is the simple name of the member.
-     *  For a constructor, it is always {@code "&lt;init&gt;"}.
+     *  For a constructor, it is always {@code "<init>"}.
      */
     public String getName() {
         if (name == null) {
@@ -327,10 +327,6 @@ import java.util.Objects;
         assert(getReferenceKind() == oldKind);
         assert(MethodHandleNatives.refKindIsValid(refKind));
         flags += (((int)refKind - oldKind) << MN_REFERENCE_KIND_SHIFT);
-//        if (isConstructor() && refKind != REF_newInvokeSpecial)
-//            flags += (IS_METHOD - IS_CONSTRUCTOR);
-//        else if (refKind == REF_newInvokeSpecial && isMethod())
-//            flags += (IS_CONSTRUCTOR - IS_METHOD);
         return this;
     }
 
@@ -344,9 +340,10 @@ import java.util.Objects;
         return !testFlags(mask, 0);
     }
 
-    /** Utility method to query if this member is a method handle invocation (invoke or invokeExact). */
+    /** Utility method to query if this member is a method handle invocation (invoke or invokeExact).
+     */
     public boolean isMethodHandleInvoke() {
-        final int bits = MH_INVOKE_MODS;
+        final int bits = MH_INVOKE_MODS &~ Modifier.PUBLIC;
         final int negs = Modifier.STATIC;
         if (testFlags(bits | negs, bits) &&
             clazz == MethodHandle.class) {
@@ -355,7 +352,13 @@ import java.util.Objects;
         return false;
     }
     public static boolean isMethodHandleInvokeName(String name) {
-        return name.equals("invoke") || name.equals("invokeExact");
+        switch (name) {
+        case "invoke":
+        case "invokeExact":
+            return true;
+        default:
+            return false;
+        }
     }
     private static final int MH_INVOKE_MODS = Modifier.NATIVE | Modifier.FINAL | Modifier.PUBLIC;
 
@@ -720,17 +723,9 @@ import java.util.Objects;
         init(defClass, name, type, flagsMods(IS_FIELD, 0, refKind));
         initResolved(false);
     }
-    /** Create a field or type name from the given components:  Declaring class, name, type.
-     *  The declaring class may be supplied as null if this is to be a bare name and type.
-     *  The modifier flags default to zero.
-     *  The resulting name will in an unresolved state.
-     */
-    public MemberName(Class<?> defClass, String name, Class<?> type, Void unused) {
-        this(defClass, name, type, REF_NONE);
-        initResolved(false);
-    }
-    /** Create a method or constructor name from the given components:  Declaring class, name, type, modifiers.
-     *  It will be a constructor if and only if the name is {@code "&lt;init&gt;"}.
+    /** Create a method or constructor name from the given components:
+     *  Declaring class, name, type, reference kind.
+     *  It will be a constructor if and only if the name is {@code "<init>"}.
      *  The declaring class may be supplied as null if this is to be a bare name and type.
      *  The last argument is optional, a boolean which requests REF_invokeSpecial.
      *  The resulting name will in an unresolved state.
@@ -786,7 +781,7 @@ import java.util.Objects;
         assert(isResolved() == isResolved);
     }
 
-    void checkForTypeAlias() {
+    void checkForTypeAlias(Class<?> refc) {
         if (isInvocable()) {
             MethodType type;
             if (this.type instanceof MethodType)
@@ -794,16 +789,16 @@ import java.util.Objects;
             else
                 this.type = type = getMethodType();
             if (type.erase() == type)  return;
-            if (VerifyAccess.isTypeVisible(type, clazz))  return;
-            throw new LinkageError("bad method type alias: "+type+" not visible from "+clazz);
+            if (VerifyAccess.isTypeVisible(type, refc))  return;
+            throw new LinkageError("bad method type alias: "+type+" not visible from "+refc);
         } else {
             Class<?> type;
             if (this.type instanceof Class<?>)
                 type = (Class<?>) this.type;
             else
                 this.type = type = getFieldType();
-            if (VerifyAccess.isTypeVisible(type, clazz))  return;
-            throw new LinkageError("bad field type alias: "+type+" not visible from "+clazz);
+            if (VerifyAccess.isTypeVisible(type, refc))  return;
+            throw new LinkageError("bad field type alias: "+type+" not visible from "+refc);
         }
     }
 
@@ -962,10 +957,25 @@ import java.util.Objects;
             MemberName m = ref.clone();  // JVM will side-effect the ref
             assert(refKind == m.getReferenceKind());
             try {
+                // There are 4 entities in play here:
+                //   * LC: lookupClass
+                //   * REFC: symbolic reference class (MN.clazz before resolution);
+                //   * DEFC: resolved method holder (MN.clazz after resolution);
+                //   * PTYPES: parameter types (MN.type)
+                //
+                // What we care about when resolving a MemberName is consistency between DEFC and PTYPES.
+                // We do type alias (TA) checks on DEFC to ensure that. DEFC is not known until the JVM
+                // finishes the resolution, so do TA checks right after MHN.resolve() is over.
+                //
+                // All parameters passed by a caller are checked against MH type (PTYPES) on every invocation,
+                // so it is safe to call a MH from any context.
+                //
+                // REFC view on PTYPES doesn't matter, since it is used only as a starting point for resolution and doesn't
+                // participate in method selection.
                 m = MethodHandleNatives.resolve(m, lookupClass);
-                m.checkForTypeAlias();
+                m.checkForTypeAlias(m.getDeclaringClass());
                 m.resolution = null;
-            } catch (LinkageError ex) {
+            } catch (ClassNotFoundException | LinkageError ex) {
                 // JVM reports that the "bytecode behavior" would get an error
                 assert(!m.isResolved());
                 m.resolution = ex;

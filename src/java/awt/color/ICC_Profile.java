@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -44,6 +44,7 @@ import sun.java2d.cmm.ProfileDeferralMgr;
 import sun.java2d.cmm.ProfileDeferralInfo;
 import sun.java2d.cmm.ProfileActivator;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,6 +57,8 @@ import java.io.ObjectStreamException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import java.security.AccessController;
@@ -1017,41 +1020,67 @@ public class ICC_Profile implements Serializable {
         return getInstance(profileData);
     }
 
-
-    static byte[] getProfileDataFromStream(InputStream s) throws IOException {
-    byte profileData[];
-    int profileSize;
-
-        byte header[] = new byte[128];
-        int bytestoread = 128;
-        int bytesread = 0;
-        int n;
-
-        while (bytestoread != 0) {
-            if ((n = s.read(header, bytesread, bytestoread)) < 0) {
+    private static byte[] getBytes(BufferedInputStream bis, int bytesToRead)
+                                                            throws IOException {
+        byte[] buffer = new byte[bytesToRead];
+        int bytesRead = 0;
+        while (bytesToRead != 0) {
+            int n;
+            if ((n = bis.read(buffer, bytesRead, bytesToRead)) < 0) {
                 return null;
             }
-            bytesread += n;
-            bytestoread -= n;
+            bytesRead += n;
+            bytesToRead -= n;
         }
+        return buffer;
+    }
+
+    static byte[] getProfileDataFromStream(InputStream s) throws IOException {
+
+        byte[] profileData = null;
+
+        BufferedInputStream bis = new BufferedInputStream(s);
+        bis.mark(128);
+        byte[] header = getBytes(bis, 128);
+        if (header == null) {
+            return null;
+        }
+        bis.reset();
+
         if (header[36] != 0x61 || header[37] != 0x63 ||
             header[38] != 0x73 || header[39] != 0x70) {
             return null;   /* not a valid profile */
         }
-        profileSize = ((header[0] & 0xff) << 24) |
-                      ((header[1] & 0xff) << 16) |
-                      ((header[2] & 0xff) <<  8) |
-                       (header[3] & 0xff);
-        profileData = new byte[profileSize];
-        System.arraycopy(header, 0, profileData, 0, 128);
-        bytestoread = profileSize - 128;
-        bytesread = 128;
-        while (bytestoread != 0) {
-            if ((n = s.read(profileData, bytesread, bytestoread)) < 0) {
-                return null;
+        int profileSize = ((header[0] & 0xff) << 24) |
+                          ((header[1] & 0xff) << 16) |
+                          ((header[2] & 0xff) <<  8) |
+                           (header[3] & 0xff);
+        int bytesToRead = profileSize;
+        int bytesRead = 0;
+        List<byte[]> bufs = new ArrayList<>();
+        try {
+            while (bytesToRead != 0) {
+                int sz = (bytesToRead >= 4096) ? 4096 : bytesToRead;
+                byte[] data = getBytes(bis, sz);
+                if (data == null) {
+                    return null;
+                }
+                bufs.add(data);
+                bytesRead += data.length;
+                bytesToRead -= data.length;
             }
-            bytesread += n;
-            bytestoread -= n;
+            profileData = new byte[bytesRead];
+            int copiedBytes = 0;
+            for (byte[] ba : bufs) {
+               System.arraycopy(ba, 0, profileData, copiedBytes, ba.length);
+               copiedBytes += ba.length;
+            }
+        } catch (Throwable t) {
+            if (t instanceof IOException) {
+               throw t;
+            } else {
+               return null;
+            }
         }
 
         return profileData;

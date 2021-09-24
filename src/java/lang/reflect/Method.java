@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -79,6 +79,9 @@ public final class Method extends Executable {
     // For sharing of MethodAccessors. This branching structure is
     // currently only two levels deep (i.e., one root Method and
     // potentially many Method objects pointing to it.)
+    //
+    // If this branching structure would ever contain cycles, deadlocks can
+    // occur in annotation code.
     private Method              root;
 
     // Generics infrastructure
@@ -144,6 +147,9 @@ public final class Method extends Executable {
         // which implicitly requires that new java.lang.reflect
         // objects be fabricated for each reflective call on Class
         // objects.)
+        if (this.root != null)
+            throw new IllegalArgumentException("Can not copy a non-root Method");
+
         Method res = new Method(clazz, name, parameterTypes, returnType,
                                 exceptionTypes, modifiers, slot, signature,
                                 annotations, parameterAnnotations, annotationDefault);
@@ -151,6 +157,14 @@ public final class Method extends Executable {
         // Might as well eagerly propagate this if already present
         res.methodAccessor = methodAccessor;
         return res;
+    }
+
+    /**
+     * Used by Excecutable for annotation sharing.
+     */
+    @Override
+    Executable getRoot() {
+        return root;
     }
 
     @Override
@@ -252,6 +266,7 @@ public final class Method extends Executable {
 
     /**
      * {@inheritDoc}
+     * @since 1.8
      */
     public int getParameterCount() { return parameterTypes.length; }
 
