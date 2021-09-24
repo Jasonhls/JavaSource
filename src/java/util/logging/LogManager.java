@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -502,11 +502,11 @@ public class LogManager {
         JavaAWTAccess javaAwtAccess = SharedSecrets.getJavaAWTAccess();
         if (sm != null && javaAwtAccess != null) {
             // for each applet, it has its own LoggerContext isolated from others
-            synchronized (javaAwtAccess) {
-                // find the AppContext of the applet code
-                // will be null if we are in the main app context.
-                final Object ecx = javaAwtAccess.getAppletContext();
-                if (ecx != null) {
+            final Object ecx = javaAwtAccess.getAppletContext();
+            if (ecx != null) {
+                synchronized (javaAwtAccess) {
+                    // find the AppContext of the applet code
+                    // will be null if we are in the main app context.
                     if (contextsMap == null) {
                         contextsMap = new WeakHashMap<>();
                     }
@@ -551,7 +551,7 @@ public class LogManager {
         Logger result = getLogger(name);
         if (result == null) {
             // only allocate the new logger once
-            Logger newLogger = new Logger(name, resourceBundleName, caller, this);
+            Logger newLogger = new Logger(name, resourceBundleName, caller, this, false);
             do {
                 if (addLogger(newLogger)) {
                     // We successfully added the new Logger that we
@@ -598,13 +598,13 @@ public class LogManager {
         } while (logger == null);
 
         // LogManager will set the sysLogger's handlers via LogManager.addLogger method.
-        if (logger != sysLogger && sysLogger.getHandlers().length == 0) {
+        if (logger != sysLogger && sysLogger.accessCheckedHandlers().length == 0) {
             // if logger already exists but handlers not set
             final Logger l = logger;
             AccessController.doPrivileged(new PrivilegedAction<Void>() {
                 @Override
                 public Void run() {
-                    for (Handler hdl : l.getHandlers()) {
+                    for (Handler hdl : l.accessCheckedHandlers()) {
                         sysLogger.addHandler(hdl);
                     }
                     return null;
@@ -922,7 +922,7 @@ public class LogManager {
             Logger result = findLogger(name);
             if (result == null) {
                 // only allocate the new system logger once
-                Logger newLogger = new Logger(name, resourceBundleName, null, getOwner());
+                Logger newLogger = new Logger(name, resourceBundleName, null, getOwner(), true);
                 do {
                     if (addLocalLogger(newLogger)) {
                         // We successfully added the new Logger that we
@@ -1640,7 +1640,7 @@ public class LogManager {
             // We do not call the protected Logger two args constructor here,
             // to avoid calling LogManager.getLogManager() from within the
             // RootLogger constructor.
-            super("", null, null, LogManager.this);
+            super("", null, null, LogManager.this, true);
         }
 
         @Override
@@ -1663,9 +1663,9 @@ public class LogManager {
         }
 
         @Override
-        public Handler[] getHandlers() {
+        Handler[] accessCheckedHandlers() {
             initializeGlobalHandlers();
-            return super.getHandlers();
+            return super.accessCheckedHandlers();
         }
     }
 

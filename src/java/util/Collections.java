@@ -1,32 +1,33 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
 import java.io.Serializable;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.lang.reflect.Array;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -37,6 +38,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import sun.misc.SharedSecrets;
 
 /**
  * This class consists exclusively of static methods that operate on or return
@@ -121,34 +123,9 @@ public class Collections {
      *
      * <p>The specified list must be modifiable, but need not be resizable.
      *
-     * <p>Implementation note: This implementation is a stable, adaptive,
-     * iterative mergesort that requires far fewer than n lg(n) comparisons
-     * when the input array is partially sorted, while offering the
-     * performance of a traditional mergesort when the input array is
-     * randomly ordered.  If the input array is nearly sorted, the
-     * implementation requires approximately n comparisons.  Temporary
-     * storage requirements vary from a small constant for nearly sorted
-     * input arrays to n/2 object references for randomly ordered input
-     * arrays.
-     *
-     * <p>The implementation takes equal advantage of ascending and
-     * descending order in its input array, and can take advantage of
-     * ascending and descending order in different parts of the same
-     * input array.  It is well-suited to merging two or more sorted arrays:
-     * simply concatenate the arrays and sort the resulting array.
-     *
-     * <p>The implementation was adapted from Tim Peters's list sort for Python
-     * (<a href="http://svn.python.org/projects/python/trunk/Objects/listsort.txt">
-     * TimSort</a>).  It uses techniques from Peter McIlroy's "Optimistic
-     * Sorting and Information Theoretic Complexity", in Proceedings of the
-     * Fourth Annual ACM-SIAM Symposium on Discrete Algorithms, pp 467-474,
-     * January 1993.
-     *
-     * <p>This implementation dumps the specified list into an array, sorts
-     * the array, and iterates over the list resetting each element
-     * from the corresponding position in the array.  This avoids the
-     * n<sup>2</sup> log(n) performance that would result from attempting
-     * to sort a linked list in place.
+     * @implNote
+     * This implementation defers to the {@link List#sort(Comparator)}
+     * method using the specified list and a {@code null} comparator.
      *
      * @param  <T> the class of the objects in the list
      * @param  list the list to be sorted.
@@ -159,16 +136,11 @@ public class Collections {
      * @throws IllegalArgumentException (optional) if the implementation
      *         detects that the natural ordering of the list elements is
      *         found to violate the {@link Comparable} contract
+     * @see List#sort(Comparator)
      */
     @SuppressWarnings("unchecked")
     public static <T extends Comparable<? super T>> void sort(List<T> list) {
-        Object[] a = list.toArray();
-        Arrays.sort(a);
-        ListIterator<T> i = list.listIterator();
-        for (int j=0; j<a.length; j++) {
-            i.next();
-            i.set((T)a[j]);
-        }
+        list.sort(null);
     }
 
     /**
@@ -183,34 +155,9 @@ public class Collections {
      *
      * <p>The specified list must be modifiable, but need not be resizable.
      *
-     * <p>Implementation note: This implementation is a stable, adaptive,
-     * iterative mergesort that requires far fewer than n lg(n) comparisons
-     * when the input array is partially sorted, while offering the
-     * performance of a traditional mergesort when the input array is
-     * randomly ordered.  If the input array is nearly sorted, the
-     * implementation requires approximately n comparisons.  Temporary
-     * storage requirements vary from a small constant for nearly sorted
-     * input arrays to n/2 object references for randomly ordered input
-     * arrays.
-     *
-     * <p>The implementation takes equal advantage of ascending and
-     * descending order in its input array, and can take advantage of
-     * ascending and descending order in different parts of the same
-     * input array.  It is well-suited to merging two or more sorted arrays:
-     * simply concatenate the arrays and sort the resulting array.
-     *
-     * <p>The implementation was adapted from Tim Peters's list sort for Python
-     * (<a href="http://svn.python.org/projects/python/trunk/Objects/listsort.txt">
-     * TimSort</a>).  It uses techniques from Peter McIlroy's "Optimistic
-     * Sorting and Information Theoretic Complexity", in Proceedings of the
-     * Fourth Annual ACM-SIAM Symposium on Discrete Algorithms, pp 467-474,
-     * January 1993.
-     *
-     * <p>This implementation dumps the specified list into an array, sorts
-     * the array, and iterates over the list resetting each element
-     * from the corresponding position in the array.  This avoids the
-     * n<sup>2</sup> log(n) performance that would result from attempting
-     * to sort a linked list in place.
+     * @implNote
+     * This implementation defers to the {@link List#sort(Comparator)}
+     * method using the specified list and comparator.
      *
      * @param  <T> the class of the objects in the list
      * @param  list the list to be sorted.
@@ -223,16 +170,11 @@ public class Collections {
      *         list-iterator does not support the {@code set} operation.
      * @throws IllegalArgumentException (optional) if the comparator is
      *         found to violate the {@link Comparator} contract
+     * @see List#sort(Comparator)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> void sort(List<T> list, Comparator<? super T> c) {
-        Object[] a = list.toArray();
-        Arrays.sort(a, (Comparator)c);
-        ListIterator<T> i = list.listIterator();
-        for (int j=0; j<a.length; j++) {
-            i.next();
-            i.set((T)a[j]);
-        }
+        list.sort(c);
     }
 
 
@@ -517,7 +459,7 @@ public class Collections {
             for (int i=size; i>1; i--)
                 swap(list, i-1, rnd.nextInt(i));
         } else {
-            Object arr[] = list.toArray();
+            Object[] arr = list.toArray();
 
             // Shuffle array
             for (int i=size; i>1; i--)
@@ -1526,9 +1468,9 @@ public class Collections {
             throw new UnsupportedOperationException();
         }
 
-        private transient Set<K> keySet = null;
-        private transient Set<Map.Entry<K,V>> entrySet = null;
-        private transient Collection<V> values = null;
+        private transient Set<K> keySet;
+        private transient Set<Map.Entry<K,V>> entrySet;
+        private transient Collection<V> values;
 
         public Set<K> keySet() {
             if (keySet==null)
@@ -2402,7 +2344,7 @@ public class Collections {
 
         public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
             synchronized (mutex) {
-                return new SynchronizedNavigableSet<>(ns.tailSet(fromElement, inclusive));
+                return new SynchronizedNavigableSet<>(ns.tailSet(fromElement, inclusive), mutex);
             }
         }
     }
@@ -2657,9 +2599,9 @@ public class Collections {
             synchronized (mutex) {m.clear();}
         }
 
-        private transient Set<K> keySet = null;
-        private transient Set<Map.Entry<K,V>> entrySet = null;
-        private transient Collection<V> values = null;
+        private transient Set<K> keySet;
+        private transient Set<Map.Entry<K,V>> entrySet;
+        private transient Collection<V> values;
 
         public Set<K> keySet() {
             synchronized (mutex) {
@@ -3091,9 +3033,11 @@ public class Collections {
         final Collection<E> c;
         final Class<E> type;
 
-        void typeCheck(Object o) {
+        @SuppressWarnings("unchecked")
+        E typeCheck(Object o) {
             if (o != null && !type.isInstance(o))
                 throw new ClassCastException(badElementMsg(o));
+            return (E) o;
         }
 
         private String badElementMsg(Object o) {
@@ -3102,10 +3046,8 @@ public class Collections {
         }
 
         CheckedCollection(Collection<E> c, Class<E> type) {
-            if (c==null || type == null)
-                throw new NullPointerException();
-            this.c = c;
-            this.type = type;
+            this.c = Objects.requireNonNull(c, "c");
+            this.type = Objects.requireNonNull(type, "type");
         }
 
         public int size()                 { return c.size(); }
@@ -3137,12 +3079,9 @@ public class Collections {
                 public void remove()     {        it.remove(); }};
         }
 
-        public boolean add(E e) {
-            typeCheck(e);
-            return c.add(e);
-        }
+        public boolean add(E e)          { return c.add(typeCheck(e)); }
 
-        private E[] zeroLengthElementArray = null; // Lazily initialized
+        private E[] zeroLengthElementArray; // Lazily initialized
 
         private E[] zeroLengthElementArray() {
             return zeroLengthElementArray != null ? zeroLengthElementArray :
@@ -3151,7 +3090,7 @@ public class Collections {
 
         @SuppressWarnings("unchecked")
         Collection<E> checkedCopyOf(Collection<? extends E> coll) {
-            Object[] a = null;
+            Object[] a;
             try {
                 E[] z = zeroLengthElementArray();
                 a = coll.toArray(z);
@@ -3247,11 +3186,7 @@ public class Collections {
         public E peek()                 {return queue.peek();}
         public E poll()                 {return queue.poll();}
         public E remove()               {return queue.remove();}
-
-        public boolean offer(E e) {
-            typeCheck(e);
-            return add(e);
-        }
+        public boolean offer(E e)       {return queue.offer(typeCheck(e));}
     }
 
     /**
@@ -3500,13 +3435,11 @@ public class Collections {
         public int lastIndexOf(Object o) { return list.lastIndexOf(o); }
 
         public E set(int index, E element) {
-            typeCheck(element);
-            return list.set(index, element);
+            return list.set(index, typeCheck(element));
         }
 
         public void add(int index, E element) {
-            typeCheck(element);
-            list.add(index, element);
+            list.add(index, typeCheck(element));
         }
 
         public boolean addAll(int index, Collection<? extends E> c) {
@@ -3527,13 +3460,11 @@ public class Collections {
                 public void remove()         {        i.remove(); }
 
                 public void set(E e) {
-                    typeCheck(e);
-                    i.set(e);
+                    i.set(typeCheck(e));
                 }
 
                 public void add(E e) {
-                    typeCheck(e);
-                    i.add(e);
+                    i.add(typeCheck(e));
                 }
 
                 @Override
@@ -3547,10 +3478,20 @@ public class Collections {
             return new CheckedList<>(list.subList(fromIndex, toIndex), type);
         }
 
+        /**
+         * {@inheritDoc}
+         *
+         * @throws ClassCastException if the class of an element returned by the
+         *         operator prevents it from being added to this collection. The
+         *         exception may be thrown after some elements of the list have
+         *         already been replaced.
+         */
         @Override
         public void replaceAll(UnaryOperator<E> operator) {
-            list.replaceAll(operator);
+            Objects.requireNonNull(operator);
+            list.replaceAll(e -> typeCheck(operator.apply(e)));
         }
+
         @Override
         public void sort(Comparator<? super E> c) {
             list.sort(c);
@@ -3703,7 +3644,7 @@ public class Collections {
                 m.put(e.getKey(), e.getValue());
         }
 
-        private transient Set<Map.Entry<K,V>> entrySet = null;
+        private transient Set<Map.Entry<K,V>> entrySet;
 
         public Set<Map.Entry<K,V>> entrySet() {
             if (entrySet==null)
@@ -4464,10 +4405,12 @@ public class Collections {
      * <pre>
      *     List&lt;String&gt; s = Collections.emptyList();
      * </pre>
-     * Implementation note:  Implementations of this method need not
-     * create a separate <tt>List</tt> object for each call.   Using this
-     * method is likely to have comparable cost to using the like-named
-     * field.  (Unlike this method, the field does not provide type safety.)
+     *
+     * @implNote
+     * Implementations of this method need not create a separate <tt>List</tt>
+     * object for each call.   Using this method is likely to have comparable
+     * cost to using the like-named field.  (Unlike this method, the field does
+     * not provide type safety.)
      *
      * @param <T> type of elements, if there were any, in the list
      * @return an empty immutable list
@@ -4935,9 +4878,9 @@ public class Collections {
         public boolean containsValue(Object value)       {return eq(value, v);}
         public V get(Object key)              {return (eq(key, k) ? v : null);}
 
-        private transient Set<K> keySet = null;
-        private transient Set<Map.Entry<K,V>> entrySet = null;
-        private transient Collection<V> values = null;
+        private transient Set<K> keySet;
+        private transient Set<Map.Entry<K,V>> entrySet;
+        private transient Collection<V> values;
 
         public Set<K> keySet() {
             if (keySet==null)
@@ -5119,6 +5062,53 @@ public class Collections {
             return new CopiesList<>(toIndex - fromIndex, element);
         }
 
+        @Override
+        public int hashCode() {
+            if (n == 0) return 1;
+            // hashCode of n repeating elements is 31^n + elementHash * Sum(31^k, k = 0..n-1)
+            // this implementation completes in O(log(n)) steps taking advantage of
+            // 31^(2*n) = (31^n)^2 and Sum(31^k, k = 0..(2*n-1)) = Sum(31^k, k = 0..n-1) * (31^n + 1)
+            int pow = 31;
+            int sum = 1;
+            for (int i = Integer.numberOfLeadingZeros(n) + 1; i < Integer.SIZE; i++) {
+                sum *= pow + 1;
+                pow *= pow;
+                if ((n << i) < 0) {
+                    pow *= 31;
+                    sum = sum * 31 + 1;
+                }
+            }
+            return pow + sum * (element == null ? 0 : element.hashCode());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            if (o instanceof CopiesList) {
+                CopiesList<?> other = (CopiesList<?>) o;
+                return n == other.n && (n == 0 || eq(element, other.element));
+            }
+            if (!(o instanceof List))
+                return false;
+
+            int remaining = n;
+            E e = element;
+            Iterator<?> itr = ((List<?>) o).iterator();
+            if (e == null) {
+                while (itr.hasNext() && remaining-- > 0) {
+                    if (itr.next() != null)
+                        return false;
+                }
+            } else {
+                while (itr.hasNext() && remaining-- > 0) {
+                    if (!e.equals(itr.next()))
+                        return false;
+                }
+            }
+            return remaining == 0 && !itr.hasNext();
+        }
+
         // Override default methods in Collection
         @Override
         public Stream<E> stream() {
@@ -5133,6 +5123,11 @@ public class Collections {
         @Override
         public Spliterator<E> spliterator() {
             return stream().spliterator();
+        }
+
+        private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+            ois.defaultReadObject();
+            SharedSecrets.getJavaOISAccess().checkArray(ois, Object[].class, n);
         }
     }
 

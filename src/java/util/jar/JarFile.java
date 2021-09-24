@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.jar;
@@ -74,6 +74,7 @@ class JarFile extends ZipFile {
     private JarVerifier jv;
     private boolean jvInitialized;
     private boolean verify;
+    static final ThreadLocal<Boolean> isInitializing = new ThreadLocal<>();
 
     // indicates if Class-Path attribute present (only valid if hasCheckedSpecialAttributes true)
     private boolean hasClassPathAttribute;
@@ -191,10 +192,10 @@ class JarFile extends ZipFile {
             if (manEntry != null) {
                 if (verify) {
                     byte[] b = getBytes(manEntry);
-                    man = new Manifest(new ByteArrayInputStream(b));
                     if (!jvInitialized) {
                         jv = new JarVerifier(b);
                     }
+                    man = new Manifest(jv, new ByteArrayInputStream(b));
                 } else {
                     man = new Manifest(super.getInputStream(manEntry));
                 }
@@ -602,15 +603,20 @@ class JarFile extends ZipFile {
         return false;
     }
 
-    private synchronized void ensureInitialization() {
+    synchronized void ensureInitialization() {
         try {
             maybeInstantiateVerifier();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         if (jv != null && !jvInitialized) {
-            initializeVerifier();
-            jvInitialized = true;
+            isInitializing.set(Boolean.TRUE);
+            try {
+                initializeVerifier();
+                jvInitialized = true;
+            } finally {
+                isInitializing.set(Boolean.FALSE);
+            }
         }
     }
 
@@ -787,5 +793,10 @@ class JarFile extends ZipFile {
             return jv.getManifestDigests();
         }
         return new ArrayList<Object>();
+    }
+
+    static boolean isInitializing() {
+        Boolean value = isInitializing.get();
+        return (value == null) ? false : value;
     }
 }

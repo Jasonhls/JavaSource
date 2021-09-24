@@ -1,32 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -407,7 +407,7 @@ public interface CompletionStage<T> {
     /**
      * Returns a new CompletionStage that, when this and the other
      * given stage complete normally, executes the given action using
-     * the supplied executor
+     * the supplied executor.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -569,7 +569,7 @@ public interface CompletionStage<T> {
     /**
      * Returns a new CompletionStage that, when either this or the
      * other given stage complete normally, executes the given action
-     * using supplied executor.
+     * using the supplied executor.
      *
      * See the {@link CompletionStage} documentation for rules
      * covering exceptional completion.
@@ -649,10 +649,15 @@ public interface CompletionStage<T> {
         (Function<Throwable, ? extends T> fn);
 
     /**
-     * Returns a new CompletionStage with the same result or exception
-     * as this stage, and when this stage completes, executes the
-     * given action with the result (or {@code null} if none) and the
-     * exception (or {@code null} if none) of this stage.
+     * Returns a new CompletionStage with the same result or exception as
+     * this stage, that executes the given action when this stage completes.
+     *
+     * <p>When this stage is complete, the given action is invoked with the
+     * result (or {@code null} if none) and the exception (or {@code null}
+     * if none) of this stage as arguments.  The returned stage is completed
+     * when the action returns.  If the supplied action itself encounters an
+     * exception, then the returned stage exceptionally completes with this
+     * exception unless this stage also completed exceptionally.
      *
      * @param action the action to perform
      * @return the new CompletionStage
@@ -661,12 +666,16 @@ public interface CompletionStage<T> {
         (BiConsumer<? super T, ? super Throwable> action);
 
     /**
-     * Returns a new CompletionStage with the same result or exception
-     * as this stage, and when this stage completes, executes the
-     * given action executes the given action using this stage's
-     * default asynchronous execution facility, with the result (or
-     * {@code null} if none) and the exception (or {@code null} if
-     * none) of this stage as arguments.
+     * Returns a new CompletionStage with the same result or exception as
+     * this stage, that executes the given action using this stage's
+     * default asynchronous execution facility when this stage completes.
+     *
+     * <p>When this stage is complete, the given action is invoked with the
+     * result (or {@code null} if none) and the exception (or {@code null}
+     * if none) of this stage as arguments.  The returned stage is completed
+     * when the action returns.  If the supplied action itself encounters an
+     * exception, then the returned stage exceptionally completes with this
+     * exception unless this stage also completed exceptionally.
      *
      * @param action the action to perform
      * @return the new CompletionStage
@@ -675,11 +684,16 @@ public interface CompletionStage<T> {
         (BiConsumer<? super T, ? super Throwable> action);
 
     /**
-     * Returns a new CompletionStage with the same result or exception
-     * as this stage, and when this stage completes, executes using
-     * the supplied Executor, the given action with the result (or
-     * {@code null} if none) and the exception (or {@code null} if
-     * none) of this stage as arguments.
+     * Returns a new CompletionStage with the same result or exception as
+     * this stage, that executes the given action using the supplied
+     * Executor when this stage completes.
+     *
+     * <p>When this stage is complete, the given action is invoked with the
+     * result (or {@code null} if none) and the exception (or {@code null}
+     * if none) of this stage as arguments.  The returned stage is completed
+     * when the action returns.  If the supplied action itself encounters an
+     * exception, then the returned stage exceptionally completes with this
+     * exception unless this stage also completed exceptionally.
      *
      * @param action the action to perform
      * @param executor the executor to use for asynchronous execution
@@ -693,9 +707,11 @@ public interface CompletionStage<T> {
      * Returns a new CompletionStage that, when this stage completes
      * either normally or exceptionally, is executed with this stage's
      * result and exception as arguments to the supplied function.
-     * The given function is invoked with the result (or {@code null}
-     * if none) and the exception (or {@code null} if none) of this
-     * stage when complete as arguments.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
      *
      * @param fn the function to use to compute the value of the
      * returned CompletionStage
@@ -710,9 +726,11 @@ public interface CompletionStage<T> {
      * either normally or exceptionally, is executed using this stage's
      * default asynchronous execution facility, with this stage's
      * result and exception as arguments to the supplied function.
-     * The given function is invoked with the result (or {@code null}
-     * if none) and the exception (or {@code null} if none) of this
-     * stage when complete as arguments.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
      *
      * @param fn the function to use to compute the value of the
      * returned CompletionStage
@@ -726,10 +744,12 @@ public interface CompletionStage<T> {
      * Returns a new CompletionStage that, when this stage completes
      * either normally or exceptionally, is executed using the
      * supplied executor, with this stage's result and exception as
-     * arguments to the supplied function.  The given function is
-     * invoked with the result (or {@code null} if none) and the
-     * exception (or {@code null} if none) of this stage when complete
-     * as arguments.
+     * arguments to the supplied function.
+     *
+     * <p>When this stage is complete, the given function is invoked
+     * with the result (or {@code null} if none) and the exception (or
+     * {@code null} if none) of this stage as arguments, and the
+     * function's result is used to complete the returned stage.
      *
      * @param fn the function to use to compute the value of the
      * returned CompletionStage

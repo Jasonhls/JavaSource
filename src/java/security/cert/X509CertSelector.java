@@ -1,26 +1,26 @@
 /*
  * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -2115,8 +2115,11 @@ public class X509CertSelector implements CertSelector {
             if (certSubjectKeyID == null ||
                     !Arrays.equals(subjectKeyID, certSubjectKeyID)) {
                 if (debug != null) {
-                    debug.println("X509CertSelector.match: "
-                        + "subject key IDs don't match");
+                    debug.println("X509CertSelector.match: subject key IDs " +
+                        "don't match\nX509CertSelector.match: subjectKeyID: " +
+                        Arrays.toString(subjectKeyID) +
+                        "\nX509CertSelector.match: certSubjectKeyID: " +
+                        Arrays.toString(certSubjectKeyID));
                 }
                 return false;
             }
@@ -2574,8 +2577,10 @@ public class X509CertSelector implements CertSelector {
         } else {
             if (maxPathLen < basicConstraints) {
                 if (debug != null) {
-                    debug.println("X509CertSelector.match: maxPathLen too small ("
-                        + maxPathLen + " < " + basicConstraints + ")");
+                    debug.println("X509CertSelector.match: cert's maxPathLen " +
+                            "is less than the min maxPathLen set by " +
+                            "basicConstraints. " +
+                            "(" + maxPathLen + " < " + basicConstraints + ")");
                 }
                 return false;
             }

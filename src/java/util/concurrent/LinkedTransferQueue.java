@@ -1,32 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -780,7 +780,9 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Version of firstOfMode used by Spliterator
+     * Version of firstOfMode used by Spliterator. Callers must
+     * recheck if the returned node's item field is null or
+     * self-linked before using.
      */
     final Node firstDataNode() {
         for (Node p = head; p != null;) {
@@ -953,11 +955,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 Object[] a = new Object[n];
                 int i = 0;
                 do {
-                    if ((a[i] = p.item) != null)
+                    Object e = p.item;
+                    if (e != p && (a[i] = e) != null)
                         ++i;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                } while (p != null && i < n);
+                } while (p != null && i < n && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
                 if (i > 0) {
@@ -980,11 +983,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 exhausted = true;
                 do {
                     Object e = p.item;
+                    if (e != null && e != p)
+                        action.accept((E)e);
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                    if (e != null)
-                        action.accept((E)e);
-                } while (p != null);
+                } while (p != null && p.isData);
             }
         }
 
@@ -997,10 +1000,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 ((p = current) != null || (p = q.firstDataNode()) != null)) {
                 Object e;
                 do {
-                    e = p.item;
+                    if ((e = p.item) == p)
+                        e = null;
                     if (p == (p = p.next))
                         p = q.firstDataNode();
-                } while (e == null && p != null);
+                } while (e == null && p != null && p.isData);
                 if ((current = p) == null)
                     exhausted = true;
                 if (e != null) {

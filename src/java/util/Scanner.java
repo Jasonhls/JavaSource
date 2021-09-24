@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -425,7 +425,7 @@ public final class Scanner implements Iterator<String>, Closeable {
         // here but what can we do? The final authority will be
         // whatever parse method is invoked, so ultimately the
         // Scanner will do the right thing
-        String digit = "((?i)["+radixDigits+"]|\\p{javaDigit})";
+        String digit = "((?i)["+radixDigits+"\\p{javaDigit}])";
         String groupedNumeral = "("+non0Digit+digit+"?"+digit+"?("+
                                 groupSeparator+digit+digit+digit+")+)";
         // digit++ is the possessive form which is necessary for reducing
@@ -475,7 +475,7 @@ public final class Scanner implements Iterator<String>, Closeable {
     private Pattern decimalPattern;
     private void buildFloatAndDecimalPattern() {
         // \\p{javaDigit} may not be perfect, see above
-        String digit = "([0-9]|(\\p{javaDigit}))";
+        String digit = "(([0-9\\p{javaDigit}]))";
         String exponent = "([eE][+-]?"+digit+"+)?";
         String groupedNumeral = "("+non0Digit+digit+"?"+digit+"?("+
                                 groupSeparator+digit+digit+digit+")+)";
@@ -1188,25 +1188,25 @@ public final class Scanner implements Iterator<String>, Closeable {
 
         // These must be literalized to avoid collision with regex
         // metacharacters such as dot or parenthesis
-        groupSeparator =   "\\" + dfs.getGroupingSeparator();
-        decimalSeparator = "\\" + dfs.getDecimalSeparator();
+        groupSeparator =   "\\x{" + Integer.toHexString(dfs.getGroupingSeparator()) + "}";
+        decimalSeparator = "\\x{" + Integer.toHexString(dfs.getDecimalSeparator()) + "}";
 
         // Quoting the nonzero length locale-specific things
         // to avoid potential conflict with metacharacters
-        nanString = "\\Q" + dfs.getNaN() + "\\E";
-        infinityString = "\\Q" + dfs.getInfinity() + "\\E";
+        nanString = Pattern.quote(dfs.getNaN());
+        infinityString = Pattern.quote(dfs.getInfinity());
         positivePrefix = df.getPositivePrefix();
-        if (positivePrefix.length() > 0)
-            positivePrefix = "\\Q" + positivePrefix + "\\E";
+        if (!positivePrefix.isEmpty())
+            positivePrefix = Pattern.quote(positivePrefix);
         negativePrefix = df.getNegativePrefix();
-        if (negativePrefix.length() > 0)
-            negativePrefix = "\\Q" + negativePrefix + "\\E";
+        if (!negativePrefix.isEmpty())
+            negativePrefix = Pattern.quote(negativePrefix);
         positiveSuffix = df.getPositiveSuffix();
-        if (positiveSuffix.length() > 0)
-            positiveSuffix = "\\Q" + positiveSuffix + "\\E";
+        if (!positiveSuffix.isEmpty())
+            positiveSuffix = Pattern.quote(positiveSuffix);
         negativeSuffix = df.getNegativeSuffix();
-        if (negativeSuffix.length() > 0)
-            negativeSuffix = "\\Q" + negativeSuffix + "\\E";
+        if (!negativeSuffix.isEmpty())
+            negativeSuffix = Pattern.quote(negativeSuffix);
 
         // Force rebuilding and recompilation of locale dependent
         // primitive patterns

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1994, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1994, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -30,6 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.BiFunction;
+import sun.misc.SharedSecrets;
 
 /**
  * This class implements a hash table, which maps keys to values. Any
@@ -617,9 +618,9 @@ public class Hashtable<K,V>
      * appropriate view the first time this view is requested.  The views are
      * stateless, so there's no reason to create more than one of each.
      */
-    private transient volatile Set<K> keySet = null;
-    private transient volatile Set<Map.Entry<K,V>> entrySet = null;
-    private transient volatile Collection<V> values = null;
+    private transient volatile Set<K> keySet;
+    private transient volatile Set<Map.Entry<K,V>> entrySet;
+    private transient volatile Collection<V> values;
 
     /**
      * Returns a {@link Set} view of the keys contained in this map.
@@ -1132,10 +1133,10 @@ public class Hashtable<K,V>
         Entry<Object, Object> entryStack = null;
 
         synchronized (this) {
-            // Write out the length, threshold, loadfactor
+            // Write out the threshold and loadFactor
             s.defaultWriteObject();
 
-            // Write out length, count of elements
+            // Write out the length and count of elements
             s.writeInt(table.length);
             s.writeInt(count);
 
@@ -1165,22 +1166,41 @@ public class Hashtable<K,V>
     private void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
-        // Read in the length, threshold, and loadfactor
+        // Read in the threshold and loadFactor
         s.defaultReadObject();
+
+        // Validate loadFactor (ignore threshold - it will be re-computed)
+        if (loadFactor <= 0 || Float.isNaN(loadFactor))
+            throw new StreamCorruptedException("Illegal Load: " + loadFactor);
 
         // Read the original length of the array and number of elements
         int origlength = s.readInt();
         int elements = s.readInt();
 
-        // Compute new size with a bit of room 5% to grow but
-        // no larger than the original size.  Make the length
+        // Validate # of elements
+        if (elements < 0)
+            throw new StreamCorruptedException("Illegal # of Elements: " + elements);
+
+        // Clamp original length to be more than elements / loadFactor
+        // (this is the invariant enforced with auto-growth)
+        origlength = Math.max(origlength, (int)(elements / loadFactor) + 1);
+
+        // Compute new length with a bit of room 5% + 3 to grow but
+        // no larger than the clamped original length.  Make the length
         // odd if it's large enough, this helps distribute the entries.
         // Guard against the length ending up zero, that's not valid.
-        int length = (int)(elements * loadFactor) + (elements / 20) + 3;
+        int length = (int)((elements + elements / 20) / loadFactor) + 3;
         if (length > elements && (length & 1) == 0)
             length--;
-        if (origlength > 0 && length > origlength)
+        length = Math.min(length, origlength);
+
+        if (length < 0) { // overflow
             length = origlength;
+        }
+
+        // Check Map.Entry[].class since it's the nearest public type to
+        // what we're actually creating.
+        SharedSecrets.getJavaOISAccess().checkArray(s, Map.Entry[].class, length);
         table = new Entry<?,?>[length];
         threshold = (int)Math.min(length * loadFactor, MAX_ARRAY_SIZE + 1);
         count = 0;
@@ -1191,7 +1211,7 @@ public class Hashtable<K,V>
                 K key = (K)s.readObject();
             @SuppressWarnings("unchecked")
                 V value = (V)s.readObject();
-            // synch could be eliminated for performance
+            // sync is eliminated for performance
             reconstitutionPut(table, key, value);
         }
     }
@@ -1203,9 +1223,9 @@ public class Hashtable<K,V>
      *
      * <p>This differs from the regular put method in several ways. No
      * checking for rehashing is necessary since the number of elements
-     * initially in the table is known. The modCount is not incremented
-     * because we are creating a new instance. Also, no return value
-     * is needed.
+     * initially in the table is known. The modCount is not incremented and
+     * there's no synchronization because we are creating a new instance.
+     * Also, no return value is needed.
      */
     private void reconstitutionPut(Entry<?,?>[] tab, K key, V value)
         throws StreamCorruptedException
@@ -1303,8 +1323,8 @@ public class Hashtable<K,V>
     private class Enumerator<T> implements Enumeration<T>, Iterator<T> {
         Entry<?,?>[] table = Hashtable.this.table;
         int index = table.length;
-        Entry<?,?> entry = null;
-        Entry<?,?> lastReturned = null;
+        Entry<?,?> entry;
+        Entry<?,?> lastReturned;
         int type;
 
         /**

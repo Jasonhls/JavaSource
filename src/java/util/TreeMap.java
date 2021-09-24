@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -120,7 +120,7 @@ public class TreeMap<K,V>
      */
     private final Comparator<? super K> comparator;
 
-    private transient Entry<K,V> root = null;
+    private transient Entry<K,V> root;
 
     /**
      * The number of entries in the tree
@@ -784,9 +784,9 @@ public class TreeMap<K,V>
      * the first time this view is requested.  Views are stateless, so
      * there's no reason to create more than one.
      */
-    private transient EntrySet entrySet = null;
-    private transient KeySet<K> navigableKeySet = null;
-    private transient NavigableMap<K,V> descendingMap = null;
+    private transient EntrySet entrySet;
+    private transient KeySet<K> navigableKeySet;
+    private transient NavigableMap<K,V> descendingMap;
 
     /**
      * Returns a {@link Set} view of the keys contained in this map.
@@ -855,7 +855,11 @@ public class TreeMap<K,V>
      */
     public Collection<V> values() {
         Collection<V> vs = values;
-        return (vs != null) ? vs : (values = new Values());
+        if (vs == null) {
+            vs = new Values();
+            values = vs;
+        }
+        return vs;
     }
 
     /**
@@ -1338,6 +1342,7 @@ public class TreeMap<K,V>
      */
     abstract static class NavigableSubMap<K,V> extends AbstractMap<K,V>
         implements NavigableMap<K,V>, java.io.Serializable {
+        private static final long serialVersionUID = -2102997345730753016L;
         /**
          * The backing map.
          */
@@ -1585,9 +1590,9 @@ public class TreeMap<K,V>
         }
 
         // Views
-        transient NavigableMap<K,V> descendingMapView = null;
-        transient EntrySetView entrySetView = null;
-        transient KeySet<K> navigableKeySetView = null;
+        transient NavigableMap<K,V> descendingMapView;
+        transient EntrySetView entrySetView;
+        transient KeySet<K> navigableKeySetView;
 
         public final NavigableSet<K> navigableKeySet() {
             KeySet<K> nksv = navigableKeySetView;
@@ -2048,8 +2053,8 @@ public class TreeMap<K,V>
     static final class Entry<K,V> implements Map.Entry<K,V> {
         K key;
         V value;
-        Entry<K,V> left = null;
-        Entry<K,V> right = null;
+        Entry<K,V> left;
+        Entry<K,V> right;
         Entry<K,V> parent;
         boolean color = BLACK;
 

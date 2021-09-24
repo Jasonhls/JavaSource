@@ -1,25 +1,25 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -34,6 +34,7 @@
 
 package java.util.concurrent;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -50,6 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import sun.misc.SharedSecrets;
 
 /**
  * A thread-safe variant of {@link java.util.ArrayList} in which all mutative
@@ -134,8 +136,7 @@ public class CopyOnWriteArrayList<E>
             elements = ((CopyOnWriteArrayList<?>)c).getArray();
         else {
             elements = c.toArray();
-            // c.toArray might (incorrectly) not return Object[] (see 6260652)
-            if (elements.getClass() != Object[].class)
+            if (c.getClass() != ArrayList.class)
                 elements = Arrays.copyOf(elements, elements.length, Object[].class);
         }
         setArray(elements);
@@ -761,6 +762,9 @@ public class CopyOnWriteArrayList<E>
      */
     public int addAllAbsent(Collection<? extends E> c) {
         Object[] cs = c.toArray();
+        if (c.getClass() != ArrayList.class) {
+            cs = cs.clone();
+        }
         if (cs.length == 0)
             return 0;
         final ReentrantLock lock = this.lock;
@@ -821,9 +825,10 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] elements = getArray();
             int len = elements.length;
-            if (len == 0 && cs.getClass() == Object[].class)
+            if (len == 0 && (c.getClass() == CopyOnWriteArrayList.class ||
+                             c.getClass() == ArrayList.class)) {
                 setArray(cs);
-            else {
+            } else {
                 Object[] newElements = Arrays.copyOf(elements, len + cs.length);
                 System.arraycopy(cs, 0, newElements, len, cs.length);
                 setArray(newElements);
@@ -989,6 +994,7 @@ public class CopyOnWriteArrayList<E>
 
         // Read in array length and allocate array
         int len = s.readInt();
+        SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, len);
         Object[] elements = new Object[len];
 
         // Read in all elements in the proper order.
@@ -1400,7 +1406,7 @@ public class CopyOnWriteArrayList<E>
             lock.lock();
             try {
                 checkForComodification();
-                if (fromIndex < 0 || toIndex > size)
+                if (fromIndex < 0 || toIndex > size || fromIndex > toIndex)
                     throw new IndexOutOfBoundsException();
                 return new COWSubList<E>(l, fromIndex + offset,
                                          toIndex + offset);

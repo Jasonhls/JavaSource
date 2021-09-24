@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2000, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -277,6 +277,7 @@ public class Logger {
     private volatile Level levelObject;
     private volatile int levelValue;  // current effective level value
     private WeakReference<ClassLoader> callersClassLoaderRef;
+    private final boolean isSystemLogger;
 
     /**
      * GLOBAL_LOGGER_NAME is a name for the global logger.
@@ -370,11 +371,12 @@ public class Logger {
      *             no corresponding resource can be found.
      */
     protected Logger(String name, String resourceBundleName) {
-        this(name, resourceBundleName, null, LogManager.getLogManager());
+        this(name, resourceBundleName, null, LogManager.getLogManager(), false);
     }
 
-    Logger(String name, String resourceBundleName, Class<?> caller, LogManager manager) {
+    Logger(String name, String resourceBundleName, Class<?> caller, LogManager manager, boolean isSystemLogger) {
         this.manager = manager;
+        this.isSystemLogger = isSystemLogger;
         setupResourceInfo(resourceBundleName, caller);
         this.name = name;
         levelValue = Level.INFO.intValue();
@@ -401,6 +403,7 @@ public class Logger {
     private Logger(String name) {
         // The manager field is not initialized here.
         this.name = name;
+        this.isSystemLogger = true;
         levelValue = Level.INFO.intValue();
     }
 
@@ -635,7 +638,7 @@ public class Logger {
         // cleanup some Loggers that have been GC'ed
         manager.drainLoggerRefQueueBounded();
         Logger result = new Logger(null, resourceBundleName,
-                                   Reflection.getCallerClass(), manager);
+                                   Reflection.getCallerClass(), manager, false);
         result.anonymous = true;
         Logger root = manager.getLogger("");
         result.doSetParent(root);
@@ -727,15 +730,23 @@ public class Logger {
 
         Logger logger = this;
         while (logger != null) {
-            for (Handler handler : logger.getHandlers()) {
+            final Handler[] loggerHandlers = isSystemLogger
+                ? logger.accessCheckedHandlers()
+                : logger.getHandlers();
+
+            for (Handler handler : loggerHandlers) {
                 handler.publish(record);
             }
 
-            if (!logger.getUseParentHandlers()) {
+            final boolean useParentHdls = isSystemLogger
+                ? logger.useParentHandlers
+                : logger.getUseParentHandlers();
+
+            if (!useParentHdls) {
                 break;
             }
 
-            logger = logger.getParent();
+            logger = isSystemLogger ? logger.parent : logger.getParent();
         }
     }
 
@@ -789,6 +800,7 @@ public class Logger {
      * @param   level   One of the message level identifiers, e.g., SEVERE
      * @param   msgSupplier   A function, which when called, produces the
      *                        desired log message
+     * @since 1.8
      */
     public void log(Level level, Supplier<String> msgSupplier) {
         if (!isLoggable(level)) {
@@ -1762,6 +1774,12 @@ public class Logger {
      * @return  an array of all registered Handlers
      */
     public Handler[] getHandlers() {
+        return accessCheckedHandlers();
+    }
+
+    // This method should ideally be marked final - but unfortunately
+    // it needs to be overridden by LogManager.RootLogger
+    Handler[] accessCheckedHandlers() {
         return handlers.toArray(emptyHandlers);
     }
 
@@ -1799,8 +1817,7 @@ public class Logger {
             public ResourceBundle run() {
                 try {
                     return ResourceBundle.getBundle(SYSTEM_LOGGER_RB_NAME,
-                                                    locale,
-                                                    ClassLoader.getSystemClassLoader());
+                                                    locale);
                 } catch (MissingResourceException e) {
                     throw new InternalError(e.toString());
                 }
@@ -1917,6 +1934,9 @@ public class Logger {
         }
 
         setCallersClassLoaderRef(callersClass);
+        if (isSystemLogger && getCallersClassLoader() != null) {
+            checkPermission();
+        }
         if (findResourceBundle(name, true) == null) {
             // We've failed to find an expected ResourceBundle.
             // unset the caller's ClassLoader since we were unable to find the
@@ -2150,12 +2170,16 @@ public class Logger {
             if (trb.userBundle != null) {
                 return trb;
             }
-            final String rbName = target.getResourceBundleName();
+            final String rbName = isSystemLogger
+                // ancestor of a system logger is expected to be a system logger.
+                // ignore resource bundle name if it's not.
+                ? (target.isSystemLogger ? trb.resourceBundleName : null)
+                : target.getResourceBundleName();
             if (rbName != null) {
                 return LoggerBundle.get(rbName,
-                            findResourceBundle(rbName, true));
+                        findResourceBundle(rbName, true));
             }
-            target = target.getParent();
+            target = isSystemLogger ? target.parent : target.getParent();
         }
         return NO_RESOURCE_BUNDLE;
     }

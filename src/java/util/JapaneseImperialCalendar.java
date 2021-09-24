@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2005, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2005, 2019, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -50,6 +50,7 @@ import sun.util.calendar.ZoneInfo;
  *     2       Taisho      1912-07-30 midnight local time
  *     3       Showa       1926-12-25 midnight local time
  *     4       Heisei      1989-01-08 midnight local time
+ *     5       Reiwa       2019-05-01 midnight local time
  * ------------------------------------------------------
  * </tt></pre>
  *
@@ -101,6 +102,11 @@ class JapaneseImperialCalendar extends Calendar {
      */
     public static final int HEISEI = 4;
 
+    /**
+     * The ERA constant designating the Reiwa era.
+     */
+    private static final int REIWA = 5;
+
     private static final int EPOCH_OFFSET   = 719163; // Fixed date of January 1, 1970 (Gregorian)
     private static final int EPOCH_YEAR     = 1970;
 
@@ -132,6 +138,9 @@ class JapaneseImperialCalendar extends Calendar {
 
     // Fixed date of the first date of each era.
     private static final long[] sinceFixedDates;
+
+    // The current era
+    private static final int currentEra;
 
     /*
      * <pre>
@@ -228,13 +237,18 @@ class JapaneseImperialCalendar extends Calendar {
         // eras[BEFORE_MEIJI] and sinceFixedDate[BEFORE_MEIJI] are the
         // same as Gregorian.
         int index = BEFORE_MEIJI;
+        int current = index;
         sinceFixedDates[index] = gcal.getFixedDate(BEFORE_MEIJI_ERA.getSinceDate());
         eras[index++] = BEFORE_MEIJI_ERA;
         for (Era e : es) {
+            if(e.getSince(TimeZone.NO_TIMEZONE) < System.currentTimeMillis()) {
+                current = index;
+            }
             CalendarDate d = e.getSinceDate();
             sinceFixedDates[index] = gcal.getFixedDate(d);
             eras[index++] = e;
         }
+        currentEra = current;
 
         LEAST_MAX_VALUES[ERA] = MAX_VALUES[ERA] = eras.length - 1;
 
@@ -978,9 +992,11 @@ class JapaneseImperialCalendar extends Calendar {
 
         String name = CalendarDataUtility.retrieveFieldValueName(getCalendarType(), field,
                                                                  fieldValue, style, locale);
-        // If the ERA value is null, then
+        // If the ERA value is null or empty, then
         // try to get its name or abbreviation from the Era instance.
-        if (name == null && field == ERA && fieldValue < eras.length) {
+        if ((name == null || name.isEmpty()) &&
+                field == ERA &&
+                fieldValue < eras.length) {
             Era era = eras[fieldValue];
             name = (style == SHORT) ? era.getAbbreviation() : era.getName();
         }
@@ -1713,12 +1729,12 @@ class JapaneseImperialCalendar extends Calendar {
                     }
                 } else if (transitionYear) {
                     if (jdate.getYear() == 1) {
-                        // As of Heisei (since Meiji) there's no case
+                        // As of Reiwa (since Meiji) there's no case
                         // that there are multiple transitions in a
                         // year.  Historically there was such
                         // case. There might be such case again in the
                         // future.
-                        if (era > HEISEI) {
+                        if (era > REIWA) {
                             CalendarDate pd = eras[era - 1].getSinceDate();
                             if (normalizedYear == pd.getYear()) {
                                 d.setMonth(pd.getMonth()).setDayOfMonth(pd.getDayOfMonth());
@@ -1853,7 +1869,7 @@ class JapaneseImperialCalendar extends Calendar {
             year = isSet(YEAR) ? internalGet(YEAR) : 1;
         } else {
             if (isSet(YEAR)) {
-                era = eras.length - 1;
+                era = currentEra;
                 year = internalGet(YEAR);
             } else {
                 // Equivalent to 1970 (Gregorian)
@@ -2337,7 +2353,7 @@ class JapaneseImperialCalendar extends Calendar {
      * default ERA is the current era, but a zero (unset) ERA means before Meiji.
      */
     private int internalGetEra() {
-        return isSet(ERA) ? internalGet(ERA) : eras.length - 1;
+        return isSet(ERA) ? internalGet(ERA) : currentEra;
     }
 
     /**

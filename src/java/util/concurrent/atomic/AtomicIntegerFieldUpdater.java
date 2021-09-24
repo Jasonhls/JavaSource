@@ -1,32 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -34,14 +34,15 @@
  */
 
 package java.util.concurrent.atomic;
-import java.util.function.IntUnaryOperator;
-import java.util.function.IntBinaryOperator;
-import sun.misc.Unsafe;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.Objects;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntUnaryOperator;
 import sun.reflect.CallerSensitive;
 import sun.reflect.Reflection;
 
@@ -363,14 +364,19 @@ public abstract class AtomicIntegerFieldUpdater<T> {
     }
 
     /**
-     * Standard hotspot implementation using intrinsics
+     * Standard hotspot implementation using intrinsics.
      */
-    private static class AtomicIntegerFieldUpdaterImpl<T>
-            extends AtomicIntegerFieldUpdater<T> {
-        private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final class AtomicIntegerFieldUpdaterImpl<T>
+        extends AtomicIntegerFieldUpdater<T> {
+        private static final sun.misc.Unsafe U = sun.misc.Unsafe.getUnsafe();
         private final long offset;
-        private final Class<T> tclass;
+        /**
+         * if field is protected, the subclass constructing updater, else
+         * the same as tclass
+         */
         private final Class<?> cclass;
+        /** class holding the field */
+        private final Class<T> tclass;
 
         AtomicIntegerFieldUpdaterImpl(final Class<T> tclass,
                                       final String fieldName,
@@ -391,7 +397,7 @@ public abstract class AtomicIntegerFieldUpdater<T> {
                 ClassLoader ccl = caller.getClassLoader();
                 if ((ccl != null) && (ccl != cl) &&
                     ((cl == null) || !isAncestor(cl, ccl))) {
-                  sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
+                    sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
                 }
             } catch (PrivilegedActionException pae) {
                 throw new RuntimeException(pae.getException());
@@ -399,17 +405,25 @@ public abstract class AtomicIntegerFieldUpdater<T> {
                 throw new RuntimeException(ex);
             }
 
-            Class<?> fieldt = field.getType();
-            if (fieldt != int.class)
+            if (field.getType() != int.class)
                 throw new IllegalArgumentException("Must be integer type");
 
             if (!Modifier.isVolatile(modifiers))
                 throw new IllegalArgumentException("Must be volatile type");
 
+            // Access to protected field members is restricted to receivers only
+            // of the accessing class, or one of its subclasses, and the
+            // accessing class must in turn be a subclass (or package sibling)
+            // of the protected member's defining class.
+            // If the updater refers to a protected field of a declaring class
+            // outside the current package, the receiver argument will be
+            // narrowed to the type of the accessing class.
             this.cclass = (Modifier.isProtected(modifiers) &&
-                           caller != tclass) ? caller : null;
+                           tclass.isAssignableFrom(caller) &&
+                           !isSamePackage(tclass, caller))
+                          ? caller : tclass;
             this.tclass = tclass;
-            offset = unsafe.objectFieldOffset(field);
+            this.offset = U.objectFieldOffset(field);
         }
 
         /**
@@ -428,81 +442,102 @@ public abstract class AtomicIntegerFieldUpdater<T> {
             return false;
         }
 
-        private void fullCheck(T obj) {
-            if (!tclass.isInstance(obj))
+        /**
+         * Returns true if the two classes have the same class loader and
+         * package qualifier
+         */
+        private static boolean isSamePackage(Class<?> class1, Class<?> class2) {
+            return class1.getClassLoader() == class2.getClassLoader()
+                   && Objects.equals(getPackageName(class1), getPackageName(class2));
+        }
+
+        private static String getPackageName(Class<?> cls) {
+            String cn = cls.getName();
+            int dot = cn.lastIndexOf('.');
+            return (dot != -1) ? cn.substring(0, dot) : "";
+        }
+
+        /**
+         * Checks that target argument is instance of cclass.  On
+         * failure, throws cause.
+         */
+        private final void accessCheck(T obj) {
+            if (!cclass.isInstance(obj))
+                throwAccessCheckException(obj);
+        }
+
+        /**
+         * Throws access exception if accessCheck failed due to
+         * protected access, else ClassCastException.
+         */
+        private final void throwAccessCheckException(T obj) {
+            if (cclass == tclass)
                 throw new ClassCastException();
-            if (cclass != null)
-                ensureProtectedAccess(obj);
+            else
+                throw new RuntimeException(
+                    new IllegalAccessException(
+                        "Class " +
+                        cclass.getName() +
+                        " can not access a protected member of class " +
+                        tclass.getName() +
+                        " using an instance of " +
+                        obj.getClass().getName()));
         }
 
-        public boolean compareAndSet(T obj, int expect, int update) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            return unsafe.compareAndSwapInt(obj, offset, expect, update);
+        public final boolean compareAndSet(T obj, int expect, int update) {
+            accessCheck(obj);
+            return U.compareAndSwapInt(obj, offset, expect, update);
         }
 
-        public boolean weakCompareAndSet(T obj, int expect, int update) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            return unsafe.compareAndSwapInt(obj, offset, expect, update);
+        public final boolean weakCompareAndSet(T obj, int expect, int update) {
+            accessCheck(obj);
+            return U.compareAndSwapInt(obj, offset, expect, update);
         }
 
-        public void set(T obj, int newValue) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            unsafe.putIntVolatile(obj, offset, newValue);
+        public final void set(T obj, int newValue) {
+            accessCheck(obj);
+            U.putIntVolatile(obj, offset, newValue);
         }
 
-        public void lazySet(T obj, int newValue) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            unsafe.putOrderedInt(obj, offset, newValue);
+        public final void lazySet(T obj, int newValue) {
+            accessCheck(obj);
+            U.putOrderedInt(obj, offset, newValue);
         }
 
         public final int get(T obj) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            return unsafe.getIntVolatile(obj, offset);
+            accessCheck(obj);
+            return U.getIntVolatile(obj, offset);
         }
 
-        public int getAndSet(T obj, int newValue) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            return unsafe.getAndSetInt(obj, offset, newValue);
+        public final int getAndSet(T obj, int newValue) {
+            accessCheck(obj);
+            return U.getAndSetInt(obj, offset, newValue);
         }
 
-        public int getAndIncrement(T obj) {
+        public final int getAndAdd(T obj, int delta) {
+            accessCheck(obj);
+            return U.getAndAddInt(obj, offset, delta);
+        }
+
+        public final int getAndIncrement(T obj) {
             return getAndAdd(obj, 1);
         }
 
-        public int getAndDecrement(T obj) {
+        public final int getAndDecrement(T obj) {
             return getAndAdd(obj, -1);
         }
 
-        public int getAndAdd(T obj, int delta) {
-            if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            return unsafe.getAndAddInt(obj, offset, delta);
-        }
-
-        public int incrementAndGet(T obj) {
+        public final int incrementAndGet(T obj) {
             return getAndAdd(obj, 1) + 1;
         }
 
-        public int decrementAndGet(T obj) {
-             return getAndAdd(obj, -1) - 1;
+        public final int decrementAndGet(T obj) {
+            return getAndAdd(obj, -1) - 1;
         }
 
-        public int addAndGet(T obj, int delta) {
+        public final int addAndGet(T obj, int delta) {
             return getAndAdd(obj, delta) + delta;
         }
 
-        private void ensureProtectedAccess(T obj) {
-            if (cclass.isInstance(obj)) {
-                return;
-            }
-            throw new RuntimeException(
-                new IllegalAccessException("Class " +
-                    cclass.getName() +
-                    " can not access a protected member of class " +
-                    tclass.getName() +
-                    " using an instance of " +
-                    obj.getClass().getName()
-                )
-            );
-        }
     }
 }

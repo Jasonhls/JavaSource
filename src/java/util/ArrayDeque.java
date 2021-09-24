@@ -1,32 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Written by Josh Bloch of Google Inc. and released to the public domain,
  * as explained at http://creativecommons.org/publicdomain/zero/1.0/.
@@ -36,6 +36,7 @@ package java.util;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
+import sun.misc.SharedSecrets;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface.  Array
@@ -118,12 +119,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
     // ******  Array allocation and resizing utilities ******
 
-    /**
-     * Allocates empty array to hold the given number of elements.
-     *
-     * @param numElements  the number of elements to hold
-     */
-    private void allocateElements(int numElements) {
+    private static int calculateSize(int numElements) {
         int initialCapacity = MIN_INITIAL_CAPACITY;
         // Find the best power of two to hold elements.
         // Tests "<=" because arrays aren't kept full.
@@ -139,7 +135,16 @@ public class ArrayDeque<E> extends AbstractCollection<E>
             if (initialCapacity < 0)   // Too many elements, must back off
                 initialCapacity >>>= 1;// Good luck allocating 2 ^ 30 elements
         }
-        elements = new Object[initialCapacity];
+        return initialCapacity;
+    }
+
+    /**
+     * Allocates empty array to hold the given number of elements.
+     *
+     * @param numElements  the number of elements to hold
+     */
+    private void allocateElements(int numElements) {
+        elements = new Object[calculateSize(numElements)];
     }
 
     /**
@@ -879,6 +884,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
 
         // Read in size and allocate array
         int size = s.readInt();
+        int capacity = calculateSize(size);
+        SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, capacity);
         allocateElements(size);
         head = 0;
         tail = size;

@@ -1,32 +1,32 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -1414,4 +1414,30 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
              Spliterator.CONCURRENT);
     }
 
+    /**
+     * Deserializes this queue and then checks some invariants.
+     *
+     * @param s the input stream
+     * @throws ClassNotFoundException if the class of a serialized object
+     *         could not be found
+     * @throws java.io.InvalidObjectException if invariants are violated
+     * @throws java.io.IOException if an I/O error occurs
+     */
+    private void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+
+        // Read in items array and various fields
+        s.defaultReadObject();
+
+        // Check invariants over count and index fields. Note that
+        // if putIndex==takeIndex, count can be either 0 or items.length.
+        if (items.length == 0 ||
+            takeIndex < 0 || takeIndex >= items.length ||
+            putIndex  < 0 || putIndex  >= items.length ||
+            count < 0     || count     >  items.length ||
+            Math.floorMod(putIndex - takeIndex, items.length) !=
+            Math.floorMod(count, items.length)) {
+            throw new java.io.InvalidObjectException("invariants violated");
+        }
+    }
 }

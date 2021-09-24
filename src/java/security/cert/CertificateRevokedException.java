@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 2007, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2007, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.security.auth.x500.X500Principal;
 
+import sun.misc.IOUtils;
 import sun.security.util.ObjectIdentifier;
 import sun.security.x509.InvalidityDateExtension;
 
@@ -94,7 +95,10 @@ public class CertificateRevokedException extends CertificateException {
         this.revocationDate = new Date(revocationDate.getTime());
         this.reason = reason;
         this.authority = authority;
-        this.extensions = new HashMap<String, Extension>(extensions);
+        // make sure Map only contains correct types
+        this.extensions = Collections.checkedMap(new HashMap<>(),
+                                                 String.class, Extension.class);
+        this.extensions.putAll(extensions);
     }
 
     /**
@@ -172,7 +176,8 @@ public class CertificateRevokedException extends CertificateException {
     public String getMessage() {
         return "Certificate has been revoked, reason: "
                + reason + ", revocation date: " + revocationDate
-               + ", authority: " + authority + ", extensions: " + extensions;
+               + ", authority: " + authority + ", extension OIDs: "
+               + extensions.keySet();
     }
 
     /**
@@ -224,17 +229,17 @@ public class CertificateRevokedException extends CertificateException {
         int size = ois.readInt();
         if (size == 0) {
             extensions = Collections.emptyMap();
+        } else if (size < 0) {
+            throw new IOException("size cannot be negative");
         } else {
-            extensions = new HashMap<String, Extension>(size);
+            extensions = new HashMap<>(size > 20 ? 20 : size);
         }
 
         // Read in the extensions and put the mappings in the extensions map
         for (int i = 0; i < size; i++) {
             String oid = (String) ois.readObject();
             boolean critical = ois.readBoolean();
-            int length = ois.readInt();
-            byte[] extVal = new byte[length];
-            ois.readFully(extVal);
+            byte[] extVal = IOUtils.readExactlyNBytes(ois, ois.readInt());
             Extension ext = sun.security.x509.Extension.newExtension
                 (new ObjectIdentifier(oid), critical, extVal);
             extensions.put(oid, ext);

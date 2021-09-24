@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1996, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -41,6 +41,7 @@ package java.util;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import sun.util.calendar.CalendarSystem;
 import sun.util.calendar.CalendarUtils;
 import sun.util.calendar.BaseCalendar;
@@ -1278,6 +1279,9 @@ public class SimpleTimeZone extends TimeZone {
      */
     private int serialVersionOnStream = currentSerialVersion;
 
+    // Maximum number of rules.
+    private static final int MAX_RULE_NUM = 6;
+
     synchronized private void invalidateCache() {
         cacheYear = startYear - 1;
         cacheStart = cacheEnd = 0;
@@ -1569,7 +1573,7 @@ public class SimpleTimeZone extends TimeZone {
      */
     private byte[] packRules()
     {
-        byte[] rules = new byte[6];
+        byte[] rules = new byte[MAX_RULE_NUM];
         rules[0] = (byte)startDay;
         rules[1] = (byte)startDayOfWeek;
         rules[2] = (byte)endDay;
@@ -1594,7 +1598,7 @@ public class SimpleTimeZone extends TimeZone {
         endDayOfWeek   = rules[3];
 
         // As of serial version 2, include time modes
-        if (rules.length >= 6) {
+        if (rules.length >= MAX_RULE_NUM) {
             startTimeMode = rules[4];
             endTimeMode   = rules[5];
         }
@@ -1691,9 +1695,13 @@ public class SimpleTimeZone extends TimeZone {
             // store the actual rules (which have not be made compatible with 1.1)
             // in the optional area.  Read them in here and parse them.
             int length = stream.readInt();
-            byte[] rules = new byte[length];
-            stream.readFully(rules);
-            unpackRules(rules);
+            if (length <= MAX_RULE_NUM) {
+                byte[] rules = new byte[length];
+                stream.readFully(rules);
+                unpackRules(rules);
+            } else {
+                throw new InvalidObjectException("Too many rules: " + length);
+            }
         }
 
         if (serialVersionOnStream >= 2) {

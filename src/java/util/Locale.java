@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -1288,11 +1288,11 @@ public final class Locale implements Cloneable, Serializable {
      */
     @Override
     public final String toString() {
-        boolean l = (baseLocale.getLanguage().length() != 0);
-        boolean s = (baseLocale.getScript().length() != 0);
-        boolean r = (baseLocale.getRegion().length() != 0);
-        boolean v = (baseLocale.getVariant().length() != 0);
-        boolean e = (localeExtensions != null && localeExtensions.getID().length() != 0);
+        boolean l = !baseLocale.getLanguage().isEmpty();
+        boolean s = !baseLocale.getScript().isEmpty();
+        boolean r = !baseLocale.getRegion().isEmpty();
+        boolean v = !baseLocale.getVariant().isEmpty();
+        boolean e = localeExtensions != null && !localeExtensions.getID().isEmpty();
 
         StringBuilder result = new StringBuilder(baseLocale.getLanguage());
         if (r || (l && (v || s || e))) {
@@ -1396,18 +1396,18 @@ public final class Locale implements Cloneable, Serializable {
         StringBuilder buf = new StringBuilder();
 
         String subtag = tag.getLanguage();
-        if (subtag.length() > 0) {
+        if (!subtag.isEmpty()) {
             buf.append(LanguageTag.canonicalizeLanguage(subtag));
         }
 
         subtag = tag.getScript();
-        if (subtag.length() > 0) {
+        if (!subtag.isEmpty()) {
             buf.append(LanguageTag.SEP);
             buf.append(LanguageTag.canonicalizeScript(subtag));
         }
 
         subtag = tag.getRegion();
-        if (subtag.length() > 0) {
+        if (!subtag.isEmpty()) {
             buf.append(LanguageTag.SEP);
             buf.append(LanguageTag.canonicalizeRegion(subtag));
         }
@@ -1426,7 +1426,7 @@ public final class Locale implements Cloneable, Serializable {
         }
 
         subtag = tag.getPrivateuse();
-        if (subtag.length() > 0) {
+        if (!subtag.isEmpty()) {
             if (buf.length() > 0) {
                 buf.append(LanguageTag.SEP);
             }
@@ -1570,7 +1570,7 @@ public final class Locale implements Cloneable, Serializable {
         bldr.setLanguageTag(tag);
         BaseLocale base = bldr.getBaseLocale();
         LocaleExtensions exts = bldr.getLocaleExtensions();
-        if (exts == null && base.getVariant().length() > 0) {
+        if (exts == null && !base.getVariant().isEmpty()) {
             exts = getCompatibilityExtensions(base.getLanguage(), base.getScript(),
                                               base.getRegion(), base.getVariant());
         }
@@ -1808,7 +1808,7 @@ public final class Locale implements Cloneable, Serializable {
      * @exception NullPointerException if <code>inLocale</code> is <code>null</code>
      */
     public String getDisplayVariant(Locale inLocale) {
-        if (baseLocale.getVariant().length() == 0)
+        if (baseLocale.getVariant().isEmpty())
             return "";
 
         LocaleResources lr = LocaleProviderAdapter.forJRE().getLocaleResources(inLocale);
@@ -1883,14 +1883,14 @@ public final class Locale implements Cloneable, Serializable {
         // The display name consists of a main name, followed by qualifiers.
         // Typically, the format is "MainName (Qualifier, Qualifier)" but this
         // depends on what pattern is stored in the display locale.
-        String   mainName       = null;
-        String[] qualifierNames = null;
+        String   mainName;
+        String[] qualifierNames;
 
         // The main name is the language, or if there is no language, the script,
         // then if no script, the country. If there is no language/script/country
         // (an anomalous situation) then the display name is simply the variant's
         // display name.
-        if (languageName.length() == 0 && scriptName.length() == 0 && countryName.length() == 0) {
+        if (languageName.isEmpty() && scriptName.isEmpty() && countryName.isEmpty()) {
             if (variantNames.length == 0) {
                 return "";
             } else {
@@ -1898,13 +1898,13 @@ public final class Locale implements Cloneable, Serializable {
             }
         }
         ArrayList<String> names = new ArrayList<>(4);
-        if (languageName.length() != 0) {
+        if (!languageName.isEmpty()) {
             names.add(languageName);
         }
-        if (scriptName.length() != 0) {
+        if (!scriptName.isEmpty()) {
             names.add(scriptName);
         }
-        if (countryName.length() != 0) {
+        if (!countryName.isEmpty()) {
             names.add(countryName);
         }
         if (variantNames.length != 0) {
@@ -2179,7 +2179,7 @@ public final class Locale implements Cloneable, Serializable {
         String variant = (String)fields.get("variant", "");
         String extStr = (String)fields.get("extensions", "");
         baseLocale = BaseLocale.getInstance(convertOldISOCodes(language), script, country, variant);
-        if (extStr.length() > 0) {
+        if (!extStr.isEmpty()) {
             try {
                 InternalLocaleBuilder bldr = new InternalLocaleBuilder();
                 bldr.setExtensions(extStr);
@@ -2237,13 +2237,13 @@ public final class Locale implements Cloneable, Serializable {
         LocaleExtensions extensions = null;
         // Special cases for backward compatibility support
         if (LocaleUtils.caseIgnoreMatch(language, "ja")
-                && script.length() == 0
+                && script.isEmpty()
                 && LocaleUtils.caseIgnoreMatch(country, "jp")
                 && "JP".equals(variant)) {
             // ja_JP_JP -> u-ca-japanese (calendar = japanese)
             extensions = LocaleExtensions.CALENDAR_JAPANESE;
         } else if (LocaleUtils.caseIgnoreMatch(language, "th")
-                && script.length() == 0
+                && script.isEmpty()
                 && LocaleUtils.caseIgnoreMatch(country, "th")
                 && "TH".equals(variant)) {
             // th_TH_TH -> u-nu-thai (numbersystem = thai)
@@ -2665,7 +2665,7 @@ public final class Locale implements Cloneable, Serializable {
         public Locale build() {
             BaseLocale baseloc = localeBuilder.getBaseLocale();
             LocaleExtensions extensions = localeBuilder.getLocaleExtensions();
-            if (extensions == null && baseloc.getVariant().length() > 0) {
+            if (extensions == null && !baseloc.getVariant().isEmpty()) {
                 extensions = getCompatibilityExtensions(baseloc.getLanguage(), baseloc.getScript(),
                         baseloc.getRegion(), baseloc.getVariant());
             }
@@ -2905,8 +2905,8 @@ public final class Locale implements Cloneable, Serializable {
                 for (int i = 1; i < subtags.length; i++) {
                     if (isSubtagIllFormed(subtags[i], false)) {
                         isIllFormed = true;
+                        break;
                     }
-                    break;
                 }
             }
             if (isIllFormed) {
@@ -3040,6 +3040,7 @@ public final class Locale implements Cloneable, Serializable {
          *     2616</a>
          * @param map a map containing information to customize language ranges
          * @return a Language Priority List with customization. The list is
+         *     modifiable.
          * @throws NullPointerException if {@code ranges} is null
          * @throws IllegalArgumentException if a language range or a weight
          *     found in the given {@code ranges} is ill-formed

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1997, 2014, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -28,6 +28,7 @@ package java.util;
 import java.lang.reflect.Array;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
@@ -35,6 +36,7 @@ import java.util.function.IntToDoubleFunction;
 import java.util.function.IntToLongFunction;
 import java.util.function.IntUnaryOperator;
 import java.util.function.LongBinaryOperator;
+import java.util.function.UnaryOperator;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -1427,12 +1429,14 @@ public class Arrays {
      *         found to violate the {@link Comparator} contract
      */
     public static <T> void sort(T[] a, Comparator<? super T> c) {
-        if (c == null)
-            c = NaturalOrder.INSTANCE;
-        if (LegacyMergeSort.userRequested)
-            legacyMergeSort(a, c);
-        else
-            TimSort.sort(a, 0, a.length, c, null, 0, 0);
+        if (c == null) {
+            sort(a);
+        } else {
+            if (LegacyMergeSort.userRequested)
+                legacyMergeSort(a, c);
+            else
+                TimSort.sort(a, 0, a.length, c, null, 0, 0);
+        }
     }
 
     /** To be removed in a future release. */
@@ -1498,13 +1502,15 @@ public class Arrays {
      */
     public static <T> void sort(T[] a, int fromIndex, int toIndex,
                                 Comparator<? super T> c) {
-        if (c == null)
-            c = NaturalOrder.INSTANCE;
-        rangeCheck(a.length, fromIndex, toIndex);
-        if (LegacyMergeSort.userRequested)
-            legacyMergeSort(a, fromIndex, toIndex, c);
-        else
-            TimSort.sort(a, fromIndex, toIndex, c, null, 0, 0);
+        if (c == null) {
+            sort(a, fromIndex, toIndex);
+        } else {
+            rangeCheck(a.length, fromIndex, toIndex);
+            if (LegacyMergeSort.userRequested)
+                legacyMergeSort(a, fromIndex, toIndex, c);
+            else
+                TimSort.sort(a, fromIndex, toIndex, c, null, 0, 0);
+        }
     }
 
     /** To be removed in a future release. */
@@ -3844,12 +3850,13 @@ public class Arrays {
 
         @Override
         public int indexOf(Object o) {
-            if (o==null) {
-                for (int i=0; i<a.length; i++)
-                    if (a[i]==null)
+            E[] a = this.a;
+            if (o == null) {
+                for (int i = 0; i < a.length; i++)
+                    if (a[i] == null)
                         return i;
             } else {
-                for (int i=0; i<a.length; i++)
+                for (int i = 0; i < a.length; i++)
                     if (o.equals(a[i]))
                         return i;
             }
@@ -3864,6 +3871,28 @@ public class Arrays {
         @Override
         public Spliterator<E> spliterator() {
             return Spliterators.spliterator(a, Spliterator.ORDERED);
+        }
+
+        @Override
+        public void forEach(Consumer<? super E> action) {
+            Objects.requireNonNull(action);
+            for (E e : a) {
+                action.accept(e);
+            }
+        }
+
+        @Override
+        public void replaceAll(UnaryOperator<E> operator) {
+            Objects.requireNonNull(operator);
+            E[] a = this.a;
+            for (int i = 0; i < a.length; i++) {
+                a[i] = operator.apply(a[i]);
+            }
+        }
+
+        @Override
+        public void sort(Comparator<? super E> c) {
+            Arrays.sort(a, c);
         }
     }
 

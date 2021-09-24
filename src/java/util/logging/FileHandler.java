@@ -1,30 +1,31 @@
 /*
- * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2000, 2017, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.logging;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static java.nio.file.StandardOpenOption.WRITE;
 
@@ -34,10 +35,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Simple file logging <tt>Handler</tt>.
@@ -148,8 +156,26 @@ public class FileHandler extends StreamHandler {
     private String lockFileName;
     private FileChannel lockFileChannel;
     private File files[];
-    private static final int MAX_LOCKS = 100;
-    private static final java.util.HashMap<String, String> locks = new java.util.HashMap<>();
+    private static final int DEFAULT_MAX_LOCKS = 100;
+    private static int maxLocks;
+    private static final Set<String> locks = new HashSet<>();
+
+    /*
+     * Initialize maxLocks from the System property if set.
+     * If invalid/no property is provided 100 will be used as a default value.
+     */
+    static {
+        maxLocks = java.security.AccessController.doPrivileged(
+                (PrivilegedAction<Integer>) () ->
+                        Integer.getInteger(
+                                "jdk.internal.FileHandlerLogging.maxLocks",
+                                DEFAULT_MAX_LOCKS)
+        );
+
+        if (maxLocks <= 0) {
+            maxLocks = DEFAULT_MAX_LOCKS;
+        }
+    }
 
     /**
      * A metered stream is a subclass of OutputStream that
@@ -394,6 +420,14 @@ public class FileHandler extends StreamHandler {
         openFiles();
     }
 
+    private  boolean isParentWritable(Path path) {
+        Path parent = path.getParent();
+        if (parent == null) {
+            parent = path.toAbsolutePath().getParent();
+        }
+        return parent != null && Files.isWritable(parent);
+    }
+
     /**
      * Open the set of output files, based on the configured
      * instance variables.
@@ -418,8 +452,9 @@ public class FileHandler extends StreamHandler {
         int unique = -1;
         for (;;) {
             unique++;
-            if (unique > MAX_LOCKS) {
-                throw new IOException("Couldn't get lock for " + pattern);
+            if (unique > maxLocks) {
+                throw new IOException("Couldn't get lock for " + pattern
+                        + ", maxLocks: " + maxLocks);
             }
             // Generate a lock file name from the "unique" int.
             lockFileName = generate(pattern, 0, unique).toString() + ".lck";
@@ -428,34 +463,80 @@ public class FileHandler extends StreamHandler {
             // between processes (and not within a process), we first check
             // if we ourself already have the file locked.
             synchronized(locks) {
-                if (locks.get(lockFileName) != null) {
+                if (locks.contains(lockFileName)) {
                     // We already own this lock, for a different FileHandler
                     // object.  Try again.
                     continue;
                 }
 
-                try {
-                    lockFileChannel = FileChannel.open(Paths.get(lockFileName),
-                            CREATE_NEW, WRITE);
-                } catch (FileAlreadyExistsException ix) {
-                    // try the next lock file name in the sequence
-                    continue;
+                final Path lockFilePath = Paths.get(lockFileName);
+                FileChannel channel = null;
+                int retries = -1;
+                boolean fileCreated = false;
+                while (channel == null && retries++ < 1) {
+                    try {
+                        channel = FileChannel.open(lockFilePath,
+                                CREATE_NEW, WRITE);
+                        fileCreated = true;
+                    } catch (FileAlreadyExistsException ix) {
+                        // This may be a zombie file left over by a previous
+                        // execution. Reuse it - but only if we can actually
+                        // write to its directory.
+                        // Note that this is a situation that may happen,
+                        // but not too frequently.
+                        if (Files.isRegularFile(lockFilePath, LinkOption.NOFOLLOW_LINKS)
+                            && isParentWritable(lockFilePath)) {
+                            try {
+                                channel = FileChannel.open(lockFilePath,
+                                    WRITE, APPEND);
+                            } catch (NoSuchFileException x) {
+                                // Race condition - retry once, and if that
+                                // fails again just try the next name in
+                                // the sequence.
+                                continue;
+                            } catch(IOException x) {
+                                // the file may not be writable for us.
+                                // try the next name in the sequence
+                                break;
+                            }
+                        } else {
+                            // at this point channel should still be null.
+                            // break and try the next name in the sequence.
+                            break;
+                        }
+                    }
                 }
+
+                if (channel == null) continue; // try the next name;
+                lockFileChannel = channel;
 
                 boolean available;
                 try {
                     available = lockFileChannel.tryLock() != null;
                     // We got the lock OK.
+                    // At this point we could call File.deleteOnExit().
+                    // However, this could have undesirable side effects
+                    // as indicated by JDK-4872014. So we will instead
+                    // rely on the fact that close() will remove the lock
+                    // file and that whoever is creating FileHandlers should
+                    // be responsible for closing them.
                 } catch (IOException ix) {
                     // We got an IOException while trying to get the lock.
                     // This normally indicates that locking is not supported
                     // on the target directory.  We have to proceed without
-                    // getting a lock.   Drop through.
-                    available = true;
+                    // getting a lock.   Drop through, but only if we did
+                    // create the file...
+                    available = fileCreated;
+                } catch (OverlappingFileLockException x) {
+                    // someone already locked this file in this VM, through
+                    // some other channel - that is - using something else
+                    // than new FileHandler(...);
+                    // continue searching for an available lock.
+                    available = false;
                 }
                 if (available) {
                     // We got the lock.  Remember it.
-                    locks.put(lockFileName, lockFileName);
+                    locks.add(lockFileName);
                     break;
                 }
 

@@ -1,26 +1,26 @@
 /*
- * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1996, 2020, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -371,7 +371,7 @@ import sun.util.locale.provider.ResourceBundleBasedAdapter;
  * }
  * }</pre></blockquote>
  *
- * @see          <a href="http://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html">Java Tutorial</a>
+ * @see          <a href="https://docs.oracle.com/javase/tutorial/i18n/format/decimalFormat.html">Java Tutorial</a>
  * @see          NumberFormat
  * @see          DecimalFormatSymbols
  * @see          ParsePosition
@@ -968,7 +968,7 @@ public class DecimalFormat extends NumberFormat {
      *     Decimal  : min = 0. max = 3.
      *
      */
-    private void checkAndSetFastPathStatus() {
+    private boolean checkAndSetFastPathStatus() {
 
         boolean fastPathWasOn = isFastPath;
 
@@ -998,12 +998,27 @@ public class DecimalFormat extends NumberFormat {
         } else
             isFastPath = false;
 
+        resetFastPathData(fastPathWasOn);
+        fastPathCheckNeeded = false;
+
+        /*
+         * Returns true after successfully checking the fast path condition and
+         * setting the fast path data. The return value is used by the
+         * fastFormat() method to decide whether to call the resetFastPathData
+         * method to reinitialize fast path data or is it already initialized
+         * in this method.
+         */
+        return true;
+    }
+
+    private void resetFastPathData(boolean fastPathWasOn) {
         // Since some instance properties may have changed while still falling
         // in the fast-path case, we need to reinitialize fastPathData anyway.
         if (isFastPath) {
             // We need to instantiate fastPathData if not already done.
-            if (fastPathData == null)
+            if (fastPathData == null) {
                 fastPathData = new FastPathData();
+            }
 
             // Sets up the locale specific constants used when formatting.
             // '0' is our default representation of zero.
@@ -1011,22 +1026,25 @@ public class DecimalFormat extends NumberFormat {
             fastPathData.groupingChar = symbols.getGroupingSeparator();
 
             // Sets up fractional constants related to currency/decimal pattern.
-            fastPathData.fractionalMaxIntBound = (isCurrencyFormat) ? 99 : 999;
-            fastPathData.fractionalScaleFactor = (isCurrencyFormat) ? 100.0d : 1000.0d;
+            fastPathData.fractionalMaxIntBound = (isCurrencyFormat)
+                    ? 99 : 999;
+            fastPathData.fractionalScaleFactor = (isCurrencyFormat)
+                    ? 100.0d : 1000.0d;
 
             // Records the need for adding prefix or suffix
-            fastPathData.positiveAffixesRequired =
-                (positivePrefix.length() != 0) || (positiveSuffix.length() != 0);
-            fastPathData.negativeAffixesRequired =
-                (negativePrefix.length() != 0) || (negativeSuffix.length() != 0);
+            fastPathData.positiveAffixesRequired
+                    = !positivePrefix.isEmpty() || !positiveSuffix.isEmpty();
+            fastPathData.negativeAffixesRequired
+                    = !negativePrefix.isEmpty() || !negativeSuffix.isEmpty();
 
             // Creates a cached char container for result, with max possible size.
             int maxNbIntegralDigits = 10;
             int maxNbGroups = 3;
-            int containerSize =
-                Math.max(positivePrefix.length(), negativePrefix.length()) +
-                maxNbIntegralDigits + maxNbGroups + 1 + maximumFractionDigits +
-                Math.max(positiveSuffix.length(), negativeSuffix.length());
+            int containerSize
+                    = Math.max(positivePrefix.length(), negativePrefix.length())
+                    + maxNbIntegralDigits + maxNbGroups + 1
+                    + maximumFractionDigits
+                    + Math.max(positiveSuffix.length(), negativeSuffix.length());
 
             fastPathData.fastPathContainer = new char[containerSize];
 
@@ -1038,17 +1056,18 @@ public class DecimalFormat extends NumberFormat {
 
             // Sets up fixed index positions for integral and fractional digits.
             // Sets up decimal point in cached result container.
-            int longestPrefixLength =
-                Math.max(positivePrefix.length(), negativePrefix.length());
-            int decimalPointIndex =
-                maxNbIntegralDigits + maxNbGroups + longestPrefixLength;
+            int longestPrefixLength
+                    = Math.max(positivePrefix.length(),
+                            negativePrefix.length());
+            int decimalPointIndex
+                    = maxNbIntegralDigits + maxNbGroups + longestPrefixLength;
 
-            fastPathData.integralLastIndex    = decimalPointIndex - 1;
+            fastPathData.integralLastIndex = decimalPointIndex - 1;
             fastPathData.fractionalFirstIndex = decimalPointIndex + 1;
-            fastPathData.fastPathContainer[decimalPointIndex] =
-                isCurrencyFormat ?
-                symbols.getMonetaryDecimalSeparator() :
-                symbols.getDecimalSeparator();
+            fastPathData.fastPathContainer[decimalPointIndex]
+                    = isCurrencyFormat
+                            ? symbols.getMonetaryDecimalSeparator()
+                            : symbols.getDecimalSeparator();
 
         } else if (fastPathWasOn) {
             // Previous state was fast-path and is no more.
@@ -1059,8 +1078,6 @@ public class DecimalFormat extends NumberFormat {
             fastPathData.charsPositivePrefix = null;
             fastPathData.charsNegativePrefix = null;
         }
-
-        fastPathCheckNeeded = false;
     }
 
     /**
@@ -1554,9 +1571,11 @@ public class DecimalFormat extends NumberFormat {
      * @return the formatted result for {@code d} as a string.
      */
     String fastFormat(double d) {
+        boolean isDataSet = false;
         // (Re-)Evaluates fast-path status if needed.
-        if (fastPathCheckNeeded)
-            checkAndSetFastPathStatus();
+        if (fastPathCheckNeeded) {
+            isDataSet = checkAndSetFastPathStatus();
+        }
 
         if (!isFastPath )
             // DecimalFormat instance is not in a fast-path state.
@@ -1580,8 +1599,20 @@ public class DecimalFormat extends NumberFormat {
         if (d > MAX_INT_AS_DOUBLE)
             // Filters out values that are outside expected fast-path range
             return null;
-        else
+        else {
+            if (!isDataSet) {
+                /*
+                 * If the fast path data is not set through
+                 * checkAndSetFastPathStatus() and fulfil the
+                 * fast path conditions then reset the data
+                 * directly through resetFastPathData()
+                 */
+                resetFastPathData(isFastPath);
+            }
             fastDoubleFormat(d, negative);
+
+        }
+
 
         // Returns a new string from updated fastPathContainer.
         return new String(fastPathData.fastPathContainer,
@@ -1918,7 +1949,7 @@ public class DecimalFormat extends NumberFormat {
                         Format.Field signAttribute) {
         int start = result.length();
 
-        if (string.length() > 0) {
+        if (!string.isEmpty()) {
             result.append(string);
             for (int counter = 0, max = positions.length; counter < max;
                  counter++) {
@@ -2873,7 +2904,7 @@ public class DecimalFormat extends NumberFormat {
                     } else {
                         string = symbols.getCurrencySymbol();
                     }
-                    if (string.length() > 0) {
+                    if (!string.isEmpty()) {
                         if (positions == null) {
                             positions = new ArrayList<>(2);
                         }
@@ -3444,7 +3475,7 @@ public class DecimalFormat extends NumberFormat {
             }
         }
 
-        if (pattern.length() == 0) {
+        if (pattern.isEmpty()) {
             posPrefixPattern = posSuffixPattern = "";
             setMinimumIntegerDigits(0);
             setMaximumIntegerDigits(MAXIMUM_INTEGER_DIGITS);

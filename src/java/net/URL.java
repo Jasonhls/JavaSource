@@ -1,34 +1,39 @@
 /*
- * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
+import java.io.ObjectStreamField;
+import java.io.ObjectInputStream.GetField;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
+import sun.net.util.IPAddressUtil;
 import sun.security.util.SecurityConstants;
 
 /**
@@ -135,6 +140,7 @@ import sun.security.util.SecurityConstants;
  */
 public final class URL implements java.io.Serializable {
 
+    static final String BUILTIN_HANDLERS_PREFIX = "sun.net.www.protocol";
     static final long serialVersionUID = -7627629688361524110L;
 
     /**
@@ -207,7 +213,7 @@ public final class URL implements java.io.Serializable {
      * The host's IP address, used in equals and hashCode.
      * Computed on demand. An uninitialized or unknown hostAddress is null.
      */
-    transient InetAddress hostAddress;
+    private transient InetAddress hostAddress;
 
     /**
      * The URLStreamHandler for this URL.
@@ -218,6 +224,8 @@ public final class URL implements java.io.Serializable {
      * @serial
      */
     private int hashCode = -1;
+
+    private transient UrlDeserializedState tempState;
 
     /**
      * Creates a {@code URL} object from the specified
@@ -407,13 +415,29 @@ public final class URL implements java.io.Serializable {
         }
         ref = parts.getRef();
 
-        // Note: we don't do validation of the URL here. Too risky to change
+        // Note: we don't do full validation of the URL here. Too risky to change
         // right now, but worth considering for future reference. -br
         if (handler == null &&
             (handler = getURLStreamHandler(protocol)) == null) {
             throw new MalformedURLException("unknown protocol: " + protocol);
         }
         this.handler = handler;
+        if (host != null && isBuiltinStreamHandler(handler)) {
+            String s = IPAddressUtil.checkExternalForm(this);
+            if (s != null) {
+                throw new MalformedURLException(s);
+            }
+        }
+        if ("jar".equalsIgnoreCase(protocol)) {
+            if (handler instanceof sun.net.www.protocol.jar.Handler) {
+                // URL.openConnection() would throw a confusing exception
+                // so generate a better exception here instead.
+                String s = ((sun.net.www.protocol.jar.Handler) handler).checkNestedProtocol(file);
+                if (s != null) {
+                    throw new MalformedURLException(s);
+                }
+            }
+        }
     }
 
     /**
@@ -719,6 +743,31 @@ public final class URL implements java.io.Serializable {
     }
 
     /**
+     * Returns the address of the host represented by this URL.
+     * A {@link SecurityException} or an {@link UnknownHostException}
+     * while getting the host address will result in this method returning
+     * {@code null}
+     *
+     * @return an {@link InetAddress} representing the host
+     */
+    synchronized InetAddress getHostAddress() {
+        if (hostAddress != null) {
+            return hostAddress;
+        }
+
+        if (host == null || host.isEmpty()) {
+            return null;
+        }
+        try {
+            hostAddress = InetAddress.getByName(host);
+        } catch (UnknownHostException | SecurityException ex) {
+            return null;
+        }
+        return hostAddress;
+    }
+
+
+    /**
      * Gets the query part of this {@code URL}.
      *
      * @return  the query part of this {@code URL},
@@ -936,7 +985,12 @@ public final class URL implements java.io.Serializable {
      * @since 1.5
      */
     public URI toURI() throws URISyntaxException {
-        return new URI (toString());
+        URI uri = new URI(toString());
+        if (authority != null && isBuiltinStreamHandler(handler)) {
+            String s = IPAddressUtil.checkAuthority(this);
+            if (s != null) throw new URISyntaxException(authority, s);
+        }
+        return uri;
     }
 
     /**
@@ -1220,6 +1274,31 @@ public final class URL implements java.io.Serializable {
     }
 
     /**
+     * @serialField    protocol String
+     *
+     * @serialField    host String
+     *
+     * @serialField    port int
+     *
+     * @serialField    authority String
+     *
+     * @serialField    file String
+     *
+     * @serialField    ref String
+     *
+     * @serialField    hashCode int
+     *
+     */
+    private static final ObjectStreamField[] serialPersistentFields = {
+        new ObjectStreamField("protocol", String.class),
+        new ObjectStreamField("host", String.class),
+        new ObjectStreamField("port", int.class),
+        new ObjectStreamField("authority", String.class),
+        new ObjectStreamField("file", String.class),
+        new ObjectStreamField("ref", String.class),
+        new ObjectStreamField("hashCode", int.class), };
+
+    /**
      * WriteObject is called to save the state of the URL to an
      * ObjectOutputStream. The handler is not saved since it is
      * specific to this system.
@@ -1241,16 +1320,67 @@ public final class URL implements java.io.Serializable {
      * stream handler.
      */
     private synchronized void readObject(java.io.ObjectInputStream s)
-         throws IOException, ClassNotFoundException
-    {
-        s.defaultReadObject();  // read the fields
-        if ((handler = getURLStreamHandler(protocol)) == null) {
+            throws IOException, ClassNotFoundException {
+        GetField gf = s.readFields();
+        String protocol = (String)gf.get("protocol", null);
+        if (getURLStreamHandler(protocol) == null) {
             throw new IOException("unknown protocol: " + protocol);
         }
+        String host = (String)gf.get("host", null);
+        int port = gf.get("port", -1);
+        String authority = (String)gf.get("authority", null);
+        String file = (String)gf.get("file", null);
+        String ref = (String)gf.get("ref", null);
+        int hashCode = gf.get("hashCode", -1);
+        if (authority == null
+                && ((host != null && !host.isEmpty()) || port != -1)) {
+            if (host == null)
+                host = "";
+            authority = (port == -1) ? host : host + ":" + port;
+        }
+        tempState = new UrlDeserializedState(protocol, host, port, authority,
+               file, ref, hashCode);
+    }
+
+    /**
+     * Replaces the de-serialized object with an URL object.
+     *
+     * @return a newly created object from the deserialzed state.
+     *
+     * @throws ObjectStreamException if a new object replacing this
+     * object could not be created
+     */
+
+   private Object readResolve() throws ObjectStreamException {
+
+        URLStreamHandler handler = null;
+        // already been checked in readObject
+        handler = getURLStreamHandler(tempState.getProtocol());
+
+        URL replacementURL = null;
+        if (isBuiltinStreamHandler(handler.getClass().getName())) {
+            replacementURL = fabricateNewURL();
+        } else {
+            replacementURL = setDeserializedFields(handler);
+        }
+        return replacementURL;
+    }
+
+    private URL setDeserializedFields(URLStreamHandler handler) {
+        URL replacementURL;
+        String userInfo = null;
+        String protocol = tempState.getProtocol();
+        String host = tempState.getHost();
+        int port = tempState.getPort();
+        String authority = tempState.getAuthority();
+        String file = tempState.getFile();
+        String ref = tempState.getRef();
+        int hashCode = tempState.getHashCode();
+
 
         // Construct authority part
-        if (authority == null &&
-            ((host != null && host.length() > 0) || port != -1)) {
+        if (authority == null
+            && ((host != null && !host.isEmpty()) || port != -1)) {
             if (host == null)
                 host = "";
             authority = (port == -1) ? host : host + ":" + port;
@@ -1269,8 +1399,8 @@ public final class URL implements java.io.Serializable {
         }
 
         // Construct path and query part
-        path = null;
-        query = null;
+        String path = null;
+        String query = null;
         if (file != null) {
             // Fix: only do this if hierarchical?
             int q = file.lastIndexOf('?');
@@ -1280,6 +1410,70 @@ public final class URL implements java.io.Serializable {
             } else
                 path = file;
         }
+
+        // Set the object fields.
+        this.protocol = protocol;
+        this.host = host;
+        this.port = port;
+        this.file = file;
+        this.authority = authority;
+        this.ref = ref;
+        this.hashCode = hashCode;
+        this.handler = handler;
+        this.query = query;
+        this.path = path;
+        this.userInfo = userInfo;
+        replacementURL = this;
+        return replacementURL;
+    }
+
+    private URL fabricateNewURL()
+                throws InvalidObjectException {
+        // create URL string from deserialized object
+        URL replacementURL = null;
+        String urlString = tempState.reconstituteUrlString();
+
+        try {
+            replacementURL = new URL(urlString);
+        } catch (MalformedURLException mEx) {
+            resetState();
+            InvalidObjectException invoEx = new InvalidObjectException(
+                    "Malformed URL: " + urlString);
+            invoEx.initCause(mEx);
+            throw invoEx;
+        }
+        replacementURL.setSerializedHashCode(tempState.getHashCode());
+        resetState();
+        return replacementURL;
+    }
+
+    boolean isBuiltinStreamHandler(URLStreamHandler handler) {
+       Class<?> handlerClass = handler.getClass();
+       return isBuiltinStreamHandler(handlerClass.getName())
+                 || (handlerClass.getClassLoader() == null);
+    }
+
+    private boolean isBuiltinStreamHandler(String handlerClassName) {
+        return (handlerClassName.startsWith(BUILTIN_HANDLERS_PREFIX));
+    }
+
+    private void resetState() {
+        this.protocol = null;
+        this.host = null;
+        this.port = -1;
+        this.file = null;
+        this.authority = null;
+        this.ref = null;
+        this.hashCode = -1;
+        this.handler = null;
+        this.query = null;
+        this.path = null;
+        this.userInfo = null;
+        this.tempState = null;
+    }
+
+    private void setSerializedHashCode(int hc) {
+        this.hashCode = hc;
     }
 }
 
@@ -1309,5 +1503,84 @@ class Parts {
 
     String getRef() {
         return ref;
+    }
+}
+
+final class UrlDeserializedState {
+    private final String protocol;
+    private final String host;
+    private final int port;
+    private final String authority;
+    private final String file;
+    private final String ref;
+    private final int hashCode;
+
+    public UrlDeserializedState(String protocol,
+                                String host, int port,
+                                String authority, String file,
+                                String ref, int hashCode) {
+        this.protocol = protocol;
+        this.host = host;
+        this.port = port;
+        this.authority = authority;
+        this.file = file;
+        this.ref = ref;
+        this.hashCode = hashCode;
+    }
+
+    String getProtocol() {
+        return protocol;
+    }
+
+    String getHost() {
+        return host;
+    }
+
+    String getAuthority () {
+        return authority;
+    }
+
+    int getPort() {
+        return port;
+    }
+
+    String getFile () {
+        return file;
+    }
+
+    String getRef () {
+        return ref;
+    }
+
+    int getHashCode () {
+        return hashCode;
+    }
+
+    String reconstituteUrlString() {
+
+        // pre-compute length of StringBuilder
+        int len = protocol.length() + 1;
+        if (authority != null && !authority.isEmpty())
+            len += 2 + authority.length();
+        if (file != null) {
+            len += file.length();
+        }
+        if (ref != null)
+            len += 1 + ref.length();
+        StringBuilder result = new StringBuilder(len);
+        result.append(protocol);
+        result.append(":");
+        if (authority != null && !authority.isEmpty()) {
+            result.append("//");
+            result.append(authority);
+        }
+        if (file != null) {
+            result.append(file);
+        }
+        if (ref != null) {
+            result.append("#");
+            result.append(ref);
+        }
+        return result.toString();
     }
 }

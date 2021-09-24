@@ -1,33 +1,33 @@
 /*
  * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 only, as
- * published by the Free Software Foundation.  Oracle designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Oracle in the LICENSE file that accompanied this code.
  *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * version 2 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
  *
- * You should have received a copy of the GNU General Public License version
- * 2 along with this work; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
- * or visit www.oracle.com if you need additional information or have any
- * questions.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file:
+ *
+ *
+ *
+ *
  *
  * Copyright (c) 2008-2012, Stephen Colebourne & Michael Nascimento Santos
  *
@@ -64,10 +64,12 @@ package java.time.format;
 import java.time.ZoneId;
 import java.time.chrono.Chronology;
 import java.time.chrono.IsoChronology;
+import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -77,8 +79,8 @@ import java.util.function.Consumer;
  * It has the ability to store and retrieve the parsed values and manage optional segments.
  * It also provides key information to the parsing methods.
  * <p>
- * Once parsing is complete, the {@link #toParsed()} is used to obtain the data.
- * It contains a method to resolve  the separate parsed fields into meaningful values.
+ * Once parsing is complete, the {@link #toUnresolved()} is used to obtain the unresolved
+ * result data. The {@link #toResolved()} is used to obtain the resolved result.
  *
  * @implSpec
  * This class is a mutable context intended for use from a single thread.
@@ -309,15 +311,26 @@ final class DateTimeParseContext {
     }
 
     /**
-     * Gets the result of the parse.
+     * Gets the unresolved result of the parse.
      *
      * @return the result of the parse, not null
      */
-    Parsed toParsed() {
-        Parsed parsed = currentParsed();
-        parsed.effectiveChrono = getEffectiveChronology();
-        return parsed;
+    Parsed toUnresolved() {
+        return currentParsed();
     }
+
+    /**
+     * Gets the resolved result of the parse.
+     *
+     * @return the result of the parse, not null
+     */
+    TemporalAccessor toResolved(ResolverStyle resolverStyle, Set<TemporalField> resolverFields) {
+        Parsed parsed = currentParsed();
+        parsed.chrono = getEffectiveChronology();
+        parsed.zone = (parsed.zone != null ? parsed.zone : formatter.getZone());
+        return parsed.resolve(resolverStyle, resolverFields);
+    }
+
 
     //-----------------------------------------------------------------------
     /**
